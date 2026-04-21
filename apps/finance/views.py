@@ -58,7 +58,7 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     paginate_by = 20
     allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
     page_title = 'Moliya ledger'
-    page_subtitle = 'Company va manager wallet harakatlarini bitta markaziy jurnal orqali ko`ring'
+    page_subtitle = 'Ferma va manager wallet harakatlarini bitta markaziy jurnal orqali ko`ring'
 
     def get_queryset(self):
         self.filter_form = TransactionFilterForm(self.request.GET or None, user=self.request.user)
@@ -105,6 +105,8 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
                     object=form.cleaned_data['object'],
                     date=form.cleaned_data['date'],
                     description=form.cleaned_data['description'],
+                    target_currency=form.cleaned_data.get('target_currency'),
+                    exchange_rate=form.cleaned_data.get('exchange_rate'),
                 )
             except ValidationError as error:
                 _apply_validation_error(form, error)
@@ -121,8 +123,8 @@ class TransactionCreateView(PageMetadataMixin, DirectorRequiredMixin, FormView):
     template_name = 'finance/transaction_form.html'
     form_class = TransactionForm
     success_url = reverse_lazy('finance:transaction-list')
-    page_title = 'Company transaction yaratish'
-    page_subtitle = 'Faqat company wallet uchun kirim yoki chiqim yaratiladi'
+    page_title = 'Ferma transaction yaratish'
+    page_subtitle = 'Faqat ferma wallet uchun kirim yoki chiqim yaratiladi'
 
     def form_valid(self, form):
         try:
@@ -136,12 +138,12 @@ class TransactionCreateView(PageMetadataMixin, DirectorRequiredMixin, FormView):
         except ValidationError as error:
             _apply_validation_error(form, error)
             return self.form_invalid(form)
-        messages.success(self.request, 'Company transaction muvaffaqiyatli yaratildi.')
+        messages.success(self.request, 'Ferma transaction muvaffaqiyatli yaratildi.')
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_title'] = 'Company transaction'
+        context['form_title'] = 'Ferma transaction'
         return context
 
 
@@ -258,7 +260,7 @@ class ManagerTransferCreateView(PageMetadataMixin, DirectorRequiredMixin, FormVi
     form_class = ManagerTransferForm
     success_url = reverse_lazy('finance:manager-account-list')
     page_title = 'Managerga pul o`tkazish'
-    page_subtitle = 'Company balansidan manager operatsion hisobiga ichki transfer'
+    page_subtitle = 'Ferma balansidan manager operatsion hisobiga ichki transfer'
 
     def form_valid(self, form):
         try:
@@ -293,7 +295,7 @@ class ManagerReturnCreateView(PageMetadataMixin, RoleRequiredMixin, FormView):
     success_url = reverse_lazy('finance:manager-account-list')
     allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
     page_title = 'Manager mablag`ini qaytarish'
-    page_subtitle = 'Ishlatilmagan operatsion mablag`ni company hisobiga qaytarish'
+    page_subtitle = 'Ishlatilmagan operatsion mablag`ni ferma hisobiga qaytarish'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -314,7 +316,7 @@ class ManagerReturnCreateView(PageMetadataMixin, RoleRequiredMixin, FormView):
         except ValidationError as error:
             _apply_validation_error(form, error)
             return self.form_invalid(form)
-        messages.success(self.request, 'Mablag` company hisobiga qaytarildi.')
+        messages.success(self.request, 'Mablag` ferma hisobiga qaytarildi.')
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -331,7 +333,7 @@ class ManagerExpenseCreateView(PageMetadataMixin, RoleRequiredMixin, View):
     template_name = 'finance/manager_expense_form.html'
     allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
     page_title = 'Manager expense'
-    page_subtitle = 'Xarajat manager walletdan ayriladi va company balansiga qayta ta`sir qilmaydi'
+    page_subtitle = 'Xarajat manager walletdan ayriladi va ferma balansiga qayta ta`sir qilmaydi'
 
     def _build_context(self, request, form):
         context = {

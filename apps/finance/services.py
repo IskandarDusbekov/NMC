@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, time
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -27,6 +27,7 @@ from .models import (
 
 
 ZERO = Decimal('0.00')
+MONEY_QUANT = Decimal('0.01')
 
 
 class ExchangeRateService:
@@ -140,25 +141,35 @@ class ManagerBalanceService:
 
 class TransactionService:
     @staticmethod
+    def _money(value):
+        return Decimal(value).quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
+
+    @staticmethod
     def _object_balance_delta(transaction):
         if not transaction.object_id:
-            return ZERO
+            return None
+        amount = transaction.target_amount if transaction.target_amount is not None else transaction.amount
+        currency = transaction.target_currency or transaction.currency
         mapping = {
-            (WalletTypeChoices.OBJECT, TransactionEntryTypeChoices.OBJECT_EXPENSE): transaction.amount,
-            (WalletTypeChoices.COMPANY, TransactionEntryTypeChoices.TRANSFER_TO_OBJECT): -transaction.amount,
-            (WalletTypeChoices.COMPANY, TransactionEntryTypeChoices.TRANSFER_FROM_OBJECT): transaction.amount,
+            (WalletTypeChoices.OBJECT, TransactionEntryTypeChoices.OBJECT_EXPENSE): amount,
+            (WalletTypeChoices.COMPANY, TransactionEntryTypeChoices.TRANSFER_TO_OBJECT): -amount,
+            (WalletTypeChoices.COMPANY, TransactionEntryTypeChoices.TRANSFER_FROM_OBJECT): amount,
         }
-        return mapping.get((transaction.wallet_type, transaction.entry_type), ZERO)
+        delta = mapping.get((transaction.wallet_type, transaction.entry_type))
+        if delta is None:
+            return None
+        return currency, delta
 
     @classmethod
     def _apply_object_balance_delta(cls, transaction, multiplier=1):
-        delta = cls._object_balance_delta(transaction)
-        if not delta:
+        result = cls._object_balance_delta(transaction)
+        if not result:
             return
+        currency, delta = result
         construction_object = transaction.object
         construction_object.refresh_from_db(fields=['balance_uzs', 'balance_usd', 'updated_at'])
         signed_delta = delta * Decimal(multiplier)
-        if transaction.currency == CurrencyChoices.UZS:
+        if currency == CurrencyChoices.UZS:
             next_balance = construction_object.balance_uzs + signed_delta
             if next_balance < 0:
                 raise ValidationError({'amount': f'Obyekt UZS balansi manfiyga tushib ketadi: {next_balance} UZS.'})
@@ -320,6 +331,27 @@ class TransactionService:
 
 class TransferService:
     @staticmethod
+    def _resolve_conversion(*, amount, currency, target_currency=None, exchange_rate=None):
+        target_currency = target_currency or currency
+        if target_currency == currency:
+            return amount, target_currency, None
+
+        if exchange_rate in (None, ''):
+            latest_rate = ExchangeRateService.latest_rate()
+            if latest_rate is None:
+                latest_rate = ExchangeRateService.update_rate_from_cbu(user=None)
+            exchange_rate = latest_rate.usd_to_uzs
+
+        exchange_rate = Decimal(exchange_rate)
+        if exchange_rate <= 0:
+            raise ValidationError({'exchange_rate': 'Kurs 0 dan katta bo`lishi kerak.'})
+        if currency == CurrencyChoices.USD and target_currency == CurrencyChoices.UZS:
+            return TransactionService._money(amount * exchange_rate), target_currency, exchange_rate
+        if currency == CurrencyChoices.UZS and target_currency == CurrencyChoices.USD:
+            return TransactionService._money(amount / exchange_rate), target_currency, exchange_rate
+        raise ValidationError({'target_currency': 'Valyuta aylantirish faqat USD <-> UZS uchun ishlaydi.'})
+
+    @staticmethod
     def _check_transfer_permissions(user, manager_account):
         if getattr(user, 'is_superuser', False) or user.role in {'ADMIN', 'DIRECTOR'}:
             return
@@ -329,18 +361,27 @@ class TransferService:
 
     @classmethod
     @db_transaction.atomic
-    def transfer_to_manager(cls, *, manager_account, amount, currency, description, date, user, request=None):
+    def transfer_to_manager(cls, *, manager_account, amount, currency, description, date, user, request=None, target_currency=None, exchange_rate=None):
         if not (getattr(user, 'is_superuser', False) or user.role in {'ADMIN', 'DIRECTOR'}):
             raise ValidationError('Managerga pul o`tkazish faqat admin/director uchun ruxsat etilgan.')
         company_balance = CompanyBalanceService.current_balance(currency)
         if amount > company_balance:
-            raise ValidationError({'amount': f'Company balans yetarli emas. Mavjud: {company_balance} {currency}.'})
+            raise ValidationError({'amount': f'Ferma balansi yetarli emas. Mavjud: {company_balance} {currency}.'})
+        target_amount, target_currency, exchange_rate = cls._resolve_conversion(
+            amount=amount,
+            currency=currency,
+            target_currency=target_currency,
+            exchange_rate=exchange_rate,
+        )
 
         transfer = ManagerTransfer.objects.create(
             from_user=user,
             to_manager=manager_account,
             amount=amount,
             currency=currency,
+            target_amount=target_amount,
+            target_currency=target_currency,
+            exchange_rate=exchange_rate,
             description=description,
             date=date,
             transfer_kind=ManagerTransfer.TransferKind.TRANSFER,
@@ -354,8 +395,11 @@ class TransferService:
             manager_account=manager_account,
             amount=amount,
             currency=currency,
+            target_amount=target_amount,
+            target_currency=target_currency,
+            exchange_rate=exchange_rate,
             category=None,
-            description=description or f'{manager_account} uchun transfer',
+            description=description or f'{manager_account} uchun o`tkazma',
             date=date,
             object=None,
             work_item=None,
@@ -371,10 +415,13 @@ class TransferService:
             entry_type=TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
             wallet_type=WalletTypeChoices.MANAGER,
             manager_account=manager_account,
-            amount=amount,
-            currency=currency,
+            amount=target_amount,
+            currency=target_currency,
+            target_amount=amount,
+            target_currency=currency,
+            exchange_rate=exchange_rate,
             category=None,
-            description=description or f'Company hisobidan transfer',
+            description=description or f'Ferma hisobidan o`tkazma',
             date=date,
             object=None,
             work_item=None,
@@ -388,7 +435,7 @@ class TransferService:
             action='manager_transfer_created',
             model_name='ManagerTransfer',
             object_id=str(transfer.pk),
-            description=f'{manager_account} ga {amount} {currency} o`tkazildi.',
+            description=f'{manager_account} ga {amount} {currency} -> {target_amount} {target_currency} o`tkazildi.',
             ip_address=AuditLogService.get_ip_address(request) if request else None,
         )
         return transfer
@@ -489,7 +536,7 @@ class ManagerExpenseService:
 class CompanyQuickActionService:
     @classmethod
     @db_transaction.atomic
-    def execute(cls, *, user, request=None, action, amount, currency, category=None, manager_account=None, object=None, date=None, description=''):
+    def execute(cls, *, user, request=None, action, amount, currency, category=None, manager_account=None, object=None, date=None, description='', target_currency=None, exchange_rate=None):
         from apps.finance.forms import CompanyQuickActionForm
 
         if action == CompanyQuickActionForm.ACTION_COMPANY_INCOME:
@@ -541,6 +588,8 @@ class CompanyQuickActionService:
                 date=date,
                 user=user,
                 request=request,
+                target_currency=target_currency,
+                exchange_rate=exchange_rate,
             )
 
         if action == CompanyQuickActionForm.ACTION_OBJECT_FUNDING:
@@ -551,7 +600,13 @@ class CompanyQuickActionService:
 
             company_balance = CompanyBalanceService.current_balance(currency)
             if amount > company_balance:
-                raise ValidationError({'amount': f'Company balans yetarli emas. Mavjud: {company_balance} {currency}.'})
+                raise ValidationError({'amount': f'Ferma balansi yetarli emas. Mavjud: {company_balance} {currency}.'})
+            target_amount, target_currency, exchange_rate = TransferService._resolve_conversion(
+                amount=amount,
+                currency=currency,
+                target_currency=target_currency,
+                exchange_rate=exchange_rate,
+            )
 
             transaction = TransactionService.create_transaction(
                 user=user,
@@ -562,6 +617,9 @@ class CompanyQuickActionService:
                 manager_account=None,
                 amount=amount,
                 currency=currency,
+                target_amount=target_amount,
+                target_currency=target_currency,
+                exchange_rate=exchange_rate,
                 category=None,
                 description=description or f'{object.name} obyektiga mablag` yo`naltirildi',
                 date=date,
@@ -571,18 +629,18 @@ class CompanyQuickActionService:
                 reference_type='object_funding',
                 reference_id=str(object.pk),
             )
-            if currency == CurrencyChoices.UZS:
-                object.balance_uzs += amount
+            if target_currency == CurrencyChoices.UZS:
+                object.balance_uzs += target_amount
                 object.save(update_fields=['balance_uzs', 'updated_at'])
             else:
-                object.balance_usd += amount
+                object.balance_usd += target_amount
                 object.save(update_fields=['balance_usd', 'updated_at'])
             AuditLogService.log(
                 user=user,
                 action='object_funded',
                 model_name='ConstructionObject',
                 object_id=str(object.pk),
-                description=f'{object.name} obyektiga {amount} {currency} yo`naltirildi.',
+                description=f'{object.name} obyektiga {amount} {currency} -> {target_amount} {target_currency} yo`naltirildi.',
                 ip_address=AuditLogService.get_ip_address(request) if request else None,
             )
             return transaction

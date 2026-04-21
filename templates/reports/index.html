@@ -90,7 +90,7 @@
                         <tr>
                             <td class="px-2 py-3 text-slate-600">{{ item.date }}</td>
                             <td class="px-2 py-3 font-semibold text-slate-800">{{ item.entry_type }}</td>
-                            <td class="px-2 py-3 text-slate-600">{% if item.wallet_type == 'MANAGER' %}{{ item.manager_account.user.full_name }}{% else %}Company{% endif %}</td>
+                            <td class="px-2 py-3 text-slate-600">{% if item.wallet_type == 'MANAGER' %}{{ item.manager_account.user.full_name }}{% else %}Ferma{% endif %}</td>
                             <td class="px-2 py-3 text-slate-600">{{ item.category.name|default:"Ichki transfer" }}</td>
                             <td class="px-2 py-3 text-right font-semibold {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">{% if item.sign < 0 %}-{% else %}+{% endif %}{{ item.amount|money }} {{ item.currency }}</td>
                         </tr>

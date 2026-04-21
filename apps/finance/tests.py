@@ -80,6 +80,49 @@ class TransactionServiceTest(TestCase):
         self.assertEqual(company_balance[CurrencyChoices.UZS], Decimal('750000.00'))
         self.assertEqual(manager_balance[CurrencyChoices.UZS], Decimal('250000.00'))
 
+    def test_transfer_to_manager_can_convert_currency_and_delete_safely(self):
+        usd_category, _ = TransactionCategory.objects.get_or_create(
+            name='USD kirim',
+            type=TransactionTypeChoices.INCOME,
+        )
+        TransactionService.create_transaction(
+            user=self.director,
+            type=TransactionTypeChoices.INCOME,
+            amount=Decimal('100.00'),
+            currency=CurrencyChoices.USD,
+            category=usd_category,
+            description='USD seed',
+            date=date(2026, 4, 20),
+            object=None,
+            work_item=None,
+            worker=None,
+            reference_type='manual',
+            reference_id='usd-seed',
+        )
+
+        transfer = TransferService.transfer_to_manager(
+            manager_account=self.manager.manager_account,
+            amount=Decimal('10.00'),
+            currency=CurrencyChoices.USD,
+            target_currency=CurrencyChoices.UZS,
+            exchange_rate=Decimal('12000.00'),
+            description='USD to UZS',
+            date=date(2026, 4, 21),
+            user=self.director,
+        )
+
+        self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.USD), Decimal('90.00'))
+        self.assertEqual(ManagerBalanceService.summary_for_account(self.manager.manager_account)[CurrencyChoices.UZS], Decimal('120000.00'))
+
+        company_entry = Transaction.objects.get(manager_transfer=transfer, wallet_type='COMPANY')
+        self.assertEqual(company_entry.target_amount, Decimal('120000.00'))
+        self.assertEqual(company_entry.exchange_rate, Decimal('12000.00'))
+
+        TransactionService.soft_delete_transaction(company_entry, user=self.director)
+
+        self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.USD), Decimal('100.00'))
+        self.assertEqual(ManagerBalanceService.summary_for_account(self.manager.manager_account)[CurrencyChoices.UZS], Decimal('0.00'))
+
     def test_manager_expense_does_not_reduce_company_balance_twice(self):
         TransferService.transfer_to_manager(
             manager_account=self.manager.manager_account,
@@ -311,3 +354,49 @@ class FinanceQuickActionViewTest(TestCase):
         self.object.refresh_from_db()
         self.assertEqual(self.object.balance_uzs, Decimal('150000.00'))
         self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.UZS), Decimal('850000.00'))
+
+    def test_quick_object_funding_can_convert_currency(self):
+        income_category, _ = TransactionCategory.objects.get_or_create(
+            name='USD kirim',
+            type=TransactionTypeChoices.INCOME,
+        )
+        TransactionService.create_transaction(
+            user=self.director,
+            type=TransactionTypeChoices.INCOME,
+            amount=Decimal('100.00'),
+            currency=CurrencyChoices.USD,
+            category=income_category,
+            description='USD seed',
+            date=date(2026, 4, 21),
+            object=None,
+            work_item=None,
+            worker=None,
+            reference_type='test',
+            reference_id='usd-seed',
+        )
+
+        response = self.client.post(
+            reverse('finance:transaction-list'),
+            {
+                'action': CompanyQuickActionForm.ACTION_OBJECT_FUNDING,
+                'amount': '10.00',
+                'currency': CurrencyChoices.USD,
+                'target_currency': CurrencyChoices.UZS,
+                'exchange_rate': '12000.00',
+                'object': self.object.pk,
+                'date': '2026-04-21',
+                'description': 'Object funding convert',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.object.refresh_from_db()
+        self.assertEqual(self.object.balance_uzs, Decimal('120000.00'))
+        self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.USD), Decimal('90.00'))
+
+        transaction = Transaction.objects.get(description='Object funding convert')
+        TransactionService.soft_delete_transaction(transaction, user=self.director)
+
+        self.object.refresh_from_db()
+        self.assertEqual(self.object.balance_uzs, Decimal('0.00'))
+        self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.USD), Decimal('100.00'))

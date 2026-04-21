@@ -22,22 +22,22 @@ class TransactionTypeChoices(models.TextChoices):
 
 
 class WalletTypeChoices(models.TextChoices):
-    COMPANY = 'COMPANY', 'Company'
+    COMPANY = 'COMPANY', 'Ferma'
     MANAGER = 'MANAGER', 'Manager'
     OBJECT = 'OBJECT', 'Object'
 
 
 class TransactionEntryTypeChoices(models.TextChoices):
-    COMPANY_INCOME = 'COMPANY_INCOME', 'Company income'
-    COMPANY_EXPENSE = 'COMPANY_EXPENSE', 'Company expense'
-    TRANSFER_TO_MANAGER = 'TRANSFER_TO_MANAGER', 'Transfer to manager'
-    TRANSFER_TO_OBJECT = 'TRANSFER_TO_OBJECT', 'Transfer to object'
-    TRANSFER_FROM_OBJECT = 'TRANSFER_FROM_OBJECT', 'Transfer from object'
-    MANAGER_EXPENSE = 'MANAGER_EXPENSE', 'Manager expense'
-    OBJECT_EXPENSE = 'OBJECT_EXPENSE', 'Object expense'
-    MANAGER_RETURN = 'MANAGER_RETURN', 'Manager return'
-    MANAGER_TO_MANAGER = 'MANAGER_TO_MANAGER', 'Manager to manager'
-    ADJUSTMENT = 'ADJUSTMENT', 'Adjustment'
+    COMPANY_INCOME = 'COMPANY_INCOME', 'Ferma kirimi'
+    COMPANY_EXPENSE = 'COMPANY_EXPENSE', 'Ferma chiqimi'
+    TRANSFER_TO_MANAGER = 'TRANSFER_TO_MANAGER', 'Managerga o`tkazma'
+    TRANSFER_TO_OBJECT = 'TRANSFER_TO_OBJECT', 'Obyektga o`tkazma'
+    TRANSFER_FROM_OBJECT = 'TRANSFER_FROM_OBJECT', 'Obyektdan qaytarish'
+    MANAGER_EXPENSE = 'MANAGER_EXPENSE', 'Manager xarajati'
+    OBJECT_EXPENSE = 'OBJECT_EXPENSE', 'Obyekt xarajati'
+    MANAGER_RETURN = 'MANAGER_RETURN', 'Manager qaytargan pul'
+    MANAGER_TO_MANAGER = 'MANAGER_TO_MANAGER', 'Managerdan managerga'
+    ADJUSTMENT = 'ADJUSTMENT', 'Tuzatish'
 
 
 class TransactionCategory(TimeStampedModel):
@@ -115,6 +115,9 @@ class ManagerTransfer(TimeStampedModel):
     )
     amount = models.DecimalField(max_digits=18, decimal_places=2)
     currency = models.CharField(max_length=3, choices=CurrencyChoices.choices)
+    target_amount = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
+    target_currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, blank=True)
+    exchange_rate = models.DecimalField(max_digits=18, decimal_places=6, blank=True, null=True)
     description = models.TextField(blank=True)
     date = models.DateField(default=date.today)
     transfer_kind = models.CharField(max_length=20, choices=TransferKind.choices, default=TransferKind.TRANSFER)
@@ -152,6 +155,9 @@ class Transaction(TimeStampedModel, SoftDeleteModel):
     wallet_type = models.CharField(max_length=20, choices=WalletTypeChoices.choices, default=WalletTypeChoices.COMPANY)
     amount = models.DecimalField(max_digits=18, decimal_places=2)
     currency = models.CharField(max_length=3, choices=CurrencyChoices.choices)
+    target_amount = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
+    target_currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, blank=True)
+    exchange_rate = models.DecimalField(max_digits=18, decimal_places=6, blank=True, null=True)
     category = models.ForeignKey(
         'finance.TransactionCategory',
         blank=True,

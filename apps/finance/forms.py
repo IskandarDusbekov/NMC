@@ -80,16 +80,28 @@ class CompanyQuickActionForm(StyledFormMixin, forms.Form):
 
     action = forms.ChoiceField(
         choices=(
-            (ACTION_COMPANY_INCOME, 'Kompaniya hisobiga kirim'),
-            (ACTION_COMPANY_EXPENSE, 'Kompaniya hisobidan chiqim'),
+            (ACTION_COMPANY_INCOME, 'Ferma hisobiga kirim'),
+            (ACTION_COMPANY_EXPENSE, 'Ferma hisobidan chiqim'),
             (ACTION_MANAGER_TRANSFER, 'Managerga pul o`tkazish'),
-            (ACTION_OBJECT_FUNDING, 'Kompaniyadan obyektga yo`naltirish'),
-            (ACTION_OBJECT_RETURN, 'Obyektdan companyga qaytarish'),
+            (ACTION_OBJECT_FUNDING, 'Fermadan obyektga yo`naltirish'),
+            (ACTION_OBJECT_RETURN, 'Obyektdan fermaga qaytarish'),
         ),
         label='Amal turi',
     )
     amount = forms.DecimalField(max_digits=18, decimal_places=2, min_value=Decimal('0.01'), label='Summa')
-    currency = forms.ChoiceField(choices=CurrencyChoices.choices, label='Valyuta')
+    currency = forms.ChoiceField(choices=CurrencyChoices.choices, label='Ferma hisobidan chiqadigan valyuta')
+    target_currency = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Aylantirmasdan'), *CurrencyChoices.choices],
+        label='Qabul qiluvchi valyutasi',
+    )
+    exchange_rate = forms.DecimalField(
+        required=False,
+        max_digits=18,
+        decimal_places=6,
+        min_value=Decimal('0.000001'),
+        label='USD kursi',
+    )
     category = forms.ModelChoiceField(
         required=False,
         queryset=TransactionCategory.objects.none(),
@@ -110,9 +122,16 @@ class CompanyQuickActionForm(StyledFormMixin, forms.Form):
         self.fields['action'].widget.attrs['data-company-quick-action'] = 'true'
         self.fields['category'].widget.attrs['data-company-quick-category'] = 'true'
         self.fields['manager_account'].widget.attrs['data-company-quick-manager'] = 'true'
+        self.fields['target_currency'].widget.attrs['data-company-quick-target-currency'] = 'true'
+        self.fields['exchange_rate'].widget.attrs['data-company-quick-exchange-rate'] = 'true'
         self.fields['object'].queryset = ConstructionObject.objects.order_by('name')
         self.fields['manager_account'].queryset = ManagerAccount.objects.select_related('user').filter(is_active=True).order_by('user__full_name')
         self.fields['category'].queryset = TransactionCategory.objects.filter(is_active=True).order_by('type', 'name')
+        latest_rate = ExchangeRate.objects.filter(is_active=True).order_by('-effective_at', '-created_at').first()
+        if latest_rate:
+            self.fields['exchange_rate'].initial = latest_rate.usd_to_uzs
+            self.fields['exchange_rate'].help_text = 'CBU kursi avtomatik olindi. Kerak bo`lsa qo`lda o`zgartiring.'
+        self.fields['target_currency'].help_text = 'Bo`sh qoldirsangiz o`tkazma shu valyutada amalga oshadi.'
 
     @staticmethod
     def _ensure_default_categories():
@@ -142,12 +161,18 @@ class CompanyQuickActionForm(StyledFormMixin, forms.Form):
         action = cleaned_data.get('action')
         construction_object = cleaned_data.get('object')
         manager_account = cleaned_data.get('manager_account')
+        currency = cleaned_data.get('currency')
+        target_currency = cleaned_data.get('target_currency') or currency
+        exchange_rate = cleaned_data.get('exchange_rate')
+        cleaned_data['target_currency'] = target_currency
 
         if action == self.ACTION_MANAGER_TRANSFER:
             cleaned_data['category'] = None
             cleaned_data['object'] = None
             if not manager_account:
                 self.add_error('manager_account', 'Managerga pul o`tkazish uchun manager tanlang.')
+            if currency != target_currency and not exchange_rate:
+                self.add_error('exchange_rate', 'Valyuta aylantirish uchun kurs kiriting.')
             return cleaned_data
 
         if action in {self.ACTION_OBJECT_FUNDING, self.ACTION_OBJECT_RETURN}:
@@ -155,6 +180,11 @@ class CompanyQuickActionForm(StyledFormMixin, forms.Form):
             cleaned_data['manager_account'] = None
             if not construction_object:
                 self.add_error('object', 'Obyekt tanlang.')
+            if action == self.ACTION_OBJECT_FUNDING and currency != target_currency and not exchange_rate:
+                self.add_error('exchange_rate', 'Valyuta aylantirish uchun kurs kiriting.')
+            if action == self.ACTION_OBJECT_RETURN:
+                cleaned_data['target_currency'] = currency
+                cleaned_data['exchange_rate'] = None
             return cleaned_data
 
         cleaned_data['manager_account'] = None

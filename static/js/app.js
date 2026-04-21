@@ -231,6 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickActionCategoryField = document.getElementById('company-quick-category-field');
     const quickActionManagerField = document.getElementById('company-quick-manager-field');
     const quickActionObjectField = document.getElementById('company-quick-object-field');
+    const quickActionTargetCurrencyField = document.getElementById('company-quick-target-currency-field');
+    const quickActionExchangeRateField = document.getElementById('company-quick-exchange-rate-field');
     const quickActionCategoryInput = document.querySelector('[data-company-quick-category]');
     const quickActionPresetButtons = document.querySelectorAll('[data-quick-action-preset]');
 
@@ -264,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!quickActionInput) return;
         const isManagerTransfer = quickActionInput.value === 'MANAGER_TRANSFER';
         const isObjectAction = quickActionInput.value === 'OBJECT_FUNDING' || quickActionInput.value === 'OBJECT_RETURN';
+        const isConvertibleTransfer = quickActionInput.value === 'MANAGER_TRANSFER' || quickActionInput.value === 'OBJECT_FUNDING';
         if (quickActionCategoryField) {
             quickActionCategoryField.classList.add('hidden');
         }
@@ -272,6 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (quickActionObjectField) {
             quickActionObjectField.classList.toggle('hidden', !isObjectAction);
+        }
+        if (quickActionTargetCurrencyField) {
+            quickActionTargetCurrencyField.classList.toggle('hidden', !isConvertibleTransfer);
+        }
+        if (quickActionExchangeRateField) {
+            quickActionExchangeRateField.classList.toggle('hidden', !isConvertibleTransfer);
         }
         filterQuickActionCategories();
     }

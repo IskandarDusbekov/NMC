@@ -72,7 +72,7 @@ class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
         self.fields['manager_account'].label = 'Manager hisobi'
         self.fields['object'].label = 'Obyekt'
         self.fields['description'].label = 'Izoh'
-        self.fields['source_wallet'].help_text = 'Company, obyekt yoki manager hisobidan to`lov qiling.'
+        self.fields['source_wallet'].help_text = 'Ferma, obyekt yoki manager hisobidan to`lov qiling.'
         manager_queryset = ManagerAccount.objects.select_related('user').filter(is_active=True).order_by('user__full_name')
         if user and getattr(user, 'role', '') == 'MANAGER' and not getattr(user, 'is_superuser', False):
             manager_queryset = manager_queryset.filter(user=user)

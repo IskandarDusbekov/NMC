@@ -7,8 +7,8 @@
             {% include "includes/stats_card.html" with title="Mening UZS balansim" value=personal_balances|dict_get:"UZS"|money|add:" UZS" hint="Shaxsiy operatsion wallet" %}
             {% include "includes/stats_card.html" with title="Mening USD balansim" value=personal_balances|dict_get:"USD"|money|add:" USD" hint="Valyuta alohida yuritiladi" %}
         {% else %}
-            {% include "includes/stats_card.html" with title="Company UZS" value=company_balances|dict_get:"UZS"|money|add:" UZS" hint="Markaziy hisob" %}
-            {% include "includes/stats_card.html" with title="Company USD" value=company_balances|dict_get:"USD"|money|add:" USD" hint="Markaziy hisob" %}
+            {% include "includes/stats_card.html" with title="Ferma UZS" value=company_balances|dict_get:"UZS"|money|add:" UZS" hint="Markaziy hisob" %}
+            {% include "includes/stats_card.html" with title="Ferma USD" value=company_balances|dict_get:"USD"|money|add:" USD" hint="Markaziy hisob" %}
             {% include "includes/stats_card.html" with title="Managerlar qo`lida UZS" value=manager_holdings|dict_get:"UZS"|money|add:" UZS" hint="Operatsion mablag`" %}
             {% include "includes/stats_card.html" with title="Managerlar qo`lida USD" value=manager_holdings|dict_get:"USD"|money|add:" USD" hint="Operatsion mablag`" %}
         {% endif %}
@@ -66,7 +66,7 @@
                             <p class="mt-2 font-bold text-blue-600">{{ transfer.amount|money }} {{ transfer.currency }}</p>
                         </div>
                     {% empty %}
-                        {% include "includes/empty_state.html" with title="Transfer yo`q" text="Company va manager o`rtasidagi o`tkazmalar shu yerda ko`rinadi." %}
+                        {% include "includes/empty_state.html" with title="Transfer yo`q" text="Ferma va manager o`rtasidagi o`tkazmalar shu yerda ko`rinadi." %}
                     {% endfor %}
                 </div>
             </div>

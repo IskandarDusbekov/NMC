@@ -11,7 +11,7 @@
                 </div>
                 <h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">Dashboard</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    Company, manager, obyekt va ish turlari bo`yicha pul oqimini bir joyda kuzating.
+                    Ferma, manager, obyekt va ish turlari bo`yicha pul oqimini bir joyda kuzating.
                 </p>
             </div>
             <div class="grid grid-cols-2 gap-3 sm:flex">
@@ -75,7 +75,7 @@
                     </span>
                     <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">Markaziy</span>
                 </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Company balans UZS</p>
+                <p class="mt-5 text-sm font-semibold text-slate-500">Ferma balans UZS</p>
                 <p class="mt-2 text-2xl font-black text-slate-950">{{ balances|dict_get:"UZS"|money }} UZS</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Global hisob</p>
             </div>
@@ -86,7 +86,7 @@
                     </span>
                     <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">USD</span>
                 </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Company balans USD</p>
+                <p class="mt-5 text-sm font-semibold text-slate-500">Ferma balans USD</p>
                 <p class="mt-2 text-2xl font-black text-slate-950">{{ balances|dict_get:"USD"|money }} USD</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Global hisob</p>
             </div>
@@ -119,7 +119,7 @@
                     </span>
                     <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">Bugun</span>
                 </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Company chiqim</p>
+                <p class="mt-5 text-sm font-semibold text-slate-500">Ferma chiqim</p>
                 <p class="mt-2 text-2xl font-black text-slate-950">{{ today_company_expense.count }} ta</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">{{ today_company_expense_total|money }} jami</p>
             </div>
@@ -257,7 +257,7 @@
                                     {% elif item.wallet_type == 'OBJECT' %}
                                         Obyekt
                                     {% else %}
-                                        Company
+                                        Ferma
                                     {% endif %}
                                 </td>
                                 <td class="px-4 py-4 text-slate-600">{{ item.object.name|default:"Umumiy xarajat" }}</td>
@@ -308,7 +308,7 @@
                         </div>
                     </div>
                 {% empty %}
-                    {% include "includes/empty_state.html" with title="Transferlar yo`q" text="Company va manager o`rtasidagi transferlar shu blokda ko`rinadi." %}
+                    {% include "includes/empty_state.html" with title="Transferlar yo`q" text="Ferma va manager o`rtasidagi transferlar shu blokda ko`rinadi." %}
                 {% endfor %}
             </div>
         </div>
