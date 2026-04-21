@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.finance.models import CurrencyChoices
+from apps.finance.services import CompanyBalanceService, ExchangeRateService, ManagerBalanceService
 from apps.logs.services import AuditLogService
 from config.settings.env import env
 
@@ -64,6 +66,30 @@ class TelegramLoginSessionService:
             username=username,
             state=TelegramLoginSession.State.WAITING_CONTACT,
             last_error='',
+        )
+
+    @classmethod
+    def mark_waiting_username(cls, *, telegram_id, chat_id=None, username='', phone='', user=None, last_error=''):
+        return cls.upsert_session(
+            telegram_id=telegram_id,
+            chat_id=chat_id,
+            username=username,
+            phone=phone,
+            user=user,
+            state=TelegramLoginSession.State.WAITING_USERNAME,
+            last_error=last_error,
+        )
+
+    @classmethod
+    def mark_waiting_password(cls, *, telegram_id, chat_id=None, username='', phone='', user=None, last_error=''):
+        return cls.upsert_session(
+            telegram_id=telegram_id,
+            chat_id=chat_id,
+            username=username,
+            phone=phone,
+            user=user,
+            state=TelegramLoginSession.State.WAITING_PASSWORD,
+            last_error=last_error,
         )
 
     @classmethod
@@ -261,6 +287,18 @@ class TelegramBotFlowService:
     def _remove_keyboard():
         return {'remove_keyboard': True}
 
+    @staticmethod
+    def _main_keyboard():
+        return {
+            'keyboard': [
+                [{'text': '🔗 Saytga kirish'}],
+                [{'text': '💱 Bugungi kurs'}, {'text': '💰 Ferma hisobi'}],
+                [{'text': '📱 Mini App'}, {'text': 'ℹ️ Yordam'}],
+            ],
+            'resize_keyboard': True,
+            'one_time_keyboard': False,
+        }
+
     @classmethod
     def _access_url(cls, token: str):
         path = reverse('accounts:access-token', kwargs={'token': token})
@@ -327,6 +365,11 @@ class TelegramBotFlowService:
             ),
             reply_markup=cls._menu_markup(access_url),
         )
+        client.send_message(
+            chat_id=chat_id,
+            text='Menyu tayyor. Quyidagi tugmalardan foydalanishingiz mumkin.',
+            reply_markup=cls._main_keyboard(),
+        )
         AuditLogService.log(
             user=user,
             action='telegram_bot_access_sent',
@@ -339,7 +382,58 @@ class TelegramBotFlowService:
     def _send_help(cls, *, client, chat_id):
         client.send_message(
             chat_id=chat_id,
-            text='Kirish uchun /start yuboring. Agar akkaunt bog`langan bo`lsa yangi token olasiz, aks holda contact so`raladi.',
+            text=(
+                'Kirish uchun /start yuboring.\n'
+                'Avval telefon raqam, keyin username va parol tekshiriladi.\n'
+                'Menyu tugmalari: Saytga kirish, Bugungi kurs, Ferma hisobi.'
+            ),
+            reply_markup=cls._main_keyboard(),
+        )
+
+    @staticmethod
+    def _money(value):
+        return f'{value:,.2f}'.replace(',', ' ')
+
+    @classmethod
+    def _send_rate(cls, *, client, chat_id):
+        rate = ExchangeRateService.latest_rate()
+        if not rate:
+            client.send_message(
+                chat_id=chat_id,
+                text='USD kursi hali kiritilmagan. Admin paneldan yoki moliya bo`limidan kursni yangilang.',
+                reply_markup=cls._main_keyboard(),
+            )
+            return
+        client.send_message(
+            chat_id=chat_id,
+            text=(
+                'Bugungi USD kursi:\n'
+                f'1 USD = {cls._money(rate.usd_to_uzs)} UZS\n'
+                f'Yangilangan vaqt: {timezone.localtime(rate.effective_at).strftime("%Y-%m-%d %H:%M")}'
+            ),
+            reply_markup=cls._main_keyboard(),
+        )
+
+    @classmethod
+    def _send_balance(cls, *, client, chat_id, user):
+        if getattr(user, 'role', '') == User.Role.MANAGER:
+            try:
+                balances = ManagerBalanceService.summary_for_account(user.manager_account)
+                title = 'Mening hisobim'
+            except Exception:
+                balances = {CurrencyChoices.UZS: 0, CurrencyChoices.USD: 0}
+                title = 'Mening hisobim'
+        else:
+            balances = CompanyBalanceService.summary()
+            title = 'Ferma hisobi'
+        client.send_message(
+            chat_id=chat_id,
+            text=(
+                f'{title}:\n'
+                f'UZS: {cls._money(balances[CurrencyChoices.UZS])}\n'
+                f'USD: {cls._money(balances[CurrencyChoices.USD])}'
+            ),
+            reply_markup=cls._main_keyboard(),
         )
 
     @classmethod
@@ -360,20 +454,17 @@ class TelegramBotFlowService:
             )
             return
 
-        TelegramLoginSessionService.mark_linked(
+        TelegramLoginSessionService.mark_waiting_password(
             telegram_id=telegram_id,
             chat_id=actor['chat_id'],
             username=actor['username'],
             phone=user.phone,
             user=user,
         )
-        cls._send_access_menu(
-            client=client,
-            user=user,
+        client.send_message(
             chat_id=actor['chat_id'],
-            telegram_id=telegram_id,
-            username=actor['username'],
-            phone=user.phone,
+            text=f'{user.full_name}, akkaunt topildi. Xavfsizlik uchun parolingizni yuboring.',
+            reply_markup=cls._remove_keyboard(),
         )
 
     @classmethod
@@ -402,11 +493,7 @@ class TelegramBotFlowService:
 
         phone = contact.get('phone_number', '')
         try:
-            user = TelegramUserLinkService.link_user(
-                telegram_id=telegram_id,
-                telegram_username=actor['username'],
-                phone=phone,
-            )
+            user = TelegramUserLinkService.find_user_by_phone(phone)
         except ValidationError as error:
             error_message = cls._extract_error_message(error)
             TelegramLoginSessionService.mark_error(
@@ -423,7 +510,7 @@ class TelegramBotFlowService:
             )
             return
 
-        TelegramLoginSessionService.mark_linked(
+        TelegramLoginSessionService.mark_waiting_username(
             telegram_id=telegram_id,
             chat_id=actor['chat_id'],
             username=actor['username'],
@@ -432,23 +519,80 @@ class TelegramBotFlowService:
         )
         client.send_message(
             chat_id=actor['chat_id'],
-            text='Akkaunt tasdiqlandi. Endi kirish havolasini yuboraman.',
+            text='Telefon raqam topildi. Endi Django username kiriting.',
             reply_markup=cls._remove_keyboard(),
+        )
+
+    @classmethod
+    def _complete_password_login(cls, *, message, client, session, password):
+        actor = cls._actor(message)
+        user = session.user
+        if not user or not user.is_active:
+            client.send_message(chat_id=actor['chat_id'], text='Foydalanuvchi topilmadi yoki faol emas.')
+            return
+        if not user.check_password(password):
+            TelegramLoginSessionService.mark_waiting_password(
+                telegram_id=actor['telegram_id'],
+                chat_id=actor['chat_id'],
+                username=actor['username'],
+                phone=session.phone,
+                user=user,
+                last_error='Parol noto`g`ri.',
+            )
+            client.send_message(
+                chat_id=actor['chat_id'],
+                text='Parol noto`g`ri. Qaytadan parol yuboring yoki /start bilan boshidan boshlang.',
+                reply_markup=cls._remove_keyboard(),
+            )
+            return
+
+        conflicting_user = User.objects.filter(telegram_id=actor['telegram_id']).exclude(pk=user.pk).first()
+        if conflicting_user:
+            client.send_message(chat_id=actor['chat_id'], text='Bu Telegram akkaunti boshqa foydalanuvchiga bog`langan.')
+            return
+        if user.telegram_id and user.telegram_id != actor['telegram_id']:
+            client.send_message(chat_id=actor['chat_id'], text='Bu foydalanuvchi boshqa Telegram akkauntiga allaqachon bog`langan.')
+            return
+
+        changed_fields = []
+        if user.telegram_id != actor['telegram_id']:
+            user.telegram_id = actor['telegram_id']
+            changed_fields.append('telegram_id')
+        if actor['username'] and user.telegram_username != actor['username']:
+            user.telegram_username = actor['username']
+            changed_fields.append('telegram_username')
+        if session.phone and not user.phone:
+            user.phone = session.phone
+            changed_fields.append('phone')
+        if changed_fields:
+            user.save(update_fields=changed_fields)
+
+        TelegramLoginSessionService.mark_linked(
+            telegram_id=actor['telegram_id'],
+            chat_id=actor['chat_id'],
+            username=actor['username'],
+            phone=session.phone or user.phone,
+            user=user,
+        )
+        client.send_message(
+            chat_id=actor['chat_id'],
+            text='Akkaunt tasdiqlandi. Endi kirish havolasini yuboraman.',
+            reply_markup=cls._main_keyboard(),
         )
         cls._send_access_menu(
             client=client,
             user=user,
             chat_id=actor['chat_id'],
-            telegram_id=telegram_id,
+            telegram_id=actor['telegram_id'],
             username=actor['username'],
-            phone=phone,
+            phone=session.phone or user.phone,
         )
         AuditLogService.log(
             user=user,
             action='telegram_bot_user_linked',
             model_name='User',
             object_id=str(user.pk),
-            description=f'{user} Telegram bot orqali contact yordamida bog`landi.',
+            description=f'{user} Telegram bot orqali username/parol bilan tasdiqlandi.',
         )
 
     @classmethod
@@ -463,7 +607,90 @@ class TelegramBotFlowService:
             cls._send_help(client=client, chat_id=actor['chat_id'])
             return
 
-        if text in {'/token', 'token', 'link', 'saytga kirish'}:
+        session = TelegramLoginSession.objects.filter(telegram_id=telegram_id).select_related('user').first()
+        if session and session.state == TelegramLoginSession.State.WAITING_USERNAME:
+            raw_text = (message.get('text') or '').strip()
+            if not session.user:
+                cls._send_contact_request(
+                    client=client,
+                    chat_id=actor['chat_id'],
+                    telegram_id=telegram_id,
+                    username=actor['username'],
+                )
+                return
+            if raw_text != session.user.username:
+                TelegramLoginSessionService.mark_waiting_username(
+                    telegram_id=telegram_id,
+                    chat_id=actor['chat_id'],
+                    username=actor['username'],
+                    phone=session.phone,
+                    user=session.user,
+                    last_error='Username noto`g`ri.',
+                )
+                client.send_message(
+                    chat_id=actor['chat_id'],
+                    text='Username noto`g`ri. Django admin paneldagi username bilan bir xil kiriting.',
+                    reply_markup=cls._remove_keyboard(),
+                )
+                return
+            TelegramLoginSessionService.mark_waiting_password(
+                telegram_id=telegram_id,
+                chat_id=actor['chat_id'],
+                username=actor['username'],
+                phone=session.phone,
+                user=session.user,
+            )
+            client.send_message(
+                chat_id=actor['chat_id'],
+                text='Username tasdiqlandi. Endi parolingizni yuboring.',
+                reply_markup=cls._remove_keyboard(),
+            )
+            return
+
+        if session and session.state == TelegramLoginSession.State.WAITING_PASSWORD:
+            cls._complete_password_login(
+                message=message,
+                client=client,
+                session=session,
+                password=(message.get('text') or '').strip(),
+            )
+            return
+
+        if text in {'💱 bugungi kurs', 'bugungi kurs', 'kurs', '/kurs'}:
+            cls._send_rate(client=client, chat_id=actor['chat_id'])
+            return
+
+        if text in {'💰 ferma hisobi', 'ferma hisobi', 'hisob', 'balans', '/balance'}:
+            try:
+                user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
+            except ValidationError:
+                cls._send_contact_request(
+                    client=client,
+                    chat_id=actor['chat_id'],
+                    telegram_id=telegram_id,
+                    username=actor['username'],
+                )
+                return
+            cls._send_balance(client=client, chat_id=actor['chat_id'], user=user)
+            return
+
+        if text in {'📱 mini app', 'mini app'}:
+            webapp_url = TelegramBotConfigService.webapp_url()
+            if webapp_url:
+                client.send_message(
+                    chat_id=actor['chat_id'],
+                    text='Mini App tugmasi:',
+                    reply_markup={'inline_keyboard': [[{'text': 'Mini App ochish', 'web_app': {'url': webapp_url}}]]},
+                )
+                return
+            client.send_message(
+                chat_id=actor['chat_id'],
+                text='Mini App uchun HTTPS TELEGRAM_WEBAPP_URL kerak. Localhost Telegram ichida Web App sifatida ochilmaydi.',
+                reply_markup=cls._main_keyboard(),
+            )
+            return
+
+        if text in {'/token', 'token', 'link', 'saytga kirish', '🔗 saytga kirish'}:
             try:
                 user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
             except ValidationError:

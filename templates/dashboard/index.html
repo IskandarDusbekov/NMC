@@ -2,14 +2,14 @@
 {% load core_tags %}
 
 {% block content %}
-    <section class="overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-5 shadow-sm md:p-7">
+    <section class="overflow-hidden rounded-[1.5rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-4 shadow-sm sm:rounded-[2rem] md:p-7">
         <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
                 <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700 shadow-sm">
                     <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
                     Qurilish boshqaruvi
                 </div>
-                <h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">Dashboard</h2>
+                <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl md:text-4xl">Dashboard</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                     Ferma, manager, obyekt va ish turlari bo`yicha pul oqimini bir joyda kuzating.
                 </p>
@@ -21,9 +21,9 @@
         </div>
     </section>
 
-    <section class="-mx-4 mt-5 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4">
+    <section class="dashboard-stats -mx-3 mt-5 flex snap-x gap-3 overflow-x-auto px-3 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 xl:grid-cols-4">
         {% if is_manager_dashboard %}
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-blue-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-blue-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-blue-50 p-3 text-blue-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h.01M11 15h2"/><rect width="18" height="14" x="3" y="5" rx="3"/></svg>
@@ -31,10 +31,10 @@
                     <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">Wallet</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Mening balansim UZS</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ balances|dict_get:"UZS"|money }} UZS</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"UZS"|money }} UZS</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Manager operatsion hisobi</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-emerald-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-emerald-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -42,10 +42,10 @@
                     <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">USD</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Mening balansim USD</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ balances|dict_get:"USD"|money }} USD</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"USD"|money }} USD</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Alohida yuritiladi</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-rose-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-rose-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-rose-50 p-3 text-rose-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
@@ -53,10 +53,10 @@
                     <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">Bugun</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Bugungi xarajatlarim</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ today_manager_expense.count }} ta</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ today_manager_expense.count }} ta</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">{{ today_manager_expense_total|money }} jami</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-amber-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-amber-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-amber-50 p-3 text-amber-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="m7 7 10 10M17 7 7 17"/></svg>
@@ -64,11 +64,11 @@
                     <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">Transfer</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Transferlar</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ recent_transfers|length }}</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ recent_transfers|length }}</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Menga bog`liq tarix</p>
             </div>
         {% else %}
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-blue-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-blue-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-blue-50 p-3 text-blue-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h.01M11 15h2"/><rect width="18" height="14" x="3" y="5" rx="3"/></svg>
@@ -76,10 +76,10 @@
                     <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">Markaziy</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Ferma balans UZS</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ balances|dict_get:"UZS"|money }} UZS</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"UZS"|money }} UZS</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Global hisob</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-emerald-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-emerald-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -87,10 +87,10 @@
                     <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">USD</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Ferma balans USD</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ balances|dict_get:"USD"|money }} USD</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"USD"|money }} USD</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Global hisob</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-amber-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-amber-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-amber-50 p-3 text-amber-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -98,10 +98,10 @@
                     <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">Manager</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Managerlar qo`lida UZS</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ manager_holdings|dict_get:"UZS"|money }} UZS</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ manager_holdings|dict_get:"UZS"|money }} UZS</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Operatsion mablag`</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-cyan-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-cyan-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-cyan-50 p-3 text-cyan-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 14 4-4 3 3 5-6"/></svg>
@@ -109,10 +109,10 @@
                     <span class="rounded-full bg-cyan-50 px-3 py-1 text-xs font-extrabold text-cyan-700">USD</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Managerlar qo`lida USD</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ manager_holdings|dict_get:"USD"|money }} USD</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ manager_holdings|dict_get:"USD"|money }} USD</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Operatsion mablag`</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-rose-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-rose-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-rose-50 p-3 text-rose-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
@@ -120,10 +120,10 @@
                     <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">Bugun</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Ferma chiqim</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ today_company_expense.count }} ta</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ today_company_expense.count }} ta</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">{{ today_company_expense_total|money }} jami</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-orange-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-orange-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-orange-50 p-3 text-orange-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 17h4V5h-4z"/><path d="M4 17h4v-7H4z"/><path d="M16 17h4V9h-4z"/><path d="M4 21h16"/></svg>
@@ -131,10 +131,10 @@
                     <span class="rounded-full bg-orange-50 px-3 py-1 text-xs font-extrabold text-orange-700">Manager</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Manager chiqim</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ today_manager_expense.count }} ta</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ today_manager_expense.count }} ta</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">{{ today_manager_expense_total|money }} jami</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-violet-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-violet-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-violet-50 p-3 text-violet-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M9 21v-6h6v6"/></svg>
@@ -142,10 +142,10 @@
                     <span class="rounded-full bg-violet-50 px-3 py-1 text-xs font-extrabold text-violet-700">Active</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Active obyektlar</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ active_objects }}</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ active_objects }}</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Faol qurilish obyektlari</p>
             </div>
-            <div class="min-w-[260px] snap-start rounded-[1.6rem] border border-teal-100 bg-white p-5 shadow-sm">
+            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-teal-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
                 <div class="flex items-start justify-between">
                     <span class="rounded-2xl bg-teal-50 p-3 text-teal-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M12 15v6"/><path d="M8 21h8"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
@@ -153,14 +153,14 @@
                     <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-extrabold text-teal-700">Team</span>
                 </div>
                 <p class="mt-5 text-sm font-semibold text-slate-500">Active ishchilar</p>
-                <p class="mt-2 text-2xl font-black text-slate-950">{{ worker_count }}</p>
+                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ worker_count }}</p>
                 <p class="mt-2 text-xs font-medium text-slate-400">Faol workerlar</p>
             </div>
         {% endif %}
     </section>
 
     <section class="mt-6 grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] md:p-6">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600">Diagramma</p>
@@ -172,13 +172,13 @@
                     <span class="px-3 py-2 text-slate-500">USD</span>
                 </div>
             </div>
-            <div class="mt-6 h-72 rounded-3xl bg-gradient-to-b from-slate-50 to-white p-4">
-                <div class="flex h-full items-end gap-3 overflow-x-auto pb-2">
+            <div class="mt-6 h-64 rounded-3xl bg-gradient-to-b from-slate-50 to-white p-3 sm:h-72 sm:p-4">
+                <div class="dashboard-chart flex h-full items-end gap-2 overflow-x-auto pb-2 sm:gap-3">
                     {% for row in daily_expense_series %}
-                        <div class="flex min-w-[72px] flex-1 flex-col items-center justify-end gap-2">
+                        <div class="flex min-w-[48px] flex-1 flex-col items-center justify-end gap-2 sm:min-w-[72px]">
                             <div class="flex h-52 w-full items-end justify-center gap-2 rounded-2xl border border-slate-100 bg-white/70 px-2 py-3">
-                                <div class="w-4 rounded-full bg-gradient-to-t from-blue-600 to-blue-300 shadow-sm" style="height: {{ row.UZS_percent }}%;"></div>
-                                <div class="w-4 rounded-full bg-gradient-to-t from-emerald-500 to-emerald-200 shadow-sm" style="height: {{ row.USD_percent }}%;"></div>
+                                <div class="w-3 rounded-full bg-gradient-to-t from-blue-600 to-blue-300 shadow-sm sm:w-4" style="height: {{ row.UZS_percent }}%;"></div>
+                                <div class="w-3 rounded-full bg-gradient-to-t from-emerald-500 to-emerald-200 shadow-sm sm:w-4" style="height: {{ row.USD_percent }}%;"></div>
                             </div>
                             <p class="text-xs font-bold text-slate-500">{{ row.label }}</p>
                         </div>

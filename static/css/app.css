@@ -35,6 +35,7 @@ table td .font-semibold {
 }
 
 .overflow-x-auto > table {
+    width: 100%;
     min-width: 760px;
 }
 
@@ -49,6 +50,10 @@ table td .font-semibold {
 .stat-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-stat-card {
+    min-width: min(10.75rem, 46vw);
 }
 
 main {
@@ -81,6 +86,23 @@ main {
 }
 
 @media (max-width: 640px) {
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    .dashboard-stats {
+        scroll-padding-left: 0.75rem;
+    }
+
+    .dashboard-chart {
+        scrollbar-width: none;
+    }
+
+    .dashboard-chart::-webkit-scrollbar {
+        display: none;
+    }
+
     table th {
         font-size: 0.78rem;
     }

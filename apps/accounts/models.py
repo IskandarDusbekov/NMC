@@ -40,6 +40,8 @@ class TelegramLoginSession(TimeStampedModel):
     class State(models.TextChoices):
         NEW = 'NEW', 'New'
         WAITING_CONTACT = 'WAITING_CONTACT', 'Waiting contact'
+        WAITING_USERNAME = 'WAITING_USERNAME', 'Waiting username'
+        WAITING_PASSWORD = 'WAITING_PASSWORD', 'Waiting password'
         LINKED = 'LINKED', 'Linked'
         ACCESS_SENT = 'ACCESS_SENT', 'Access sent'
         BLOCKED = 'BLOCKED', 'Blocked'

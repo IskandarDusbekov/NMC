@@ -80,7 +80,7 @@ class UserModelTest(TestCase):
         self.assertEqual(session.state, TelegramLoginSession.State.WAITING_CONTACT)
         self.assertEqual(client.messages[0]['reply_markup']['keyboard'][0][0]['request_contact'], True)
 
-    def test_contact_links_user_and_sends_access_link(self):
+    def test_contact_requests_username_before_access_link(self):
         user = User.objects.create_user(
             username='linked-user',
             password='test12345',
@@ -109,10 +109,72 @@ class UserModelTest(TestCase):
         user.refresh_from_db()
         session = TelegramLoginSession.objects.get(telegram_id=7001)
 
-        self.assertEqual(user.telegram_id, 7001)
+        self.assertEqual(session.user, user)
+        self.assertIsNone(user.telegram_id)
+        self.assertEqual(session.state, TelegramLoginSession.State.WAITING_USERNAME)
+        self.assertIn('username', client.messages[-1]['text'].lower())
+
+    def test_username_and_password_link_user_and_send_access_link(self):
+        user = User.objects.create_user(
+            username='secure-user',
+            password='test12345',
+            full_name='Secure User',
+            role=User.Role.DIRECTOR,
+            phone='+998901234568',
+        )
+        client = FakeTelegramBotClient()
+
+        TelegramBotFlowService.process_update(
+            {
+                'update_id': 21,
+                'message': {
+                    'message_id': 21,
+                    'chat': {'id': 7002, 'type': 'private'},
+                    'from': {'id': 7002, 'username': 'secure_user_bot'},
+                    'contact': {
+                        'user_id': 7002,
+                        'phone_number': '998901234568',
+                    },
+                },
+            },
+            client=client,
+        )
+        TelegramBotFlowService.process_update(
+            {
+                'update_id': 22,
+                'message': {
+                    'message_id': 22,
+                    'chat': {'id': 7002, 'type': 'private'},
+                    'from': {'id': 7002, 'username': 'secure_user_bot'},
+                    'text': 'secure-user',
+                },
+            },
+            client=client,
+        )
+        TelegramBotFlowService.process_update(
+            {
+                'update_id': 23,
+                'message': {
+                    'message_id': 23,
+                    'chat': {'id': 7002, 'type': 'private'},
+                    'from': {'id': 7002, 'username': 'secure_user_bot'},
+                    'text': 'test12345',
+                },
+            },
+            client=client,
+        )
+
+        user.refresh_from_db()
+        session = TelegramLoginSession.objects.get(telegram_id=7002)
+
+        self.assertEqual(user.telegram_id, 7002)
         self.assertEqual(session.user, user)
         self.assertEqual(session.state, TelegramLoginSession.State.ACCESS_SENT)
-        self.assertIn('/accounts/access/', client.messages[-1]['reply_markup']['inline_keyboard'][0][0]['url'])
+        access_messages = [
+            message for message in client.messages
+            if message.get('reply_markup', {}).get('inline_keyboard')
+        ]
+        self.assertIn('/accounts/access/', access_messages[-1]['reply_markup']['inline_keyboard'][0][0]['url'])
 
     def test_token_command_for_linked_user_sends_new_access_link(self):
         user = User.objects.create_user(
@@ -138,5 +200,9 @@ class UserModelTest(TestCase):
             client=client,
         )
 
-        self.assertEqual(client.messages[-1]['reply_markup']['inline_keyboard'][0][0]['text'], 'Saytga kirish')
+        access_messages = [
+            message for message in client.messages
+            if message.get('reply_markup', {}).get('inline_keyboard')
+        ]
+        self.assertEqual(access_messages[-1]['reply_markup']['inline_keyboard'][0][0]['text'], 'Saytga kirish')
         self.assertTrue(user.access_tokens.exists())
