@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block content %}
+    <section class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Hisobotlar</h2>
+                <p class="text-sm text-slate-500">Transaction, worker payment va category kesimlari</p>
+            </div>
+            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}export=excel" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Excel export</a>
+        </div>
+        <form method="get" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {% include "includes/form_field.html" with field=filter_form.date_from %}
+            {% include "includes/form_field.html" with field=filter_form.date_to %}
+            {% include "includes/form_field.html" with field=filter_form.currency %}
+            {% include "includes/form_field.html" with field=filter_form.transaction_type %}
+            {% include "includes/form_field.html" with field=filter_form.object %}
+            {% include "includes/form_field.html" with field=filter_form.worker %}
+            {% include "includes/form_field.html" with field=filter_form.category %}
+            <div class="flex items-end gap-3">
+                <button type="submit" class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Filtrlash</button>
+                <a href="{% url 'reports:index' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Tozalash</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="mt-6 grid gap-6 xl:grid-cols-3">
+        <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <h3 class="text-lg font-bold text-slate-800">Summary totals</h3>
+            <div class="mt-5 space-y-3">
+                {% for row in totals %}
+                    <div class="rounded-xl border border-slate-100 px-4 py-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="font-semibold text-slate-700">{{ row.type }} • {{ row.currency }}</p>
+                            <span class="font-bold text-slate-900">{{ row.total|money }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    {% include "includes/empty_state.html" with title="Summary yo`q" text="Filter bo`yicha ma`lumot topilmadi." %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <h3 class="text-lg font-bold text-slate-800">Category report</h3>
+            <div class="mt-5 space-y-3">
+                {% for row in category_rows %}
+                    <div class="rounded-xl border border-slate-100 px-4 py-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="font-semibold text-slate-700">{{ row.label }}</p>
+                            <span class="font-bold text-slate-900">{{ row.total|money }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    {% include "includes/empty_state.html" with title="Category data yo`q" text="Hisobot uchun transactionlar kerak bo`ladi." %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <h3 class="text-lg font-bold text-slate-800">Worker payment report</h3>
+            <div class="mt-5 space-y-3">
+                {% for item in worker_payments %}
+                    <div class="rounded-xl border border-slate-100 px-4 py-3">
+                        <p class="font-semibold text-slate-800">{{ item.worker.full_name }}</p>
+                        <p class="text-sm text-slate-500">{{ item.date }} • {{ item.object.name|default:"Umumiy" }}</p>
+                        <p class="mt-2 font-bold text-emerald-600">{{ item.amount|money }} {{ item.currency }}</p>
+                    </div>
+                {% empty %}
+                    {% include "includes/empty_state.html" with title="Worker payment yo`q" text="Mazkur filter bo`yicha maosh to`lovlari topilmadi." %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-800">Transaction report</h3>
+        <div class="mt-5 overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="border-b border-slate-100 text-slate-500">
+                    <tr>
+                        <th class="px-2 py-3 font-semibold">Sana</th>
+                        <th class="px-2 py-3 font-semibold">Entry</th>
+                        <th class="px-2 py-3 font-semibold">Wallet</th>
+                        <th class="px-2 py-3 font-semibold">Category</th>
+                        <th class="px-2 py-3 font-semibold text-right">Summa</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for item in transactions %}
+                        <tr>
+                            <td class="px-2 py-3 text-slate-600">{{ item.date }}</td>
+                            <td class="px-2 py-3 font-semibold text-slate-800">{{ item.entry_type }}</td>
+                            <td class="px-2 py-3 text-slate-600">{% if item.wallet_type == 'MANAGER' %}{{ item.manager_account.user.full_name }}{% else %}Company{% endif %}</td>
+                            <td class="px-2 py-3 text-slate-600">{{ item.category.name|default:"Ichki transfer" }}</td>
+                            <td class="px-2 py-3 text-right font-semibold {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">{% if item.sign < 0 %}-{% else %}+{% endif %}{{ item.amount|money }} {{ item.currency }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="px-2 py-8">{% include "includes/empty_state.html" with title="Report bo`sh" text="Filterlar bo`yicha transaction topilmadi." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,28 @@
+:root {
+    --canvas: #f3f7fb;
+    --panel: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+}
+
+body {
+    background: #f8fafc;
+    color: var(--ink);
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+.nav-active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.stat-card {
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.12);
+}

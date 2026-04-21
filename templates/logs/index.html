@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Audit loglar</h2>
+                <p class="text-sm text-slate-500">Login, transfer, transaction va boshqa muhim amallar tarixi</p>
+            </div>
+        </div>
+        <form method="get" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {% include "includes/form_field.html" with field=filter_form.action %}
+            {% include "includes/form_field.html" with field=filter_form.model_name %}
+            <div class="flex items-end gap-3">
+                <button type="submit" class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Filtrlash</button>
+                <a href="{% url 'logs:index' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Tozalash</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="border-b border-slate-100 text-slate-500">
+                    <tr>
+                        <th class="px-2 py-3 font-semibold">Vaqt</th>
+                        <th class="px-2 py-3 font-semibold">Action</th>
+                        <th class="px-2 py-3 font-semibold">Model</th>
+                        <th class="px-2 py-3 font-semibold">User</th>
+                        <th class="px-2 py-3 font-semibold">Izoh</th>
+                        <th class="px-2 py-3 font-semibold">IP</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for item in logs %}
+                        <tr>
+                            <td class="px-2 py-3 text-slate-600">{{ item.created_at }}</td>
+                            <td class="px-2 py-3 font-semibold text-slate-800">{{ item.action }}</td>
+                            <td class="px-2 py-3 text-slate-600">{{ item.model_name }}</td>
+                            <td class="px-2 py-3 text-slate-600">{{ item.user.full_name|default:item.user.username|default:"System" }}</td>
+                            <td class="px-2 py-3 text-slate-600">{{ item.description }}</td>
+                            <td class="px-2 py-3 text-slate-600">{{ item.ip_address|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="px-2 py-8">{% include "includes/empty_state.html" with title="Loglar yo`q" text="Muhim amallar bajarilgach audit log shu yerga yoziladi." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/pagination.html" %}
+    </section>
+{% endblock %}

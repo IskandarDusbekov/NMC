@@ -1,0 +1,62 @@
+{% load core_tags %}
+<header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 md:px-6">
+        <div class="flex items-start gap-3">
+            <button type="button" data-sidebar-open class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm md:hidden">
+                <span class="text-lg">&#9776;</span>
+            </button>
+            <div>
+                <div class="mb-1 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    {% for crumb in breadcrumbs %}
+                        {% if crumb.url %}
+                            <a href="{{ crumb.url }}" class="hover:text-slate-700">{{ crumb.label }}</a>
+                        {% else %}
+                            <span>{{ crumb.label }}</span>
+                        {% endif %}
+                    {% empty %}
+                        <span>Dashboard</span>
+                    {% endfor %}
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-900">{{ page_title|default:"Dashboard" }}</h1>
+                <p class="text-sm text-slate-500">{{ page_subtitle|default:"NMC boshqaruv tizimi" }}</p>
+            </div>
+        </div>
+        <div class="hidden items-center gap-3 lg:flex">
+            <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-2">
+                <div class="text-right">
+                    <p class="text-xs text-slate-500">{% if request.user.role == 'MANAGER' %}Mening UZS balansim{% else %}Company balans{% endif %}</p>
+                    <p class="text-sm font-bold text-blue-600">{{ ui_balances|dict_get:"UZS"|money }} UZS</p>
+                </div>
+                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-500">{% if request.user.role == 'MANAGER' %}Mening USD balansim{% else %}Company balans{% endif %}</p>
+                    <p class="text-sm font-bold text-emerald-600">{{ ui_balances|dict_get:"USD"|money }} USD</p>
+                </div>
+                {% if request.user.role != 'MANAGER' %}
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-500">USD kursi</p>
+                        <p class="text-sm font-bold text-slate-800">{% if ui_exchange_rate %}{{ ui_exchange_rate.usd_to_uzs|money }}{% else %}N/A{% endif %}</p>
+                    </div>
+                {% endif %}
+                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-500">{% if request.user.role == 'MANAGER' %}USD kursi{% else %}Transferlar{% endif %}</p>
+                    <p class="text-sm font-bold text-slate-800">{% if request.user.role == 'MANAGER' %}{% if ui_exchange_rate %}{{ ui_exchange_rate.usd_to_uzs|money }}{% else %}N/A{% endif %}{% else %}{{ ui_today_transfer_count }}{% endif %}</p>
+                </div>
+            </div>
+            <details class="group relative">
+                <summary class="flex cursor-pointer list-none items-center gap-3 rounded-xl bg-white px-2 py-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-500 text-sm font-bold text-white">{{ request.user.full_name|default:request.user.username|slice:":1"|upper }}</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-900">{{ request.user.full_name|default:request.user.username }}</p>
+                        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">{{ request.user.role }}</p>
+                    </div>
+                </summary>
+                <div class="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-soft">
+                    <a href="{% url 'accounts:logout' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50">Chiqish</a>
+                </div>
+            </details>
+        </div>
+    </div>
+</header>

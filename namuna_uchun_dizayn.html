@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Qurilish Boshqaruv Tizimi | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Sidebar transition */
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Card hover effects */
+        .stat-card {
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile menu overlay */
+        .mobile-overlay {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Table responsive */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Hide scrollbar on mobile */
+        @media (max-width: 768px) {
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+        }
+
+        /* Active nav styles */
+        .nav-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-active i {
+            color: white !important;
+        }
+
+        /* Progress bar animation */
+        @keyframes progress {
+            from {
+                width: 0%;
+            }
+        }
+
+        .progress-animate {
+            animation: progress 1s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR - Desktop va Mobile uchun -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-72 bg-white shadow-xl transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out sidebar-transition">
+        <div class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-hard-hat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">QurilishPro</h1>
+                        <p class="text-xs text-gray-500">Boshqaruv tizimi</p>
+                    </div>
+                </div>
+                <button id="closeSidebar" class="md:hidden text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- User Info -->
+            <div class="px-6 py-5 border-b border-gray-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                        A
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800">Azamat Karimov</p>
+                        <p class="text-sm text-gray-500">Direktor</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <a href="#" class="nav-active flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200">
+                    <i class="fas fa-chart-line w-5 text-white"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-building w-5 text-gray-400"></i>
+                    <span class="font-medium">Obyektlar</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-tasks w-5 text-gray-400"></i>
+                    <span class="font-medium">Ish turlari</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-money-bill-wave w-5 text-gray-400"></i>
+                    <span class="font-medium">Moliya</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-users w-5 text-gray-400"></i>
+                    <span class="font-medium">Ishchilar</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-chart-pie w-5 text-gray-400"></i>
+                    <span class="font-medium">Hisobotlar</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-history w-5 text-gray-400"></i>
+                    <span class="font-medium">Loglar</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-cog w-5 text-gray-400"></i>
+                    <span class="font-medium">Sozlamalar</span>
+                </a>
+            </nav>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-gray-100">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-gray-600">USD / UZS</span>
+                        <i class="fas fa-chart-line text-green-500 text-xs"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800">12,850.00</p>
+                    <p class="text-xs text-gray-500 mt-1">Yangilangan: 10:30 AM</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden mobile-overlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 flex flex-col overflow-y-auto">
+
+        <!-- HEADER -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-20">
+            <div class="px-4 md:px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Left section -->
+                    <div class="flex items-center space-x-4">
+                        <button id="openSidebar" class="md:hidden text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-bars text-2xl"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Dashboard</h1>
+                            <p class="text-sm text-gray-500 mt-1">Xush kelibsiz, Azamat</p>
+                        </div>
+                    </div>
+
+                    <!-- Right section -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Exchange Rate -->
+                        <div class="hidden md:flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-xl">
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">Global balans</p>
+                                <p class="text-sm font-bold text-blue-600">125,000,000 UZS</p>
+                            </div>
+                            <div class="w-px h-8 bg-gray-200"></div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">Global balans</p>
+                                <p class="text-sm font-bold text-green-600">45,500 USD</p>
+                            </div>
+                        </div>
+
+                        <!-- Notifications -->
+                        <button class="relative text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+                        </button>
+
+                        <!-- User dropdown -->
+                        <div class="relative">
+                            <button id="userMenuBtn" class="flex items-center space-x-2 focus:outline-none">
+                                <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                                    A
+                                </div>
+                                <i class="fas fa-chevron-down text-gray-400 text-xs hidden md:block"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 px-4 md:px-6 py-6">
+
+            <!-- STATS CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+                <!-- Card 1: Global Balans UZS -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                            <i class="fas fa-arrow-up text-xs"></i> +12.5%
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Global Balans (UZS)</p>
+                    <p class="text-2xl font-bold text-gray-800">125,000,000</p>
+                    <p class="text-xs text-gray-400 mt-2">So‘m</p>
+                </div>
+
+                <!-- Card 2: Global Balans USD -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                            <i class="fas fa-arrow-up text-xs"></i> +8.3%
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Global Balans (USD)</p>
+                    <p class="text-2xl font-bold text-gray-800">45,500</p>
+                    <p class="text-xs text-gray-400 mt-2">Dollar</p>
+                </div>
+
+                <!-- Card 3: Bugungi Xarajat -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-arrow-down text-red-600 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-lg">
+                            <i class="fas fa-chart-line text-xs"></i> Bugun
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Bugungi Xarajat</p>
+                    <p class="text-2xl font-bold text-gray-800">8,250,000</p>
+                    <p class="text-xs text-gray-400 mt-2">UZS</p>
+                </div>
+
+                <!-- Card 4: Bugungi Kirim -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-arrow-up text-emerald-600 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                            <i class="fas fa-chart-line text-xs"></i> Bugun
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Bugungi Kirim</p>
+                    <p class="text-2xl font-bold text-gray-800">3,500,000</p>
+                    <p class="text-xs text-gray-400 mt-2">UZS</p>
+                </div>
+            </div>
+
+            <!-- Second Row Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+                <!-- Active Objects -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-building text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Faol Obyektlar</p>
+                    <p class="text-2xl font-bold text-gray-800">8</p>
+                    <p class="text-xs text-gray-400 mt-2">Jami 12 ta obyekt</p>
+                </div>
+
+                <!-- Workers Count -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-users text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Ishchilar Soni</p>
+                    <p class="text-2xl font-bold text-gray-800">124</p>
+                    <p class="text-xs text-gray-400 mt-2">+8 bu oy</p>
+                </div>
+
+                <!-- Completed Work Items -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-check-circle text-teal-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Bajarilgan Ish Turlari</p>
+                    <p class="text-2xl font-bold text-gray-800">45</p>
+                    <p class="text-xs text-gray-400 mt-2">Bu oyda</p>
+                </div>
+
+                <!-- Pending Payments -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 stat-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-1">Kutilayotgan To‘lovlar</p>
+                    <p class="text-2xl font-bold text-gray-800">15,200,000</p>
+                    <p class="text-xs text-gray-400 mt-2">UZS</p>
+                </div>
+            </div>
+
+            <!-- CHARTS AND TABLES SECTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Chart 1: Weekly Expenses -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-800">So‘nggi 7 kun xarajatlar</h3>
+                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1 bg-gray-50">
+                            <option>UZS</option>
+                            <option>USD</option>
+                        </select>
+                    </div>
+                    <canvas id="weeklyExpensesChart" height="250"></canvas>
+                </div>
+
+                <!-- Chart 2: Category Distribution -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-800">Xarajatlar taqsimoti</h3>
+                        <button class="text-blue-600 text-sm hover:text-blue-700">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                    <canvas id="categoryChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- RECENT TRANSACTIONS TABLE -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+                <div class="p-5 border-b border-gray-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <h3 class="font-semibold text-gray-800">Oxirgi Tranzaksiyalar</h3>
+                        <button class="text-blue-600 text-sm hover:text-blue-700 flex items-center gap-1">
+                            <i class="fas fa-eye"></i> Barchasini ko‘rish
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Sana</th>
+                                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Turi</th>
+                                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Kategoriya</th>
+                                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Obyekt</th>
+                                <th class="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Summa</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-5 py-3 text-sm text-gray-600">2024-01-15</td>
+                                <td class="px-5 py-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-red-100 text-red-700">
+                                        <i class="fas fa-arrow-down mr-1"></i> Chiqim
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Material</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Tower 1</td>
+                                <td class="px-5 py-3 text-sm font-semibold text-red-600 text-right">-2,500,000 UZS</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-5 py-3 text-sm text-gray-600">2024-01-14</td>
+                                <td class="px-5 py-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-700">
+                                        <i class="fas fa-arrow-up mr-1"></i> Kirim
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Buyurtmachi</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Park Plaza</td>
+                                <td class="px-5 py-3 text-sm font-semibold text-green-600 text-right">+15,000,000 UZS</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-5 py-3 text-sm text-gray-600">2024-01-13</td>
+                                <td class="px-5 py-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-red-100 text-red-700">
+                                        <i class="fas fa-arrow-down mr-1"></i> Chiqim
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Ish haqi</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Tower 1</td>
+                                <td class="px-5 py-3 text-sm font-semibold text-red-600 text-right">-5,750,000 UZS</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-5 py-3 text-sm text-gray-600">2024-01-12</td>
+                                <td class="px-5 py-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-700">
+                                        <i class="fas fa-arrow-up mr-1"></i> Kirim
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-600">Investor</td>
+                                <td class="px-5 py-3 text-sm text-gray-600">-</td>
+                                <td class="px-5 py-3 text-sm font-semibold text-green-600 text-right">+50,000 USD</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- OBJECTS PROGRESS SECTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <h3 class="font-semibold text-gray-800 mb-4">Obyektlar progressi</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">Tower 1</span>
+                                <span class="text-sm text-gray-500">75%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-blue-600 h-2 rounded-full progress-animate" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">Park Plaza</span>
+                                <span class="text-sm text-gray-500">45%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-green-600 h-2 rounded-full progress-animate" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">Business Center</span>
+                                <span class="text-sm text-gray-500">90%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-purple-600 h-2 rounded-full progress-animate" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700">Residential Complex</span>
+                                <span class="text-sm text-gray-500">30%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-orange-600 h-2 rounded-full progress-animate" style="width: 30%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <h3 class="font-semibold text-gray-800 mb-4">Oxirgi Ish Haqi To‘lovlari</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Baxrom Rahimov</p>
+                                    <p class="text-xs text-gray-500">Brigadir - Tower 1</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-green-600">3,500,000 UZS</p>
+                                <p class="text-xs text-gray-400">2024-01-10</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Shavkat Turgunov</p>
+                                    <p class="text-xs text-gray-500">Usta - Park Plaza</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-green-600">2,800,000 UZS</p>
+                                <p class="text-xs text-gray-400">2024-01-09</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- MOBILE BOTTOM NAVIGATION -->
+        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-20">
+            <div class="flex justify-around">
+                <a href="#" class="flex flex-col items-center py-2 text-blue-600">
+                    <i class="fas fa-chart-line text-xl"></i>
+                    <span class="text-xs mt-1">Dashboard</span>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-building text-xl"></i>
+                    <span class="text-xs mt-1">Obyektlar</span>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-money-bill-wave text-xl"></i>
+                    <span class="text-xs mt-1">Moliya</span>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-users text-xl"></i>
+                    <span class="text-xs mt-1">Ishchilar</span>
+                </a>
+                <a href="#" class="flex flex-col items-center py-2 text-gray-500">
+                    <i class="fas fa-bars text-xl"></i>
+                    <span class="text-xs mt-1">Menyu</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Mobile sidebar functionality
+    const sidebar = document.getElementById('sidebar');
+    const openBtn = document.getElementById('openSidebar');
+    const closeBtn = document.getElementById('closeSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar on window resize if screen becomes desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 768) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        } else {
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                // If sidebar is open on mobile, keep it
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+    });
+
+    // Chart 1: Weekly Expenses
+    const ctx1 = document.getElementById('weeklyExpensesChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'],
+            datasets: [{
+                label: 'Xarajatlar (UZS)',
+                data: [1250000, 980000, 2100000, 1750000, 3200000, 2800000, 1500000],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Chart 2: Category Distribution
+    const ctx2 = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Material', 'Ish haqi', 'Transport', 'Texnika', 'Boshqa'],
+            datasets: [{
+                data: [45, 30, 12, 8, 5],
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // User menu dropdown (simple version)
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    if (userMenuBtn) {
+        userMenuBtn.addEventListener('click', function() {
+            // You can add dropdown menu here
+            console.log('User menu clicked');
+        });
+    }
+</script>
+
+</body>
+</html>

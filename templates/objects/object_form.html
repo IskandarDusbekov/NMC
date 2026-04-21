@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block content %}
+    <section class="mx-auto max-w-5xl rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">{{ form_title|default:page_title }}</h2>
+                <p class="mt-2 text-sm text-slate-500">{{ page_subtitle }}</p>
+            </div>
+            <div class="grid w-full gap-3 sm:max-w-md sm:grid-cols-2">
+                <div class="rounded-2xl bg-slate-50 px-4 py-4">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">UZS Balance</p>
+                    <p class="mt-2 text-lg font-bold text-slate-900">{{ object_balance_uzs|money }} UZS</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 px-4 py-4">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-400">USD Balance</p>
+                    <p class="mt-2 text-lg font-bold text-slate-900">{{ object_balance_usd|money }} USD</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4">
+            <p class="text-sm font-medium text-blue-900">{{ balance_note }}</p>
+        </div>
+
+        <form method="post" class="mt-6 grid gap-5 md:grid-cols-2">
+            {% csrf_token %}
+            {% include "includes/form_field.html" with field=form.name %}
+            {% include "includes/form_field.html" with field=form.address %}
+            {% include "includes/form_field.html" with field=form.start_date %}
+            {% include "includes/form_field.html" with field=form.end_date %}
+
+            {% if show_advanced_fields %}
+                {% include "includes/form_field.html" with field=form.status %}
+                {% include "includes/form_field.html" with field=form.budget_uzs %}
+                {% include "includes/form_field.html" with field=form.budget_usd %}
+                <div class="md:col-span-2">{% include "includes/form_field.html" with field=form.description %}</div>
+            {% endif %}
+
+            {% for error in form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
+            <div class="md:col-span-2 flex gap-3">
+                <button type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
+                <a href="{% url 'objects:list' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

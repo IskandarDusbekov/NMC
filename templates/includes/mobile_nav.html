@@ -1,0 +1,10 @@
+{% load core_tags %}
+<nav class="fixed inset-x-4 bottom-4 z-30 rounded-[28px] border border-slate-200 bg-white p-2 shadow-soft backdrop-blur xl:hidden">
+    <div class="grid grid-cols-5 gap-2">
+        <a href="{% url 'dashboard:index' %}" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[11px] font-semibold {% if request.path == '/dashboard/' %}bg-blue-600 text-white{% else %}text-slate-600{% endif %}">Dashboard</a>
+        <a href="{% url 'objects:list' %}" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[11px] font-semibold {% if request.path|slice:':9' == '/objects/' %}bg-blue-600 text-white{% else %}text-slate-600{% endif %}">Obyektlar</a>
+        <a href="{% url 'finance:transaction-list' %}" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[11px] font-semibold {% if request.path|slice:':9' == '/finance/' %}bg-blue-600 text-white{% else %}text-slate-600{% endif %}">Moliya</a>
+        <a href="{% url 'workforce:worker-list' %}" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[11px] font-semibold {% if request.path|slice:':9' == '/workers/' %}bg-blue-600 text-white{% else %}text-slate-600{% endif %}">Ishchilar</a>
+        <button type="button" data-sidebar-open class="rounded-2xl px-2 py-3 text-[11px] font-semibold text-slate-600">Menu</button>
+    </div>
+</nav>

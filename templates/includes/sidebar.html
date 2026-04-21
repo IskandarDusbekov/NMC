@@ -1,0 +1,36 @@
+{% load core_tags %}
+<aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-white px-5 py-6 shadow-xl transition-transform duration-300 md:translate-x-0">
+    <div class="mb-8 flex items-center gap-3 border-b border-slate-100 pb-5">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-lg">N</div>
+        <div>
+            <p class="text-xl font-bold text-slate-800">QurilishPro</p>
+            <p class="text-xs text-slate-500">Boshqaruv tizimi</p>
+        </div>
+    </div>
+    <div class="mb-6 flex items-center gap-3 rounded-2xl border border-slate-100 px-4 py-4">
+        <div class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-500 text-sm font-bold text-white shadow-md">{{ request.user.full_name|default:request.user.username|slice:":1"|upper }}</div>
+        <div>
+            <p class="font-semibold text-slate-800">{{ request.user.full_name|default:request.user.username }}</p>
+            <p class="text-sm text-slate-500">{{ request.user.role }}</p>
+        </div>
+    </div>
+    <nav class="space-y-2 overflow-y-auto">
+        {% for item in navigation_items %}
+            {% nav_active request.path item.prefix as is_active %}
+            <a href="{{ item.url }}" class="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 {% if is_active %}nav-active text-white shadow-lg{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <span>{{ item.label }}</span>
+                <span class="text-xs {% if is_active %}text-white/80{% else %}text-slate-400{% endif %}">{{ forloop.counter }}</span>
+            </a>
+        {% empty %}
+            <p class="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">Navigatsiya login qilgandan keyin ko`rinadi.</p>
+        {% endfor %}
+    </nav>
+    <div class="mt-auto rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+        <div class="mb-2 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-600">USD / UZS</span>
+            <span class="text-xs text-emerald-500">live</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800">{% if ui_exchange_rate %}{{ ui_exchange_rate.usd_to_uzs|money }}{% else %}N/A{% endif %}</p>
+        <p class="mt-1 text-xs text-slate-500">{% if ui_exchange_rate %}Yangilangan: {{ ui_exchange_rate.effective_at }}{% else %}Kurs kiritilmagan{% endif %}</p>
+    </div>
+</aside>

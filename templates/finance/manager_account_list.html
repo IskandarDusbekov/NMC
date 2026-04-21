@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block content %}
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {% if is_manager_view %}
+            {% include "includes/stats_card.html" with title="Mening UZS balansim" value=personal_balances|dict_get:"UZS"|money|add:" UZS" hint="Shaxsiy operatsion wallet" %}
+            {% include "includes/stats_card.html" with title="Mening USD balansim" value=personal_balances|dict_get:"USD"|money|add:" USD" hint="Valyuta alohida yuritiladi" %}
+        {% else %}
+            {% include "includes/stats_card.html" with title="Company UZS" value=company_balances|dict_get:"UZS"|money|add:" UZS" hint="Markaziy hisob" %}
+            {% include "includes/stats_card.html" with title="Company USD" value=company_balances|dict_get:"USD"|money|add:" USD" hint="Markaziy hisob" %}
+            {% include "includes/stats_card.html" with title="Managerlar qo`lida UZS" value=manager_holdings|dict_get:"UZS"|money|add:" UZS" hint="Operatsion mablag`" %}
+            {% include "includes/stats_card.html" with title="Managerlar qo`lida USD" value=manager_holdings|dict_get:"USD"|money|add:" USD" hint="Operatsion mablag`" %}
+        {% endif %}
+    </section>
+
+    <section class="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+        <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">{% if is_manager_view %}Mening walletim{% else %}Manager walletlar{% endif %}</h2>
+                    <p class="text-sm text-slate-500">{% if is_manager_view %}Menga ajratilgan operatsion mablag`lar{% else %}Har bir managerga ajratilgan operatsion mablag`lar{% endif %}</p>
+                </div>
+                <div class="flex gap-3">
+                    {% if not is_manager_view %}
+                        <a href="{% url 'finance:manager-transfer-create' %}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Transfer</a>
+                    {% endif %}
+                    <a href="{% url 'finance:manager-return-create' %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Return</a>
+                </div>
+            </div>
+            <div class="mt-6 space-y-4">
+                {% for row in account_rows %}
+                    <div class="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-base font-bold text-slate-800">{{ row.account.user.full_name }}</p>
+                                <p class="text-sm text-slate-500">{{ row.account.user.phone|default:"Telefon kiritilmagan" }}</p>
+                            </div>
+                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">{{ row.account.is_active|yesno:"Active,Inactive" }}</span>
+                        </div>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div class="rounded-xl bg-white px-4 py-3">
+                                <p class="text-xs uppercase tracking-[0.15em] text-slate-400">UZS</p>
+                                <p class="mt-1 text-xl font-bold text-slate-900">{{ row.balances|dict_get:"UZS"|money }}</p>
+                            </div>
+                            <div class="rounded-xl bg-white px-4 py-3">
+                                <p class="text-xs uppercase tracking-[0.15em] text-slate-400">USD</p>
+                                <p class="mt-1 text-xl font-bold text-slate-900">{{ row.balances|dict_get:"USD"|money }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    {% include "includes/empty_state.html" with title="Manager account yo`q" text="MANAGER role dagi user yaratganda wallet avtomatik ochiladi." %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-800">{% if is_manager_view %}Menga bog`liq transferlar{% else %}Oxirgi transferlar{% endif %}</h2>
+                <div class="mt-5 space-y-3">
+                    {% for transfer in recent_transfers %}
+                        <div class="rounded-xl border border-slate-100 px-4 py-3">
+                            <p class="font-semibold text-slate-800">{{ transfer.to_manager.user.full_name }}</p>
+                            <p class="text-sm text-slate-500">{{ transfer.get_transfer_kind_display }} &middot; {{ transfer.date }}</p>
+                            <p class="mt-2 font-bold text-blue-600">{{ transfer.amount|money }} {{ transfer.currency }}</p>
+                        </div>
+                    {% empty %}
+                        {% include "includes/empty_state.html" with title="Transfer yo`q" text="Company va manager o`rtasidagi o`tkazmalar shu yerda ko`rinadi." %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if not is_manager_view %}
+                <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-800">Top manager spending</h2>
+                    <div class="mt-5 space-y-3">
+                        {% for row in top_manager_spending %}
+                            <div class="rounded-xl border border-slate-100 px-4 py-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="font-semibold text-slate-800">{{ row.manager_account__user__full_name }}</p>
+                                    <span class="font-bold text-rose-600">{{ row.total|money }} {{ row.currency }}</span>
+                                </div>
+                            </div>
+                        {% empty %}
+                            {% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Managerlar xarajat qilgach ro`yxat to`ladi." %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

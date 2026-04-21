@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="mx-auto max-w-4xl">
+        <div class="rounded-[32px] border border-white/70 bg-white p-8 shadow-soft">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Ledger form</p>
+            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">{{ form_title }}</h2>
+            <form method="post" class="mt-8 grid gap-5 md:grid-cols-2">
+                {% csrf_token %}
+                {% include "includes/form_field.html" with field=form.type %}
+                {% include "includes/form_field.html" with field=form.amount %}
+                {% include "includes/form_field.html" with field=form.currency %}
+                {% include "includes/form_field.html" with field=form.category %}
+                {% include "includes/form_field.html" with field=form.date %}
+                {% include "includes/form_field.html" with field=form.worker %}
+                {% include "includes/form_field.html" with field=form.object %}
+                {% include "includes/form_field.html" with field=form.work_item %}
+                {% include "includes/form_field.html" with field=form.reference_type %}
+                {% include "includes/form_field.html" with field=form.reference_id %}
+                <div class="md:col-span-2">
+                    {% include "includes/form_field.html" with field=form.description %}
+                </div>
+                {% for error in form.non_field_errors %}
+                    <p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>
+                {% endfor %}
+                <div class="md:col-span-2 flex flex-col gap-3 sm:flex-row">
+                    <button type="submit" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
+                    <a href="{% url 'finance:transaction-list' %}" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600">Bekor qilish</a>
+                </div>
+            </form>
+        </div>
+    </section>
+{% endblock %}

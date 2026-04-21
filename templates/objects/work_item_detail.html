@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block content %}
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800">{{ work_item.title }}</h2>
+                <p class="mt-2 text-sm text-slate-500">{{ work_item.object.name }} &middot; {{ work_item.assigned_worker.full_name|default:work_item.assigned_worker_group|default:"Ishchi tanlanmagan" }}</p>
+                <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                    <span class="rounded-full bg-slate-100 px-3 py-2 text-slate-600">Start: {{ work_item.start_date|date:"Y-m-d" }}</span>
+                    <span class="rounded-full bg-blue-50 px-3 py-2 text-blue-700">{{ work_item.currency }}</span>
+                    <span class="rounded-full bg-slate-900 px-3 py-2 text-white">{{ work_item.get_status_display }}</span>
+                </div>
+                {% if work_item.description %}
+                    <p class="mt-4 text-sm text-slate-600">{{ work_item.description }}</p>
+                {% endif %}
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'finance:transaction-list' %}?object={{ work_item.object_id }}&work_item={{ work_item.pk }}&transaction_type=EXPENSE" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Umumiy tarix</a>
+                {% if request.user.role != 'MANAGER' %}
+                    <a href="{% url 'objects:work-item-update' work_item.pk %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Edit</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {% include "includes/stats_card.html" with title="Kelishilgan summa" value=work_item.agreed_amount|money|add:" "|add:work_item.currency %}
+        {% include "includes/stats_card.html" with title="Berilgan UZS" value=work_item.paid_amount_uzs|money|add:" UZS" %}
+        {% include "includes/stats_card.html" with title="Berilgan USD" value=work_item.paid_amount_usd|money|add:" USD" %}
+        {% include "includes/stats_card.html" with title="Qolgan summa" value=remaining_amount|money|add:" "|add:work_item.currency %}
+    </section>
+
+    <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-800">Bog`langan to`lovlar</h3>
+        <div class="mt-5 space-y-3">
+            {% for item in payment_transactions %}
+                <div class="rounded-2xl border border-slate-200 px-4 py-3">
+                    <p class="font-semibold text-slate-800">{{ item.category.name|default:"Xarajat" }}</p>
+                    <p class="text-sm text-slate-500">{{ item.description|default:"Izoh yo`q" }}</p>
+                    <p class="mt-2 font-bold text-rose-600">{{ item.amount|money }} {{ item.currency }}</p>
+                </div>
+            {% empty %}
+                {% include "includes/empty_state.html" with title="To`lovlar yo`q" text="Work itemga bog`langan paymentlar shu yerda ko`rinadi." %}
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

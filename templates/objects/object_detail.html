@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block content %}
+    <section class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Obyekt</p>
+                <div class="mt-1 flex flex-wrap items-center gap-3">
+                    <h2 class="text-2xl font-extrabold text-slate-900">{{ construction_object.name }}</h2>
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{{ construction_object.address }}</span>
+                </div>
+                {% if construction_object.description %}
+                    <p class="mt-2 max-w-3xl text-sm text-slate-500">{{ construction_object.description }}</p>
+                {% endif %}
+            </div>
+            {% if request.user.role != 'MANAGER' %}
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'objects:update' construction_object.pk %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Edit</a>
+                    <a href="{% url 'objects:work-item-create' %}?object={{ construction_object.pk }}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turi qo`shish</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-3xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
+            <p class="text-sm font-semibold text-blue-700">Obyekt balance UZS</p>
+            <p class="mt-3 text-2xl font-extrabold text-blue-950">{{ construction_object.balance_uzs|money }} UZS</p>
+        </div>
+        <div class="rounded-3xl border border-cyan-100 bg-cyan-50 p-5 shadow-sm">
+            <p class="text-sm font-semibold text-cyan-700">Obyekt balance USD</p>
+            <p class="mt-3 text-2xl font-extrabold text-cyan-950">{{ construction_object.balance_usd|money }} USD</p>
+        </div>
+        <div class="rounded-3xl border border-rose-100 bg-rose-50 p-5 shadow-sm">
+            <p class="text-sm font-semibold text-rose-700">Jami xarajat UZS</p>
+            <p class="mt-3 text-2xl font-extrabold text-rose-950">{{ analytics.total_expense_uzs|money }} UZS</p>
+        </div>
+        <div class="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
+            <p class="text-sm font-semibold text-amber-700">Jami xarajat USD</p>
+            <p class="mt-3 text-2xl font-extrabold text-amber-950">{{ analytics.total_expense_usd|money }} USD</p>
+        </div>
+    </section>
+
+    <section class="mt-6 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'objects:detail' construction_object.pk %}?tab=work-items" class="rounded-2xl px-4 py-3 text-sm font-semibold {% if active_tab != 'expenses' %}bg-slate-950 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">Ish turlari</a>
+            <a href="{% url 'objects:detail' construction_object.pk %}?tab=expenses" class="rounded-2xl px-4 py-3 text-sm font-semibold {% if active_tab == 'expenses' %}bg-slate-950 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">Xarajatlar</a>
+        </div>
+        {% if active_tab == 'expenses' %}
+            <button type="button" data-modal-open="object-expense-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Xarajat qo`shish</button>
+        {% else %}
+            <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turiga to`lov qo`shish</button>
+        {% endif %}
+    </section>
+
+    {% if active_tab == 'expenses' %}
+        <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajatlar jadvali</p>
+                    <h3 class="mt-2 text-xl font-extrabold text-slate-900">Xarajat nomi bo`yicha yig`indi</h3>
+                    <p class="mt-2 text-sm text-slate-500">Ish turiga berilgan to`lovlar ham shu jadvalda ish turi nomi bilan yig`iladi.</p>
+                </div>
+                <div class="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                    Jami: {{ analytics.total_expense_uzs|money }} UZS / {{ analytics.total_expense_usd|money }} USD
+                </div>
+            </div>
+            <div class="mt-5 overflow-x-auto">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-slate-950 text-white">
+                        <tr>
+                            <th class="px-4 py-4 font-semibold">ID</th>
+                            <th class="px-4 py-4 font-semibold">Xarajat nomi</th>
+                            <th class="px-4 py-4 font-semibold">Turi</th>
+                            <th class="px-4 py-4 font-semibold">UZS jami</th>
+                            <th class="px-4 py-4 font-semibold">USD jami</th>
+                            <th class="px-4 py-4 font-semibold">Yozuvlar</th>
+                            <th class="px-4 py-4 font-semibold">Oxirgi sana</th>
+                            <th class="px-4 py-4 font-semibold">Amal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for row in expense_summaries %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-4 text-slate-500">{% if row.work_item_id %}WI-{{ row.work_item_id }}{% else %}CAT-{{ row.category_id|default:"0" }}{% endif %}</td>
+                                <td class="px-4 py-4 font-semibold text-slate-900">{{ row.label }}</td>
+                                <td class="px-4 py-4 text-slate-600">{{ row.row_type }}</td>
+                                <td class="px-4 py-4 font-semibold text-slate-800">{{ row.total_uzs|money }}</td>
+                                <td class="px-4 py-4 font-semibold text-slate-800">{{ row.total_usd|money }}</td>
+                                <td class="px-4 py-4 text-slate-600">{{ row.count }}</td>
+                                <td class="px-4 py-4 text-slate-600">{{ row.latest_date|date:"Y-m-d" }}</td>
+                                <td class="px-4 py-4">
+                                    {% if row.work_item_id %}
+                                        <a href="{% url 'finance:transaction-list' %}?object={{ construction_object.pk }}&work_item={{ row.work_item_id }}&transaction_type=EXPENSE" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
+                                    {% else %}
+                                        <a href="{% url 'finance:transaction-list' %}?object={{ construction_object.pk }}&category={{ row.category_id }}&transaction_type=EXPENSE" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="8" class="px-4 py-10">{% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Xarajat qo`shilganda yoki ish turiga to`lov berilganda shu yerda ko`rinadi." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% else %}
+        <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ish turlari</p>
+                    <h3 class="mt-2 text-xl font-extrabold text-slate-900">Obyekt ish turlari jadvali</h3>
+                    <p class="mt-2 text-sm text-slate-500">Berilgan summa shu ish turiga bog`langan transactionlardan yig`iladi.</p>
+                </div>
+                <a href="{% url 'objects:work-item-list' %}?object={{ construction_object.pk }}" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Hammasini ko`rish</a>
+            </div>
+            <div class="mt-5 overflow-x-auto">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-slate-950 text-white">
+                        <tr>
+                            <th class="px-4 py-4 font-semibold">ID</th>
+                            <th class="px-4 py-4 font-semibold">Ish turi</th>
+                            <th class="px-4 py-4 font-semibold">Ishchi</th>
+                            <th class="px-4 py-4 font-semibold">Kelishilgan</th>
+                            <th class="px-4 py-4 font-semibold">Berilgan UZS</th>
+                            <th class="px-4 py-4 font-semibold">Berilgan USD</th>
+                            <th class="px-4 py-4 font-semibold">Qolgan</th>
+                            <th class="px-4 py-4 font-semibold">Start date</th>
+                            <th class="px-4 py-4 font-semibold">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for item in work_items %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-4 text-slate-500">#{{ item.pk }}</td>
+                                <td class="px-4 py-4 font-semibold text-slate-900">{{ item.title }}</td>
+                                <td class="px-4 py-4 text-slate-600">{{ item.assigned_worker.full_name|default:item.assigned_worker_group|default:"-" }}</td>
+                                <td class="px-4 py-4 text-slate-700">{{ item.agreed_amount|money }} {{ item.currency }}</td>
+                                <td class="px-4 py-4 font-semibold text-emerald-700">{{ item.paid_amount_uzs|money }} UZS</td>
+                                <td class="px-4 py-4 font-semibold text-cyan-700">{{ item.paid_amount_usd|money }} USD</td>
+                                <td class="px-4 py-4 font-semibold text-blue-700">
+                                    {% if item.currency == 'UZS' %}
+                                        {{ item.agreed_amount|subtract:item.paid_amount_uzs|money }} UZS
+                                    {% else %}
+                                        {{ item.agreed_amount|subtract:item.paid_amount_usd|money }} USD
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-4 text-slate-600">{{ item.start_date|date:"Y-m-d" }}</td>
+                                <td class="px-4 py-4">
+                                    <div class="flex flex-wrap gap-2">
+                                        <a href="{% url 'objects:work-item-detail' item.pk %}" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
+                                        <a href="{% url 'finance:transaction-list' %}?object={{ construction_object.pk }}&work_item={{ item.pk }}&transaction_type=EXPENSE" class="rounded-xl border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-700">Tarix</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="9" class="px-4 py-10">{% include "includes/empty_state.html" with title="Ish turi yo`q" text="Avval obyekt uchun ish turi yarating, keyin to`lov qo`shing." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
+    <div id="work-item-payment-modal" class="{% if work_item_payment_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
+        <div class="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">To`lov</p>
+                    <h3 class="mt-2 text-xl font-extrabold text-slate-900">Ish turiga to`lov qo`shish</h3>
+                    <p class="mt-2 text-sm text-slate-500">Ishchi tanlansa, faqat shu ishchiga bog`langan ish turlari qoladi.</p>
+                </div>
+                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
+            </div>
+            <form method="post" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="work_item_payment">
+                <div class="xl:col-span-2">{% include "includes/form_field.html" with field=work_item_payment_form.worker %}</div>
+                <div class="xl:col-span-2">{% include "includes/form_field.html" with field=work_item_payment_form.work_item %}</div>
+                <div>{% include "includes/form_field.html" with field=work_item_payment_form.amount %}</div>
+                <div>{% include "includes/form_field.html" with field=work_item_payment_form.currency %}</div>
+                <div>{% include "includes/form_field.html" with field=work_item_payment_form.date %}</div>
+                <div class="md:col-span-2 xl:col-span-5">{% include "includes/form_field.html" with field=work_item_payment_form.description %}</div>
+                {% for error in work_item_payment_form.non_field_errors %}<p class="md:col-span-2 xl:col-span-6 text-sm text-rose-600">{{ error }}</p>{% endfor %}
+                <div class="md:col-span-2 xl:col-span-6 flex justify-end gap-3">
+                    <button type="button" data-modal-close class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</button>
+                    <button type="submit" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">To`lovni saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="object-expense-modal" class="{% if object_expense_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
+        <div class="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajat</p>
+                    <h3 class="mt-2 text-xl font-extrabold text-slate-900">Xarajat qo`shish</h3>
+                    <p class="mt-2 text-sm text-slate-500">Material, elektr energiya, yoqilg`i, oziq-ovqat, texnika yoki boshqa xarajat turi.</p>
+                </div>
+                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
+            </div>
+            <form method="post" class="mt-5 grid gap-4 md:grid-cols-2">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="object_expense">
+                <div class="md:col-span-2">{% include "includes/form_field.html" with field=object_expense_form.category %}</div>
+                {% include "includes/form_field.html" with field=object_expense_form.amount %}
+                {% include "includes/form_field.html" with field=object_expense_form.currency %}
+                {% include "includes/form_field.html" with field=object_expense_form.date %}
+                <div class="md:col-span-2">{% include "includes/form_field.html" with field=object_expense_form.description %}</div>
+                {% for error in object_expense_form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
+                <div class="md:col-span-2 flex justify-end gap-3">
+                    <button type="button" data-modal-close class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</button>
+                    <button type="submit" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
