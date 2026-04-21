@@ -34,8 +34,26 @@ class ExchangeRateService:
     CBU_USD_ENDPOINT = 'https://cbu.uz/ru/arkhiv-kursov-valyut/json/USD/'
 
     @staticmethod
-    def latest_rate():
-        return ExchangeRate.objects.filter(is_active=True).order_by('-effective_at', '-created_at').first()
+    def _date_is_today(value):
+        if not value:
+            return False
+        if timezone.is_naive(value):
+            value_date = value.date()
+        else:
+            value_date = timezone.localtime(value).date()
+        return value_date == timezone.now().date()
+
+    @classmethod
+    def latest_rate(cls, *, auto_update=False, user=None):
+        latest = ExchangeRate.objects.filter(is_active=True).order_by('-effective_at', '-created_at').first()
+        if not auto_update:
+            return latest
+        if latest and cls._date_is_today(latest.created_at):
+            return latest
+        try:
+            return cls.update_rate_from_cbu(user=user)
+        except ValidationError:
+            return latest
 
     @staticmethod
     def update_rate(*, usd_to_uzs, user, effective_at=None):
@@ -337,7 +355,7 @@ class TransferService:
             return amount, target_currency, None
 
         if exchange_rate in (None, ''):
-            latest_rate = ExchangeRateService.latest_rate()
+            latest_rate = ExchangeRateService.latest_rate(auto_update=True, user=None)
             if latest_rate is None:
                 latest_rate = ExchangeRateService.update_rate_from_cbu(user=None)
             exchange_rate = latest_rate.usd_to_uzs
