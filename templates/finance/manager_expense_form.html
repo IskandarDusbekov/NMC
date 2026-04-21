@@ -2,10 +2,12 @@
 
 {% block content %}
     <section class="mx-auto max-w-4xl rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
-        <h2 class="text-2xl font-bold text-slate-800">Manager expense yaratish</h2>
+        <h2 class="text-2xl font-bold text-slate-800">{% if request.user.role == 'MANAGER' %}Xarajat qo`shish{% else %}Manager expense yaratish{% endif %}</h2>
         <form method="post" class="mt-6 grid gap-5 md:grid-cols-2">
             {% csrf_token %}
-            {% include "includes/form_field.html" with field=form.manager_account %}
+            {% if request.user.role != 'MANAGER' %}
+                {% include "includes/form_field.html" with field=form.manager_account %}
+            {% endif %}
             {% include "includes/form_field.html" with field=form.category %}
             {% include "includes/form_field.html" with field=form.amount %}
             {% include "includes/form_field.html" with field=form.currency %}
@@ -16,7 +18,7 @@
             <div class="md:col-span-2">{% include "includes/form_field.html" with field=form.description %}</div>
             {% for error in form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
             <div class="md:col-span-2 flex gap-3">
-                <button type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Expense saqlash</button>
+                <button type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">{% if request.user.role == 'MANAGER' %}Xarajatni saqlash{% else %}Expense saqlash{% endif %}</button>
                 <a href="{% url 'finance:transaction-list' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</a>
             </div>
         </form>

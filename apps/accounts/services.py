@@ -9,6 +9,7 @@ from urllib.parse import parse_qsl
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils import timezone
 
 from config.settings.env import env
@@ -37,22 +38,24 @@ class TokenService:
         )
 
     @staticmethod
+    @transaction.atomic
     def consume_token(raw_token: str):
         try:
-            access_token = AccessToken.objects.select_related('user').get(token=raw_token)
+            access_token = AccessToken.objects.select_for_update().select_related('user').get(token=raw_token)
         except AccessToken.DoesNotExist as exc:
             raise ValidationError('Token topilmadi.') from exc
 
+        now = timezone.now()
         if access_token.is_used:
             raise ValidationError('Token allaqachon ishlatilgan.')
-        if access_token.expires_at <= timezone.now():
+        if access_token.expires_at <= now:
             access_token.is_used = True
-            access_token.used_at = timezone.now()
+            access_token.used_at = now
             access_token.save(update_fields=['is_used', 'used_at', 'updated_at'])
             raise ValidationError('Token muddati tugagan.')
 
         access_token.is_used = True
-        access_token.used_at = timezone.now()
+        access_token.used_at = now
         access_token.save(update_fields=['is_used', 'used_at', 'updated_at'])
         return access_token.user
 

@@ -8,7 +8,7 @@ from django.db import transaction as db_transaction
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from apps.finance.models import CurrencyChoices, TransactionCategory, TransactionEntryTypeChoices, TransactionTypeChoices, WalletTypeChoices
+from apps.finance.models import CurrencyChoices, TransactionCategory, TransactionEntryTypeChoices, TransactionSourceChoices, TransactionTypeChoices, WalletTypeChoices
 from apps.finance.services import ManagerExpenseService, TransactionService
 
 from .selectors import construction_object_queryset
@@ -111,7 +111,7 @@ class ObjectFinanceService:
 
     @classmethod
     @db_transaction.atomic
-    def create_work_item_payment(cls, *, construction_object, user, request=None, worker, work_item, amount, currency, date, description):
+    def create_work_item_payment(cls, *, construction_object, user, request=None, worker, work_item, amount, currency, date, description, receipt_file=None):
         category = cls.get_work_item_payment_category()
         return cls._create_expense_transaction(
             user=user,
@@ -124,19 +124,45 @@ class ObjectFinanceService:
             object=construction_object,
             work_item=work_item,
             worker=worker,
+            receipt_file=receipt_file,
             reference_type='object_work_item_payment',
             reference_id=f'object-{construction_object.pk}-work-item-{work_item.pk}',
         )
 
     @classmethod
     @db_transaction.atomic
-    def create_object_expense(cls, *, construction_object, user, request=None, category, amount, currency, date, description):
+    def create_object_expense(
+        cls,
+        *,
+        construction_object,
+        user,
+        request=None,
+        category,
+        amount,
+        currency,
+        date,
+        description,
+        item_name='',
+        quantity=None,
+        unit='',
+        unit_price=None,
+        source=TransactionSourceChoices.MANUAL,
+        raw_text='',
+        receipt_file=None,
+    ):
         return cls._create_expense_transaction(
             user=user,
             request=request,
             category=category,
             amount=amount,
             currency=currency,
+            item_name=item_name,
+            quantity=quantity,
+            unit=unit,
+            unit_price=unit_price,
+            source=source,
+            raw_text=raw_text,
+            receipt_file=receipt_file,
             description=description,
             date=date,
             object=construction_object,
@@ -154,18 +180,12 @@ class ObjectFinanceService:
         ).select_related('category', 'work_item', 'worker')
 
         for transaction in transactions:
-            if transaction.work_item_id:
-                key = ('work_item', transaction.work_item_id)
-                label = transaction.work_item.title
-                row_type = 'Ish turi'
-                work_item_id = transaction.work_item_id
-                category_id = None
-            else:
-                key = ('category', transaction.category_id or 0)
-                label = transaction.category.name if transaction.category else 'Boshqa xarajat'
-                row_type = 'Xarajat'
-                work_item_id = None
-                category_id = transaction.category_id
+            key = ('category', transaction.category_id or 0)
+            label = transaction.category.name if transaction.category else 'Boshqa xarajat'
+            row_type = transaction.category.get_detail_mode_display() if transaction.category else 'Xarajat'
+            work_item_id = None
+            category_id = transaction.category_id
+            item_name = ''
 
             if key not in rows:
                 rows[key] = {
@@ -173,10 +193,16 @@ class ObjectFinanceService:
                     'row_type': row_type,
                     'work_item_id': work_item_id,
                     'category_id': category_id,
+                    'category_name': transaction.category.name if transaction.category else '',
+                    'item_name': item_name,
                     'total_uzs': ZERO,
                     'total_usd': ZERO,
+                    'quantity_totals': OrderedDict(),
+                    'quantity_summary': '',
                     'count': 0,
+                    'detail_count': 0,
                     'latest_date': transaction.date,
+                    'has_receipt': False,
                 }
 
             row = rows[key]
@@ -185,7 +211,71 @@ class ObjectFinanceService:
             if transaction.currency == CurrencyChoices.USD:
                 row['total_usd'] += transaction.amount
             row['count'] += 1
+            if transaction.quantity or transaction.unit or transaction.unit_price:
+                row['detail_count'] += 1
+            if transaction.quantity and transaction.unit:
+                row['quantity_totals'][transaction.unit] = row['quantity_totals'].get(transaction.unit, ZERO) + transaction.quantity
+            if transaction.receipt_file:
+                row['has_receipt'] = True
             if transaction.date and (not row['latest_date'] or transaction.date > row['latest_date']):
                 row['latest_date'] = transaction.date
 
+        for row in rows.values():
+            row['quantity_summary'] = ', '.join(
+                f'{amount.normalize()} {unit}' for unit, amount in row['quantity_totals'].items()
+            )
         return list(rows.values())
+
+    @staticmethod
+    def expense_category_detail_for_object(construction_object, category):
+        rows = OrderedDict()
+        transactions = construction_object.transactions.active().filter(
+            type=TransactionTypeChoices.EXPENSE,
+            category=category,
+        ).select_related('category', 'work_item', 'worker')
+
+        for transaction in transactions:
+            if transaction.work_item_id:
+                key = ('work_item', transaction.work_item_id)
+                label = transaction.work_item.title
+                row_type = 'Ish turi'
+            else:
+                label = (transaction.item_name or '').strip() or category.name
+                key = ('item', label.lower())
+                row_type = 'Ichki tur' if transaction.item_name else 'Umumiy'
+
+            if key not in rows:
+                rows[key] = {
+                    'label': label,
+                    'row_type': row_type,
+                    'total_uzs': ZERO,
+                    'total_usd': ZERO,
+                    'quantity_totals': OrderedDict(),
+                    'quantity_summary': '',
+                    'count': 0,
+                    'latest_date': transaction.date,
+                    'receipt_url': '',
+                }
+
+            row = rows[key]
+            if transaction.currency == CurrencyChoices.UZS:
+                row['total_uzs'] += transaction.amount
+            if transaction.currency == CurrencyChoices.USD:
+                row['total_usd'] += transaction.amount
+            if transaction.quantity and transaction.unit:
+                row['quantity_totals'][transaction.unit] = row['quantity_totals'].get(transaction.unit, ZERO) + transaction.quantity
+            if transaction.receipt_file and not row['receipt_url']:
+                row['receipt_url'] = transaction.receipt_file.url
+            row['count'] += 1
+            if transaction.date and (not row['latest_date'] or transaction.date > row['latest_date']):
+                row['latest_date'] = transaction.date
+
+        for row in rows.values():
+            row['quantity_summary'] = ', '.join(
+                f'{amount.normalize()} {unit}' for unit, amount in row['quantity_totals'].items()
+            )
+
+        return {
+            'rows': list(rows.values()),
+            'transactions': transactions,
+        }

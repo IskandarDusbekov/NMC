@@ -181,7 +181,7 @@ class SalaryPaymentCreateView(PageMetadataMixin, RoleRequiredMixin, View):
         return render(request, self.template_name, self._build_context(SalaryPaymentForm(user=request.user)))
 
     def post(self, request):
-        form = SalaryPaymentForm(request.POST, user=request.user)
+        form = SalaryPaymentForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             try:
                 SalaryPaymentService.create_salary_payment(user=request.user, request=request, **form.cleaned_data)

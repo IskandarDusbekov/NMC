@@ -394,6 +394,14 @@ class TelegramBotFlowService:
     def _money(value):
         return f'{value:,.2f}'.replace(',', ' ')
 
+    @staticmethod
+    def _format_datetime(value):
+        if not value:
+            return '-'
+        if timezone.is_naive(value):
+            value = timezone.make_aware(value, timezone.get_current_timezone())
+        return timezone.localtime(value).strftime('%Y-%m-%d %H:%M')
+
     @classmethod
     def _send_rate(cls, *, client, chat_id):
         rate = ExchangeRateService.latest_rate()
@@ -409,7 +417,7 @@ class TelegramBotFlowService:
             text=(
                 'Bugungi USD kursi:\n'
                 f'1 USD = {cls._money(rate.usd_to_uzs)} UZS\n'
-                f'Yangilangan vaqt: {timezone.localtime(rate.effective_at).strftime("%Y-%m-%d %H:%M")}'
+                f'Yangilangan vaqt: {cls._format_datetime(rate.effective_at)}'
             ),
             reply_markup=cls._main_keyboard(),
         )

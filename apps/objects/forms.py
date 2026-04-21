@@ -4,7 +4,8 @@ from datetime import date
 from django import forms
 
 from apps.core.forms import StyledFormMixin
-from apps.finance.models import CurrencyChoices, TransactionCategory, TransactionTypeChoices
+from apps.finance.forms import ExpenseCategorySelect, ExpenseItemSelect
+from apps.finance.models import CurrencyChoices, ExpenseItem, MeasurementUnit, TransactionCategory, TransactionTypeChoices
 from apps.workforce.models import Worker
 
 from .models import ConstructionObject, WorkItem
@@ -120,6 +121,7 @@ class ObjectWorkItemPaymentForm(StyledFormMixin, forms.Form):
     amount = forms.DecimalField(max_digits=18, decimal_places=2, min_value=Decimal('0.01'), label='Summa')
     currency = forms.ChoiceField(choices=CurrencyChoices.choices, label='Valyuta')
     date = forms.DateField(initial=date.today, widget=forms.DateInput(attrs={'type': 'date'}), label='Sana')
+    receipt_file = forms.FileField(required=False, label='Chek rasmi / fayl')
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3}), label='Izoh')
 
     def __init__(self, *args, construction_object, **kwargs):
@@ -150,11 +152,16 @@ class ObjectWorkItemPaymentForm(StyledFormMixin, forms.Form):
 
 
 class ObjectExpenseForm(StyledFormMixin, forms.Form):
-    category = forms.ModelChoiceField(queryset=TransactionCategory.objects.none(), label='Xarajat nomi')
+    category = forms.ModelChoiceField(queryset=TransactionCategory.objects.none(), label='Xarajat turi', widget=ExpenseCategorySelect)
+    expense_item = forms.ModelChoiceField(queryset=ExpenseItem.objects.none(), required=False, label='Ichki tur', widget=ExpenseItemSelect)
+    quantity = forms.DecimalField(required=False, max_digits=14, decimal_places=3, min_value=Decimal('0.001'), label='Miqdor')
+    unit = forms.ModelChoiceField(queryset=MeasurementUnit.objects.none(), required=False, label='O`lchov birligi')
+    unit_price = forms.DecimalField(required=False, max_digits=18, decimal_places=2, min_value=Decimal('0.01'), label='Birlik narxi')
     amount = forms.DecimalField(max_digits=18, decimal_places=2, min_value=Decimal('0.01'), label='Summa')
     currency = forms.ChoiceField(choices=CurrencyChoices.choices, label='Valyuta')
     date = forms.DateField(initial=date.today, widget=forms.DateInput(attrs={'type': 'date'}), label='Sana')
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3}), label='Izoh')
+    receipt_file = forms.FileField(required=False, label='Chek rasmi / fayl')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -162,4 +169,25 @@ class ObjectExpenseForm(StyledFormMixin, forms.Form):
             is_active=True,
             type=TransactionTypeChoices.EXPENSE,
         ).exclude(name=WORK_ITEM_PAYMENT_CATEGORY_NAME).order_by('name')
+        self.fields['expense_item'].queryset = ExpenseItem.objects.select_related('category', 'default_unit').filter(is_active=True).order_by('category__name', 'name')
+        self.fields['unit'].queryset = MeasurementUnit.objects.filter(is_active=True).order_by('name')
         self.fields['category'].help_text = 'Xarajat turlarini admin panel yoki Moliya > Category sahifasidan qo`shish mumkin.'
+        self.fields['category'].widget.attrs['data-expense-category'] = 'true'
+        self.fields['expense_item'].widget.attrs['data-expense-detail-field'] = 'expense_item'
+        self.fields['expense_item'].widget.attrs['data-expense-item'] = 'true'
+        self.fields['quantity'].widget.attrs['data-expense-detail-field'] = 'quantity'
+        self.fields['unit'].widget.attrs['data-expense-detail-field'] = 'unit'
+        self.fields['unit'].widget.attrs['data-expense-unit'] = 'true'
+        self.fields['unit_price'].widget.attrs['data-expense-detail-field'] = 'unit_price'
+        self.fields['expense_item'].help_text = 'Masalan Material ichida: Beton, Kabel, Armatura. Oziq-ovqat ichida: Non, Kartoshka.'
+        self.fields['quantity'].help_text = 'Faqat material xarajatida kerak. Masalan: 32, 43, 200.'
+        self.fields['unit'].help_text = 'Masalan: kub, litr, metr, kg, qop, dona.'
+        self.fields['unit_price'].help_text = 'Masalan: 100000 dan. Summa alohida saqlanadi.'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get('category')
+        expense_item = cleaned_data.get('expense_item')
+        if category and expense_item and expense_item.category_id != category.id:
+            self.add_error('expense_item', 'Ichki tur tanlangan xarajat turiga tegishli emas.')
+        return cleaned_data

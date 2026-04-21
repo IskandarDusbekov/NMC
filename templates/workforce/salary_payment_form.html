@@ -11,7 +11,7 @@
             <a href="{% url 'workforce:salary-payment-list' %}" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">To`lovlar tarixi</a>
         </div>
 
-        <form method="post" class="mt-6 grid gap-5 md:grid-cols-2">
+        <form method="post" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">
             {% csrf_token %}
             {% include "includes/form_field.html" with field=form.worker %}
             {% include "includes/form_field.html" with field=form.source_wallet %}
@@ -20,6 +20,7 @@
             {% include "includes/form_field.html" with field=form.amount %}
             {% include "includes/form_field.html" with field=form.currency %}
             {% include "includes/form_field.html" with field=form.date %}
+            <div class="md:col-span-2">{% include "includes/form_field.html" with field=form.receipt_file %}</div>
             <div class="md:col-span-2">{% include "includes/form_field.html" with field=form.description %}</div>
             {% for error in form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
             <div class="md:col-span-2 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-700">

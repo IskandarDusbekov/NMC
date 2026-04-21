@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import timedelta
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -59,7 +59,14 @@ def transaction_list(filters=None, user=None):
     if filters.get('manager_account'):
         queryset = queryset.filter(manager_account=filters['manager_account'])
     if filters.get('search'):
-        queryset = queryset.filter(description__icontains=filters['search'])
+        search = filters['search']
+        queryset = queryset.filter(
+            Q(description__icontains=search)
+            | Q(item_name__icontains=search)
+            | Q(category__name__icontains=search)
+            | Q(work_item__title__icontains=search)
+            | Q(worker__full_name__icontains=search)
+        )
     return queryset
 
 

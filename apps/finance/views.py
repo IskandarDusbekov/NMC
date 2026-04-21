@@ -11,14 +11,16 @@ from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin, RoleRequi
 from .forms import (
     CompanyQuickActionForm,
     ExchangeRateForm,
+    ExpenseItemForm,
     ManagerExpenseForm,
     ManagerReturnForm,
     ManagerTransferForm,
+    MeasurementUnitForm,
     TransactionCategoryForm,
     TransactionFilterForm,
     TransactionForm,
 )
-from .models import ExchangeRate, Transaction, TransactionCategory, WalletTypeChoices
+from .models import ExchangeRate, ExpenseItem, MeasurementUnit, Transaction, TransactionCategory, WalletTypeChoices
 from .selectors import (
     category_summary,
     daily_expense_series,
@@ -74,17 +76,20 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
         context['category_distribution'] = category_summary(user=self.request.user)
         context['daily_expense_series'] = daily_expense_series(user=self.request.user)
         context['monthly_expense_series'] = monthly_expense_series(user=self.request.user)
-        context['company_balances'] = CompanyBalanceService.summary()
-        if getattr(self.request.user, 'role', '') == 'MANAGER' and hasattr(self.request.user, 'manager_account'):
+        is_manager_view = getattr(self.request.user, 'role', '') == 'MANAGER' and not getattr(self.request.user, 'is_superuser', False)
+        context['is_manager_view'] = is_manager_view
+        if is_manager_view and hasattr(self.request.user, 'manager_account'):
             context['manager_balances'] = ManagerBalanceService.summary_for_account(self.request.user.manager_account)
+        else:
+            context['company_balances'] = CompanyBalanceService.summary()
         context['recent_transfers'] = recent_transfers(user=self.request.user)
         context['breadcrumbs'] = [
             {'label': 'Dashboard', 'url': '/dashboard/'},
             {'label': 'Moliya', 'url': ''},
         ]
-        if getattr(self.request.user, 'role', '') == 'MANAGER' and not getattr(self.request.user, 'is_superuser', False):
+        if is_manager_view:
             context['page_title'] = 'Mening ledgerim'
-            context['page_subtitle'] = 'Faqat o`zimga tegishli manager wallet harakatlari'
+            context['page_subtitle'] = 'Faqat o`zimga tegishli xarajatlar, transferlar va operatsion balans'
         return context
 
     def post(self, request, *args, **kwargs):
@@ -223,7 +228,7 @@ class TransactionDeleteView(PageMetadataMixin, DirectorRequiredMixin, View):
 
 class ManagerAccountListView(PageMetadataMixin, RoleRequiredMixin, TemplateView):
     template_name = 'finance/manager_account_list.html'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR')
     page_title = 'Manager hisoblari'
     page_subtitle = 'Har bir manager uchun alohida operatsion wallet balansi'
 
@@ -388,7 +393,11 @@ class CategoryManagementView(PageMetadataMixin, DirectorRequiredMixin, View):
     def _build_context(self, *, form, categories):
         return {
             'form': form,
+            'unit_form': MeasurementUnitForm(),
+            'expense_item_form': ExpenseItemForm(),
             'categories': categories,
+            'units': MeasurementUnit.objects.order_by('name'),
+            'expense_items': ExpenseItem.objects.select_related('category', 'default_unit').order_by('category__name', 'name'),
             'page_title': self.page_title,
             'page_subtitle': self.page_subtitle,
             'breadcrumbs': [
@@ -403,8 +412,30 @@ class CategoryManagementView(PageMetadataMixin, DirectorRequiredMixin, View):
         return render(request, self.template_name, self._build_context(form=TransactionCategoryForm(), categories=categories))
 
     def post(self, request):
+        form_type = request.POST.get('form_type', 'category')
         form = TransactionCategoryForm(request.POST)
         categories = TransactionCategory.objects.exclude(type='TRANSFER').order_by('type', 'name')
+
+        if form_type == 'unit':
+            unit_form = MeasurementUnitForm(request.POST)
+            if unit_form.is_valid():
+                unit_form.save()
+                messages.success(request, 'O`lchov birligi saqlandi.')
+                return redirect('finance:category-list')
+            context = self._build_context(form=TransactionCategoryForm(), categories=categories)
+            context['unit_form'] = unit_form
+            return render(request, self.template_name, context)
+
+        if form_type == 'expense_item':
+            expense_item_form = ExpenseItemForm(request.POST)
+            if expense_item_form.is_valid():
+                expense_item_form.save()
+                messages.success(request, 'Ichki xarajat turi saqlandi.')
+                return redirect('finance:category-list')
+            context = self._build_context(form=TransactionCategoryForm(), categories=categories)
+            context['expense_item_form'] = expense_item_form
+            return render(request, self.template_name, context)
+
         if form.is_valid():
             form.save()
             messages.success(request, 'Category saqlandi.')

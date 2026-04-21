@@ -297,4 +297,78 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleQuickActionFields();
         });
     });
+
+    const expenseCategoryInput = document.querySelector('[data-expense-category]');
+    const expenseItemInput = document.querySelector('[data-expense-item]');
+    const expenseUnitInput = document.querySelector('[data-expense-unit]');
+    const expenseDetailWrappers = document.querySelectorAll('[data-expense-detail-wrapper]');
+
+    function filterExpenseItems() {
+        if (!expenseCategoryInput || !expenseItemInput) return;
+        const categoryId = expenseCategoryInput.value;
+        let firstValue = '';
+
+        Array.from(expenseItemInput.options).forEach((option) => {
+            if (!option.value) {
+                option.hidden = false;
+                option.disabled = false;
+                return;
+            }
+            const matchesCategory = !categoryId || option.dataset.categoryId === categoryId;
+            option.hidden = !matchesCategory;
+            option.disabled = !matchesCategory;
+            if (matchesCategory && !firstValue) {
+                firstValue = option.value;
+            }
+        });
+
+        const selectedOption = expenseItemInput.options[expenseItemInput.selectedIndex];
+        if (selectedOption && selectedOption.disabled) {
+            expenseItemInput.value = firstValue;
+        }
+    }
+
+    function applyExpenseItemDefaultUnit() {
+        if (!expenseItemInput || !expenseUnitInput) return;
+        const selectedOption = expenseItemInput.options[expenseItemInput.selectedIndex];
+        const defaultUnitId = selectedOption ? selectedOption.dataset.defaultUnitId : '';
+        if (defaultUnitId) {
+            expenseUnitInput.value = defaultUnitId;
+        }
+    }
+
+    function toggleExpenseDetailFields() {
+        if (!expenseCategoryInput) return;
+        const selectedOption = expenseCategoryInput.options[expenseCategoryInput.selectedIndex];
+        const detailMode = selectedOption ? selectedOption.dataset.detailMode : 'SIMPLE';
+        const visibleFields = {
+            MATERIAL: ['expense_item', 'quantity', 'unit', 'unit_price'],
+            FOOD: ['expense_item'],
+            FUEL: ['expense_item'],
+            SIMPLE: [],
+        }[detailMode || 'SIMPLE'] || [];
+
+        filterExpenseItems();
+        applyExpenseItemDefaultUnit();
+
+        expenseDetailWrappers.forEach((wrapper) => {
+            const fieldName = wrapper.dataset.expenseDetailWrapper;
+            const isVisible = visibleFields.includes(fieldName);
+            wrapper.classList.toggle('hidden', !isVisible);
+            wrapper.querySelectorAll('input, select, textarea').forEach((input) => {
+                input.disabled = !isVisible;
+                if (!isVisible) {
+                    input.value = '';
+                }
+            });
+        });
+    }
+
+    if (expenseCategoryInput) {
+        expenseCategoryInput.addEventListener('change', toggleExpenseDetailFields);
+        if (expenseItemInput) {
+            expenseItemInput.addEventListener('change', applyExpenseItemDefaultUnit);
+        }
+        toggleExpenseDetailFields();
+    }
 });

@@ -11,6 +11,7 @@ from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 
@@ -35,6 +36,7 @@ class TelegramEntryView(TemplateView):
         return context
 
 
+@method_decorator(never_cache, name='dispatch')
 class AccessTokenLoginView(View):
     def get(self, request, token):
         try:

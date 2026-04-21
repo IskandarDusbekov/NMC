@@ -146,47 +146,53 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajatlar jadvali</p>
-                    <h3 class="mt-2 text-xl font-extrabold text-slate-900">Xarajat nomi bo`yicha yig`indi</h3>
-                    <p class="mt-2 text-sm text-slate-500">Ish turiga berilgan to`lovlar ham shu jadvalda ish turi nomi bilan yig`iladi.</p>
+                    <h3 class="mt-2 text-xl font-extrabold text-slate-900">Category bo`yicha umumiy yig`indi</h3>
+                    <p class="mt-2 text-sm text-slate-500">Asosiy jadvalda category jami chiqadi. Batafsilda ichki turlar va cheklar ko`rinadi.</p>
                 </div>
                 <div class="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
                     Jami: {{ analytics.total_expense_uzs|money }} UZS / {{ analytics.total_expense_usd|money }} USD
                 </div>
             </div>
-            <div class="mt-5 overflow-x-auto">
-                <table class="min-w-full text-left text-sm">
+            <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-300">
+                <table class="min-w-full border-collapse text-left text-[13px] md:text-sm">
                     <thead class="bg-slate-950 text-white">
                         <tr>
-                            <th class="px-4 py-4 font-semibold">ID</th>
-                            <th class="px-4 py-4 font-semibold">Xarajat nomi</th>
-                            <th class="px-4 py-4 font-semibold">Turi</th>
-                            <th class="px-4 py-4 font-semibold">UZS jami</th>
-                            <th class="px-4 py-4 font-semibold">USD jami</th>
-                            <th class="px-4 py-4 font-semibold">Yozuvlar</th>
-                            <th class="px-4 py-4 font-semibold">Oxirgi sana</th>
-                            <th class="px-4 py-4 font-semibold">Amal</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">ID</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Category</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Turi</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Miqdor jami</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">UZS jami</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">USD jami</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Yozuv</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Chek</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Oxirgi sana</th>
+                            <th class="border border-slate-800 px-4 py-4 font-semibold">Amal</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200">
+                    <tbody>
                         {% for row in expense_summaries %}
-                            <tr class="hover:bg-slate-50">
-                                <td class="px-4 py-4 text-slate-500">{% if row.work_item_id %}WI-{{ row.work_item_id }}{% else %}CAT-{{ row.category_id|default:"0" }}{% endif %}</td>
-                                <td class="px-4 py-4 font-semibold text-slate-900">{{ row.label }}</td>
-                                <td class="px-4 py-4 text-slate-600">{{ row.row_type }}</td>
-                                <td class="px-4 py-4 font-semibold text-slate-800">{{ row.total_uzs|money }}</td>
-                                <td class="px-4 py-4 font-semibold text-slate-800">{{ row.total_usd|money }}</td>
-                                <td class="px-4 py-4 text-slate-600">{{ row.count }}</td>
-                                <td class="px-4 py-4 text-slate-600">{{ row.latest_date|date:"Y-m-d" }}</td>
-                                <td class="px-4 py-4">
-                                    {% if row.work_item_id %}
-                                        <a href="{% url 'finance:transaction-list' %}?object={{ construction_object.pk }}&work_item={{ row.work_item_id }}&transaction_type=EXPENSE" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
+                            <tr class="{% cycle 'bg-white' 'bg-slate-50' %} hover:bg-blue-50/60">
+                                <td class="border border-slate-200 px-4 py-3 text-slate-500">CAT-{{ row.category_id|default:"0" }}</td>
+                                <td class="border border-slate-200 px-4 py-3 font-bold text-slate-950">{{ row.label }}</td>
+                                <td class="border border-slate-200 px-4 py-3 text-slate-600">{{ row.row_type }}</td>
+                                <td class="border border-slate-200 px-4 py-3 font-semibold text-violet-700">{{ row.quantity_summary|default:"-" }}</td>
+                                <td class="border border-slate-200 px-4 py-3 font-extrabold text-emerald-700">{{ row.total_uzs|money }}</td>
+                                <td class="border border-slate-200 px-4 py-3 font-extrabold text-cyan-700">{{ row.total_usd|money }}</td>
+                                <td class="border border-slate-200 px-4 py-3 text-center font-semibold text-slate-700">{{ row.count }}</td>
+                                <td class="border border-slate-200 px-4 py-3 text-center">
+                                    {% if row.has_receipt %}
+                                        <a href="{% url 'objects:expense-category-detail' construction_object.pk row.category_id %}" class="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">Ko`rish</a>
                                     {% else %}
-                                        <a href="{% url 'finance:transaction-list' %}?object={{ construction_object.pk }}&category={{ row.category_id }}&transaction_type=EXPENSE" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
+                                        <span class="text-slate-400">-</span>
                                     {% endif %}
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-slate-600">{{ row.latest_date|date:"d.m.Y" }}</td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <a href="{% url 'objects:expense-category-detail' construction_object.pk row.category_id %}" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Batafsil</a>
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr><td colspan="8" class="px-4 py-10">{% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Xarajat qo`shilganda yoki ish turiga to`lov berilganda shu yerda ko`rinadi." %}</td></tr>
+                            <tr><td colspan="10" class="px-4 py-10">{% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Xarajat qo`shilganda yoki ish turiga to`lov berilganda shu yerda ko`rinadi." %}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -234,7 +240,7 @@
                                         {{ item.agreed_amount|subtract:item.paid_amount_usd|money }} USD
                                     {% endif %}
                                 </td>
-                                <td class="px-4 py-4 text-slate-600">{{ item.start_date|date:"Y-m-d" }}</td>
+                                <td class="px-4 py-4 text-slate-600">{{ item.start_date|date:"d.m.Y" }}</td>
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap gap-2">
                                         <a href="{% url 'objects:work-item-detail' item.pk %}" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
@@ -275,7 +281,7 @@
                 </div>
                 <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
             </div>
-            <form method="post" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+            <form method="post" enctype="multipart/form-data" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
                 {% csrf_token %}
                 <input type="hidden" name="form_type" value="work_item_payment">
                 <div class="xl:col-span-2">{% include "includes/form_field.html" with field=work_item_payment_form.worker %}</div>
@@ -283,7 +289,8 @@
                 <div>{% include "includes/form_field.html" with field=work_item_payment_form.amount %}</div>
                 <div>{% include "includes/form_field.html" with field=work_item_payment_form.currency %}</div>
                 <div>{% include "includes/form_field.html" with field=work_item_payment_form.date %}</div>
-                <div class="md:col-span-2 xl:col-span-5">{% include "includes/form_field.html" with field=work_item_payment_form.description %}</div>
+                <div class="md:col-span-2 xl:col-span-3">{% include "includes/form_field.html" with field=work_item_payment_form.receipt_file %}</div>
+                <div class="md:col-span-2 xl:col-span-6">{% include "includes/form_field.html" with field=work_item_payment_form.description %}</div>
                 {% for error in work_item_payment_form.non_field_errors %}<p class="md:col-span-2 xl:col-span-6 text-sm text-rose-600">{{ error }}</p>{% endfor %}
                 <div class="md:col-span-2 xl:col-span-6 flex justify-end gap-3">
                     <button type="button" data-modal-close class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</button>
@@ -294,7 +301,7 @@
     </div>
 
     <div id="object-expense-modal" class="{% if object_expense_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
-        <div class="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
+        <div class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajat</p>
@@ -303,13 +310,18 @@
                 </div>
                 <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
             </div>
-            <form method="post" class="mt-5 grid gap-4 md:grid-cols-2">
+            <form method="post" enctype="multipart/form-data" class="mt-5 grid gap-4 md:grid-cols-2">
                 {% csrf_token %}
                 <input type="hidden" name="form_type" value="object_expense">
                 <div class="md:col-span-2">{% include "includes/form_field.html" with field=object_expense_form.category %}</div>
+                <div class="md:col-span-2" data-expense-detail-wrapper="expense_item">{% include "includes/form_field.html" with field=object_expense_form.expense_item %}</div>
+                <div data-expense-detail-wrapper="quantity">{% include "includes/form_field.html" with field=object_expense_form.quantity %}</div>
+                <div data-expense-detail-wrapper="unit">{% include "includes/form_field.html" with field=object_expense_form.unit %}</div>
+                <div data-expense-detail-wrapper="unit_price">{% include "includes/form_field.html" with field=object_expense_form.unit_price %}</div>
                 {% include "includes/form_field.html" with field=object_expense_form.amount %}
                 {% include "includes/form_field.html" with field=object_expense_form.currency %}
                 {% include "includes/form_field.html" with field=object_expense_form.date %}
+                <div class="md:col-span-2">{% include "includes/form_field.html" with field=object_expense_form.receipt_file %}</div>
                 <div class="md:col-span-2">{% include "includes/form_field.html" with field=object_expense_form.description %}</div>
                 {% for error in object_expense_form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
                 <div class="md:col-span-2 flex justify-end gap-3">
@@ -319,4 +331,5 @@
             </form>
         </div>
     </div>
+
 {% endblock %}

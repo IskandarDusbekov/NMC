@@ -40,9 +40,23 @@ class TransactionEntryTypeChoices(models.TextChoices):
     ADJUSTMENT = 'ADJUSTMENT', 'Tuzatish'
 
 
+class TransactionSourceChoices(models.TextChoices):
+    MANUAL = 'MANUAL', 'Qo`lda'
+    TELEGRAM = 'TELEGRAM', 'Telegram'
+    RECEIPT = 'RECEIPT', 'Chek'
+
+
+class CategoryDetailModeChoices(models.TextChoices):
+    SIMPLE = 'SIMPLE', 'Oddiy xarajat'
+    MATERIAL = 'MATERIAL', 'Material / miqdorli'
+    FOOD = 'FOOD', 'Oziq-ovqat'
+    FUEL = 'FUEL', 'Yoqilg`i / texnika'
+
+
 class TransactionCategory(TimeStampedModel):
     name = models.CharField(max_length=150)
     type = models.CharField(max_length=10, choices=TransactionTypeChoices.choices)
+    detail_mode = models.CharField(max_length=20, choices=CategoryDetailModeChoices.choices, default=CategoryDetailModeChoices.SIMPLE)
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True)
 
@@ -56,6 +70,49 @@ class TransactionCategory(TimeStampedModel):
 
     def __str__(self):
         return f'{self.name} ({self.type})'
+
+
+class MeasurementUnit(TimeStampedModel):
+    name = models.CharField(max_length=50, unique=True)
+    short_name = models.CharField(max_length=20, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'O`lchov birligi'
+        verbose_name_plural = 'O`lchov birliklari'
+        ordering = ('name',)
+
+    def __str__(self):
+        return self.short_name or self.name
+
+
+class ExpenseItem(TimeStampedModel):
+    category = models.ForeignKey(
+        'finance.TransactionCategory',
+        on_delete=models.CASCADE,
+        related_name='expense_items',
+    )
+    name = models.CharField(max_length=150)
+    default_unit = models.ForeignKey(
+        'finance.MeasurementUnit',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='expense_items',
+    )
+    is_active = models.BooleanField(default=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = 'Ichki xarajat turi'
+        verbose_name_plural = 'Ichki xarajat turlari'
+        ordering = ('category__name', 'name')
+        constraints = [
+            models.UniqueConstraint(fields=('category', 'name'), name='unique_expense_item_per_category'),
+        ]
+
+    def __str__(self):
+        return f'{self.category.name} / {self.name}'
 
 
 class ExchangeRate(TimeStampedModel):
@@ -155,6 +212,13 @@ class Transaction(TimeStampedModel, SoftDeleteModel):
     wallet_type = models.CharField(max_length=20, choices=WalletTypeChoices.choices, default=WalletTypeChoices.COMPANY)
     amount = models.DecimalField(max_digits=18, decimal_places=2)
     currency = models.CharField(max_length=3, choices=CurrencyChoices.choices)
+    item_name = models.CharField(max_length=255, blank=True)
+    quantity = models.DecimalField(max_digits=14, decimal_places=3, blank=True, null=True)
+    unit = models.CharField(max_length=30, blank=True)
+    unit_price = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
+    source = models.CharField(max_length=20, choices=TransactionSourceChoices.choices, default=TransactionSourceChoices.MANUAL)
+    raw_text = models.TextField(blank=True)
+    receipt_file = models.FileField(upload_to='receipts/%Y/%m/', blank=True, null=True)
     target_amount = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
     target_currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, blank=True)
     exchange_rate = models.DecimalField(max_digits=18, decimal_places=6, blank=True, null=True)

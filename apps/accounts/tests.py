@@ -1,7 +1,9 @@
 import os
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.exceptions import ValidationError
+from django.test import Client, TestCase
+from django.urls import reverse
 
 from apps.finance.models import ManagerAccount
 
@@ -50,6 +52,31 @@ class UserModelTest(TestCase):
         consumed_user = TokenService.consume_token(token.token)
         self.assertEqual(consumed_user, user)
         self.assertTrue(token.__class__.objects.get(pk=token.pk).is_used)
+        with self.assertRaises(ValidationError):
+            TokenService.consume_token(token.token)
+
+    def test_access_token_link_cannot_be_reused_in_second_browser(self):
+        user = User.objects.create_user(
+            username='single-link-user',
+            password='test12345',
+            full_name='Single Link User',
+            telegram_id=222333444,
+        )
+        token = TokenService.create_access_token(user)
+        url = reverse('accounts:access-token', kwargs={'token': token.token})
+
+        first_browser = Client(HTTP_HOST='127.0.0.1:8000')
+        second_browser = Client(HTTP_HOST='127.0.0.1:8000')
+
+        first_response = first_browser.get(url)
+        second_response = second_browser.get(url)
+
+        self.assertEqual(first_response.status_code, 302)
+        self.assertEqual(first_response.url, reverse('dashboard:index'))
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(second_response.url, reverse('accounts:telegram-entry'))
+        self.assertIn('_auth_user_id', first_browser.session)
+        self.assertNotIn('_auth_user_id', second_browser.session)
 
     def test_manager_user_gets_manager_account(self):
         user = User.objects.create_user(

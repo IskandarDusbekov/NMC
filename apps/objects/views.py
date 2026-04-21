@@ -9,6 +9,7 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.core.forms import ConfirmDeleteForm
 from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin, RoleRequiredMixin
+from apps.finance.models import TransactionCategory
 from apps.logs.services import AuditLogService
 
 from .forms import ConstructionObjectCreateForm, ConstructionObjectUpdateForm, ObjectExpenseForm, ObjectWorkItemPaymentForm, WorkItemForm
@@ -72,7 +73,7 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
         form_type = request.POST.get('form_type')
 
         if form_type == 'work_item_payment':
-            work_item_payment_form = ObjectWorkItemPaymentForm(request.POST, construction_object=self.object)
+            work_item_payment_form = ObjectWorkItemPaymentForm(request.POST, request.FILES, construction_object=self.object)
             object_expense_form = ObjectExpenseForm()
             if work_item_payment_form.is_valid():
                 try:
@@ -86,6 +87,7 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                         currency=work_item_payment_form.cleaned_data['currency'],
                         date=work_item_payment_form.cleaned_data['date'],
                         description=work_item_payment_form.cleaned_data['description'],
+                        receipt_file=work_item_payment_form.cleaned_data['receipt_file'],
                     )
                 except ValidationError as error:
                     _apply_validation_error(work_item_payment_form, error)
@@ -103,7 +105,7 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
 
         if form_type == 'object_expense':
             work_item_payment_form = ObjectWorkItemPaymentForm(construction_object=self.object)
-            object_expense_form = ObjectExpenseForm(request.POST)
+            object_expense_form = ObjectExpenseForm(request.POST, request.FILES)
             if object_expense_form.is_valid():
                 try:
                     ObjectFinanceService.create_object_expense(
@@ -115,6 +117,11 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                         currency=object_expense_form.cleaned_data['currency'],
                         date=object_expense_form.cleaned_data['date'],
                         description=object_expense_form.cleaned_data['description'],
+                        item_name=object_expense_form.cleaned_data['expense_item'].name if object_expense_form.cleaned_data.get('expense_item') else '',
+                        quantity=object_expense_form.cleaned_data['quantity'],
+                        unit=str(object_expense_form.cleaned_data['unit']) if object_expense_form.cleaned_data.get('unit') else '',
+                        unit_price=object_expense_form.cleaned_data['unit_price'],
+                        receipt_file=object_expense_form.cleaned_data['receipt_file'],
                     )
                 except ValidationError as error:
                     _apply_validation_error(object_expense_form, error)
@@ -131,6 +138,31 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
             )
 
         return redirect('objects:detail', pk=self.object.pk)
+
+
+class ConstructionObjectExpenseCategoryDetailView(PageMetadataMixin, RoleRequiredMixin, DetailView):
+    template_name = 'objects/object_expense_category_detail.html'
+    queryset = construction_object_queryset()
+    context_object_name = 'construction_object'
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    page_title = 'Xarajat category detali'
+    page_subtitle = 'Ichki turlar, cheklar va transactionlar bo`yicha batafsil ko`rinish'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = get_object_or_404(TransactionCategory, pk=self.kwargs['category_id'])
+        detail = ObjectFinanceService.expense_category_detail_for_object(self.object, category)
+        context['category'] = category
+        context['detail_rows'] = detail['rows']
+        context['transactions'] = detail['transactions']
+        context['analytics'] = ObjectAnalyticsService.analytics_for_object(self.object)
+        context['breadcrumbs'] = [
+            {'label': 'Dashboard', 'url': '/dashboard/'},
+            {'label': 'Obyektlar', 'url': reverse('objects:list')},
+            {'label': self.object.name, 'url': f"{reverse('objects:detail', args=[self.object.pk])}?tab=expenses"},
+            {'label': category.name, 'url': ''},
+        ]
+        return context
 
 
 class ConstructionObjectCreateView(PageMetadataMixin, RoleRequiredMixin, CreateView):

@@ -11,7 +11,11 @@
                 </div>
                 <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl md:text-4xl">Dashboard</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    Ferma, manager, obyekt va ish turlari bo`yicha pul oqimini bir joyda kuzating.
+                    {% if is_manager_dashboard %}
+                        O`z balansingiz, xarajatlaringiz va obyektlar bo`yicha ish jarayonini bir joyda kuzating.
+                    {% else %}
+                        Ferma, manager, obyekt va ish turlari bo`yicha pul oqimini bir joyda kuzating.
+                    {% endif %}
                 </p>
             </div>
             <div class="grid grid-cols-2 gap-3 sm:flex">
@@ -229,7 +233,7 @@
                     {% if request.user.role != 'MANAGER' %}
                         <a href="{% url 'finance:transaction-list' %}" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">Yangi moliya amali</a>
                     {% endif %}
-                    <a href="{% url 'finance:manager-expense-create' %}" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Expense</a>
+                    <a href="{% url 'finance:manager-expense-create' %}" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">{% if is_manager_dashboard %}Xarajat qo`shish{% else %}Expense{% endif %}</a>
                 </div>
             </div>
             <div class="mt-6 overflow-x-auto">
@@ -246,7 +250,7 @@
                     <tbody class="divide-y divide-slate-100">
                         {% for item in recent_transactions %}
                             <tr class="hover:bg-slate-50">
-                                <td class="px-4 py-4 text-slate-600">{{ item.date|date:"Y-m-d" }}</td>
+                                <td class="px-4 py-4 text-slate-600">{{ item.date|date:"d.m.Y" }}</td>
                                 <td class="px-4 py-4">
                                     <div class="font-bold text-slate-900">{{ item.get_entry_type_display }}</div>
                                     <div class="text-xs text-slate-400">{{ item.category.name|default:"Ichki transfer" }}</div>
@@ -302,7 +306,7 @@
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <p class="font-bold text-slate-900">{{ transfer.to_manager.user.full_name }}</p>
-                                <p class="text-sm text-slate-500">{{ transfer.get_transfer_kind_display }} &middot; {{ transfer.date|date:"Y-m-d" }}</p>
+                                <p class="text-sm text-slate-500">{{ transfer.get_transfer_kind_display }} &middot; {{ transfer.date|date:"d.m.Y" }}</p>
                             </div>
                             <p class="font-black text-blue-600">{{ transfer.amount|money }} {{ transfer.currency }}</p>
                         </div>
@@ -332,23 +336,25 @@
             </div>
         </div>
 
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <h3 class="text-xl font-black text-slate-950">{% if is_manager_dashboard %}Mening salary to`lovlarim{% else %}Oxirgi ish haqi to`lovlari{% endif %}</h3>
-            <div class="mt-5 space-y-3">
-                {% for item in recent_salary_payments %}
-                    <div class="rounded-2xl border border-emerald-100 bg-emerald-50/50 px-4 py-4">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <p class="font-bold text-slate-900">{{ item.worker.full_name }}</p>
-                                <p class="text-sm text-slate-500">{{ item.object.name|default:"Umumiy" }}</p>
+        {% if not is_manager_dashboard %}
+            <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                <h3 class="text-xl font-black text-slate-950">Oxirgi ish haqi to`lovlari</h3>
+                <div class="mt-5 space-y-3">
+                    {% for item in recent_salary_payments %}
+                        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/50 px-4 py-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="font-bold text-slate-900">{{ item.worker.full_name }}</p>
+                                    <p class="text-sm text-slate-500">{{ item.object.name|default:"Umumiy" }}</p>
+                                </div>
+                                <span class="font-black text-emerald-600">{{ item.amount|money }} {{ item.currency }}</span>
                             </div>
-                            <span class="font-black text-emerald-600">{{ item.amount|money }} {{ item.currency }}</span>
                         </div>
-                    </div>
-                {% empty %}
-                    {% include "includes/empty_state.html" with title="Salary yozuvlari yo`q" text="Salary payment yaratilgandan keyin bu yerda ko`rinadi." %}
-                {% endfor %}
+                    {% empty %}
+                        {% include "includes/empty_state.html" with title="Salary yozuvlari yo`q" text="Salary payment yaratilgandan keyin bu yerda ko`rinadi." %}
+                    {% endfor %}
+                </div>
             </div>
-        </div>
+        {% endif %}
     </section>
 {% endblock %}

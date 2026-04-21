@@ -50,6 +50,7 @@ class SalaryPaymentService:
                 work_item=None,
                 worker=salary_payment.worker,
                 salary_payment=salary_payment,
+                receipt_file=salary_payment.receipt_file,
                 reference_type='salary_payment',
                 reference_id=str(salary_payment.pk),
                 user=user,
@@ -73,6 +74,7 @@ class SalaryPaymentService:
                 work_item=None,
                 worker=salary_payment.worker,
                 salary_payment=salary_payment,
+                receipt_file=salary_payment.receipt_file,
                 reference_type='salary_payment',
                 reference_id=str(salary_payment.pk),
             )
@@ -94,6 +96,7 @@ class SalaryPaymentService:
                 work_item=None,
                 worker=salary_payment.worker,
                 salary_payment=salary_payment,
+                receipt_file=salary_payment.receipt_file,
                 reference_type='salary_payment',
                 reference_id=str(salary_payment.pk),
             )

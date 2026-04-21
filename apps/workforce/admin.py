@@ -22,9 +22,13 @@ class WorkerAdmin(admin.ModelAdmin):
 
 @admin.register(SalaryPayment)
 class SalaryPaymentAdmin(admin.ModelAdmin):
-    list_display = ('date', 'worker', 'amount', 'currency', 'source_wallet', 'manager_account', 'object', 'created_by')
+    list_display = ('date', 'worker', 'amount', 'currency', 'source_wallet', 'manager_account', 'object', 'has_receipt', 'created_by')
     list_filter = ('currency', 'date', 'object', 'source_wallet')
     search_fields = ('worker__full_name', 'description', 'object__name', 'manager_account__user__full_name')
     autocomplete_fields = ('worker', 'object', 'manager_account', 'created_by')
     date_hierarchy = 'date'
     readonly_fields = ('created_at', 'updated_at')
+
+    @admin.display(boolean=True, description='Chek')
+    def has_receipt(self, obj):
+        return bool(obj.receipt_file)

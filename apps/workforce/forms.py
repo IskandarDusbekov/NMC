@@ -53,7 +53,7 @@ class WorkerForm(StyledFormMixin, forms.ModelForm):
 class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = SalaryPayment
-        fields = ('worker', 'amount', 'currency', 'date', 'source_wallet', 'manager_account', 'object', 'description')
+        fields = ('worker', 'amount', 'currency', 'date', 'source_wallet', 'manager_account', 'object', 'receipt_file', 'description')
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 4}),
@@ -71,6 +71,7 @@ class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
         self.fields['source_wallet'].label = 'To`lov manbasi'
         self.fields['manager_account'].label = 'Manager hisobi'
         self.fields['object'].label = 'Obyekt'
+        self.fields['receipt_file'].label = 'Chek rasmi / fayl'
         self.fields['description'].label = 'Izoh'
         self.fields['source_wallet'].help_text = 'Ferma, obyekt yoki manager hisobidan to`lov qiling.'
         manager_queryset = ManagerAccount.objects.select_related('user').filter(is_active=True).order_by('user__full_name')

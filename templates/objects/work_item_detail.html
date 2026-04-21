@@ -8,7 +8,7 @@
                 <h2 class="text-3xl font-bold text-slate-800">{{ work_item.title }}</h2>
                 <p class="mt-2 text-sm text-slate-500">{{ work_item.object.name }} &middot; {{ work_item.assigned_worker.full_name|default:work_item.assigned_worker_group|default:"Ishchi tanlanmagan" }}</p>
                 <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-                    <span class="rounded-full bg-slate-100 px-3 py-2 text-slate-600">Start: {{ work_item.start_date|date:"Y-m-d" }}</span>
+                    <span class="rounded-full bg-slate-100 px-3 py-2 text-slate-600">Start: {{ work_item.start_date|date:"d.m.Y" }}</span>
                     <span class="rounded-full bg-blue-50 px-3 py-2 text-blue-700">{{ work_item.currency }}</span>
                     <span class="rounded-full bg-slate-900 px-3 py-2 text-white">{{ work_item.get_status_display }}</span>
                 </div>
@@ -48,9 +48,16 @@
         <div class="mt-5 space-y-3">
             {% for item in payment_transactions %}
                 <div class="rounded-2xl border border-slate-200 px-4 py-3">
-                    <p class="font-semibold text-slate-800">{{ item.category.name|default:"Xarajat" }}</p>
-                    <p class="text-sm text-slate-500">{{ item.description|default:"Izoh yo`q" }}</p>
-                    <p class="mt-2 font-bold text-rose-600">{{ item.amount|money }} {{ item.currency }}</p>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="font-semibold text-slate-800">{{ item.category.name|default:"Xarajat" }}</p>
+                            <p class="text-sm text-slate-500">{{ item.description|default:"Izoh yo`q" }}</p>
+                            <p class="mt-2 font-bold text-rose-600">{{ item.amount|money }} {{ item.currency }}</p>
+                        </div>
+                        {% if item.receipt_file %}
+                            <a href="{{ item.receipt_file.url }}" target="_blank" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Rasmni ko`rish</a>
+                        {% endif %}
+                    </div>
                 </div>
             {% empty %}
                 {% include "includes/empty_state.html" with title="To`lovlar yo`q" text="Work itemga bog`langan paymentlar shu yerda ko`rinadi." %}

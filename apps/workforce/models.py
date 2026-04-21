@@ -57,6 +57,7 @@ class SalaryPayment(TimeStampedModel):
         on_delete=models.SET_NULL,
         related_name='salary_payments',
     )
+    receipt_file = models.FileField(upload_to='salary_receipts/%Y/%m/', blank=True, null=True)
 
     class Meta:
         ordering = ('-date', '-created_at')

@@ -2,43 +2,116 @@
 
 {% block content %}
     <section class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div class="rounded-[32px] border border-white/70 bg-white p-8 shadow-soft">
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Xarajat turlari</p>
-            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Yangi kirim / xarajat turi</h2>
-            <form method="post" class="mt-8 space-y-5">
-                {% csrf_token %}
-                {% for field in form %}
-                    {% include "includes/form_field.html" with field=field %}
-                {% endfor %}
-                <button type="submit" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
-            </form>
+        <div class="space-y-6">
+            <div class="rounded-[32px] border border-blue-100 bg-white p-6 shadow-soft md:p-8">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Asosiy tur</p>
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Yangi category</h2>
+                <p class="mt-2 text-sm text-slate-500">Masalan: Material, Oziq-ovqat, Yoqilg`i, Elektr energiya.</p>
+                <form method="post" class="mt-6 space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="category">
+                    {% for field in form %}
+                        {% include "includes/form_field.html" with field=field %}
+                    {% endfor %}
+                    <button type="submit" class="w-full rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Category saqlash</button>
+                </form>
+            </div>
+
+            <div class="rounded-[32px] border border-emerald-100 bg-white p-6 shadow-soft md:p-8">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Ichki tur</p>
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Category ichidagi item</h2>
+                <p class="mt-2 text-sm text-slate-500">Masalan Material ichida Beton/Kabel, Oziq-ovqat ichida Non/Kartoshka.</p>
+                <form method="post" class="mt-6 space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="expense_item">
+                    {% for field in expense_item_form %}
+                        {% include "includes/form_field.html" with field=field %}
+                    {% endfor %}
+                    <button type="submit" class="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white">Ichki turni saqlash</button>
+                </form>
+            </div>
+
+            <div class="rounded-[32px] border border-amber-100 bg-white p-6 shadow-soft md:p-8">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-600">O`lchov</p>
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">O`lchov birligi</h2>
+                <form method="post" class="mt-6 space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="unit">
+                    {% for field in unit_form %}
+                        {% include "includes/form_field.html" with field=field %}
+                    {% endfor %}
+                    <button type="submit" class="w-full rounded-2xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white">Birlikni saqlash</button>
+                </form>
+            </div>
         </div>
-        <div class="rounded-[32px] border border-white/70 bg-white p-8 shadow-soft">
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Ro`yxat</p>
-            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Kirim va xarajat turlari</h2>
-            <div class="mt-6 overflow-x-auto">
-                <table class="min-w-full text-left text-sm">
-                    <thead class="text-slate-400">
-                        <tr>
-                            <th class="pb-3 font-semibold">Nomi</th>
-                            <th class="pb-3 font-semibold">Turi</th>
-                            <th class="pb-3 font-semibold">Status</th>
-                            <th class="pb-3 font-semibold">Izoh</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for item in categories %}
+        <div class="space-y-6">
+            <div class="rounded-[32px] border border-slate-200 bg-white p-6 shadow-soft md:p-8">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Categorylar</p>
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Kirim va xarajat turlari</h2>
+                <div class="mt-6 overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-slate-950 text-white">
                             <tr>
-                                <td class="py-3 font-semibold text-slate-900">{{ item.name }}</td>
-                                <td class="py-3 text-slate-600">{{ item.get_type_display }}</td>
-                                <td class="py-3 text-slate-600">{{ item.is_active|yesno:"Active,Inactive" }}</td>
-                                <td class="py-3 text-slate-600">{{ item.description|default:"-" }}</td>
+                                <th class="px-4 py-4 font-semibold">Nomi</th>
+                                <th class="px-4 py-4 font-semibold">Turi</th>
+                                <th class="px-4 py-4 font-semibold">Kiritish shakli</th>
+                                <th class="px-4 py-4 font-semibold">Status</th>
                             </tr>
-                        {% empty %}
-                            <tr><td colspan="4" class="py-8">{% include "includes/empty_state.html" with title="Category yo`q" text="Kirim va chiqim kategoriyalarini shu yerdan boshlang." %}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            {% for item in categories %}
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-4 py-4 font-semibold text-slate-900">{{ item.name }}</td>
+                                    <td class="px-4 py-4 text-slate-600">{{ item.get_type_display }}</td>
+                                    <td class="px-4 py-4"><span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{{ item.get_detail_mode_display }}</span></td>
+                                    <td class="px-4 py-4">{{ item.is_active|yesno:"Active,Inactive" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="py-8">{% include "includes/empty_state.html" with title="Category yo`q" text="Kirim va chiqim kategoriyalarini shu yerdan boshlang." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="rounded-[32px] border border-slate-200 bg-white p-6 shadow-soft md:p-8">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Ichki itemlar</p>
+                <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Category ichidagi turlar</h2>
+                <div class="mt-6 overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-slate-950 text-white">
+                            <tr>
+                                <th class="px-4 py-4 font-semibold">Category</th>
+                                <th class="px-4 py-4 font-semibold">Ichki tur</th>
+                                <th class="px-4 py-4 font-semibold">Default birlik</th>
+                                <th class="px-4 py-4 font-semibold">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            {% for item in expense_items %}
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-4 py-4 text-slate-600">{{ item.category.name }}</td>
+                                    <td class="px-4 py-4 font-semibold text-slate-900">{{ item.name }}</td>
+                                    <td class="px-4 py-4 text-slate-600">{{ item.default_unit|default:"-" }}</td>
+                                    <td class="px-4 py-4 text-slate-600">{{ item.is_active|yesno:"Active,Inactive" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="py-8">{% include "includes/empty_state.html" with title="Ichki tur yo`q" text="Masalan Beton, Kabel, Kartoshka kabi itemlarni qo`shing." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="rounded-[32px] border border-slate-200 bg-white p-6 shadow-soft md:p-8">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Birliklar</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    {% for unit in units %}
+                        <span class="rounded-full bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700">{{ unit.name }}{% if unit.short_name %} / {{ unit.short_name }}{% endif %}</span>
+                    {% empty %}
+                        <p class="text-sm text-slate-500">O`lchov birliklari hali yo`q.</p>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </section>

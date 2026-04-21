@@ -6,6 +6,7 @@ from django import forms
 from apps.core.forms import StyledFormMixin
 
 from .models import (
+    CategoryDetailModeChoices,
     CurrencyChoices,
     ExchangeRate,
     ManagerTransfer,
@@ -25,6 +26,24 @@ class CategoryTypeSelect(forms.Select):
         option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
         if value and hasattr(value, 'instance'):
             option['attrs']['data-category-type'] = value.instance.type
+        return option
+
+
+class ExpenseCategorySelect(forms.Select):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if value and hasattr(value, 'instance'):
+            option['attrs']['data-detail-mode'] = value.instance.detail_mode
+        return option
+
+
+class ExpenseItemSelect(forms.Select):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if value and hasattr(value, 'instance'):
+            item = value.instance
+            option['attrs']['data-category-id'] = item.category_id
+            option['attrs']['data-default-unit-id'] = item.default_unit_id or ''
         return option
 
 
@@ -242,7 +261,7 @@ class TransactionFilterForm(StyledFormMixin, forms.Form):
 class TransactionCategoryForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = TransactionCategory
-        fields = ('name', 'type', 'is_active', 'description')
+        fields = ('name', 'type', 'detail_mode', 'is_active', 'description')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -250,6 +269,34 @@ class TransactionCategoryForm(StyledFormMixin, forms.ModelForm):
             (TransactionTypeChoices.INCOME, 'Income'),
             (TransactionTypeChoices.EXPENSE, 'Expense'),
         ]
+        self.fields['detail_mode'].choices = CategoryDetailModeChoices.choices
+        self.fields['detail_mode'].help_text = 'Xarajat qo`shish modalida qaysi maydonlar chiqishini belgilaydi.'
+
+
+class MeasurementUnitForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        from .models import MeasurementUnit
+
+        model = MeasurementUnit
+        fields = ('name', 'short_name', 'is_active')
+
+
+class ExpenseItemForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        from .models import ExpenseItem
+
+        model = ExpenseItem
+        fields = ('category', 'name', 'default_unit', 'is_active', 'description')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import MeasurementUnit
+
+        self.fields['category'].queryset = TransactionCategory.objects.filter(
+            type=TransactionTypeChoices.EXPENSE,
+            is_active=True,
+        ).order_by('name')
+        self.fields['default_unit'].queryset = MeasurementUnit.objects.filter(is_active=True).order_by('name')
 
 
 class ExchangeRateForm(StyledFormMixin, forms.ModelForm):
