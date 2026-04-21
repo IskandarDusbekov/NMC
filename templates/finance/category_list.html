@@ -3,19 +3,19 @@
 {% block content %}
     <section class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div class="rounded-[32px] border border-white/70 bg-white p-8 shadow-soft">
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Create category</p>
-            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Yangi category</h2>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Xarajat turlari</p>
+            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Yangi kirim / xarajat turi</h2>
             <form method="post" class="mt-8 space-y-5">
                 {% csrf_token %}
                 {% for field in form %}
                     {% include "includes/form_field.html" with field=field %}
                 {% endfor %}
-                <button type="submit" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Category saqlash</button>
+                <button type="submit" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
             </form>
         </div>
         <div class="rounded-[32px] border border-white/70 bg-white p-8 shadow-soft">
-            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Registry</p>
-            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Categorylar ro`yxati</h2>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Ro`yxat</p>
+            <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Kirim va xarajat turlari</h2>
             <div class="mt-6 overflow-x-auto">
                 <table class="min-w-full text-left text-sm">
                     <thead class="text-slate-400">

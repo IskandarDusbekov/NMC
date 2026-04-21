@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from decimal import Decimal
+import json
+from datetime import datetime, time
+from decimal import Decimal, InvalidOperation
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 from django.core.exceptions import ValidationError
 from django.db import transaction as db_transaction
+from django.conf import settings
 from django.utils import timezone
 
 from apps.logs.services import AuditLogService
@@ -25,14 +30,53 @@ ZERO = Decimal('0.00')
 
 
 class ExchangeRateService:
+    CBU_USD_ENDPOINT = 'https://cbu.uz/ru/arkhiv-kursov-valyut/json/USD/'
+
     @staticmethod
     def latest_rate():
         return ExchangeRate.objects.filter(is_active=True).order_by('-effective_at', '-created_at').first()
 
     @staticmethod
-    def update_rate(*, usd_to_uzs, user):
+    def update_rate(*, usd_to_uzs, user, effective_at=None):
         ExchangeRate.objects.update(is_active=False)
-        return ExchangeRate.objects.create(usd_to_uzs=usd_to_uzs, updated_by=user, is_active=True)
+        return ExchangeRate.objects.create(
+            usd_to_uzs=usd_to_uzs,
+            effective_at=effective_at or timezone.now(),
+            updated_by=user,
+            is_active=True,
+        )
+
+    @classmethod
+    def fetch_cbu_usd_rate(cls, timeout=10):
+        try:
+            with urlopen(cls.CBU_USD_ENDPOINT, timeout=timeout) as response:
+                payload = json.loads(response.read().decode('utf-8'))
+        except (HTTPError, URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+            raise ValidationError(f'CBU kursini olishda xatolik: {exc}') from exc
+
+        if not payload:
+            raise ValidationError('CBU API bo`sh javob qaytardi.')
+        row = payload[0]
+        try:
+            rate = Decimal(str(row.get('Rate', '')).replace(',', '.'))
+        except (InvalidOperation, ValueError) as exc:
+            raise ValidationError('CBU API kurs qiymatini noto`g`ri formatda qaytardi.') from exc
+        effective_at = timezone.now()
+        date_value = row.get('Date')
+        if date_value:
+            try:
+                parsed_date = datetime.strptime(date_value, '%d.%m.%Y').date()
+                effective_at = datetime.combine(parsed_date, time.min)
+                if settings.USE_TZ:
+                    effective_at = timezone.make_aware(effective_at)
+            except ValueError:
+                effective_at = timezone.now()
+        return rate, effective_at
+
+    @classmethod
+    def update_rate_from_cbu(cls, *, user):
+        rate, effective_at = cls.fetch_cbu_usd_rate()
+        return cls.update_rate(usd_to_uzs=rate, effective_at=effective_at, user=user)
 
 
 class CompanyBalanceService:
@@ -95,6 +139,49 @@ class ManagerBalanceService:
 
 
 class TransactionService:
+    @staticmethod
+    def _object_balance_delta(transaction):
+        if not transaction.object_id:
+            return ZERO
+        mapping = {
+            (WalletTypeChoices.OBJECT, TransactionEntryTypeChoices.OBJECT_EXPENSE): transaction.amount,
+            (WalletTypeChoices.COMPANY, TransactionEntryTypeChoices.TRANSFER_TO_OBJECT): -transaction.amount,
+            (WalletTypeChoices.COMPANY, TransactionEntryTypeChoices.TRANSFER_FROM_OBJECT): transaction.amount,
+        }
+        return mapping.get((transaction.wallet_type, transaction.entry_type), ZERO)
+
+    @classmethod
+    def _apply_object_balance_delta(cls, transaction, multiplier=1):
+        delta = cls._object_balance_delta(transaction)
+        if not delta:
+            return
+        construction_object = transaction.object
+        construction_object.refresh_from_db(fields=['balance_uzs', 'balance_usd', 'updated_at'])
+        signed_delta = delta * Decimal(multiplier)
+        if transaction.currency == CurrencyChoices.UZS:
+            next_balance = construction_object.balance_uzs + signed_delta
+            if next_balance < 0:
+                raise ValidationError({'amount': f'Obyekt UZS balansi manfiyga tushib ketadi: {next_balance} UZS.'})
+            construction_object.balance_uzs = next_balance
+            construction_object.save(update_fields=['balance_uzs', 'updated_at'])
+            return
+        next_balance = construction_object.balance_usd + signed_delta
+        if next_balance < 0:
+            raise ValidationError({'amount': f'Obyekt USD balansi manfiyga tushib ketadi: {next_balance} USD.'})
+        construction_object.balance_usd = next_balance
+        construction_object.save(update_fields=['balance_usd', 'updated_at'])
+
+    @classmethod
+    def _transfer_group_queryset(cls, instance):
+        if instance.manager_transfer_id:
+            return Transaction.objects.active().filter(manager_transfer=instance.manager_transfer)
+        if instance.reference_type in {'manager_transfer', 'manager_return'} and instance.reference_id:
+            return Transaction.objects.active().filter(
+                reference_type=instance.reference_type,
+                reference_id=instance.reference_id,
+            )
+        return Transaction.objects.active().filter(pk=instance.pk)
+
     @staticmethod
     def _prepare_payload(data):
         payload = data.copy()
@@ -170,17 +257,24 @@ class TransactionService:
     @classmethod
     @db_transaction.atomic
     def update_transaction(cls, instance, *, user=None, request=None, **data):
+        original = Transaction.objects.select_related('object').get(pk=instance.pk)
         payload = cls._prepare_payload(data)
         if payload['wallet_type'] == WalletTypeChoices.COMPANY:
             cls._ensure_company_permissions(user)
         if payload['wallet_type'] == WalletTypeChoices.MANAGER:
             cls._ensure_manager_permissions(user, payload.get('manager_account'))
+        cls._apply_object_balance_delta(original, multiplier=1)
         for field, value in payload.items():
             setattr(instance, field, value)
         instance.updated_by = user
-        instance.full_clean()
-        cls._validate_balance(payload, instance=instance)
-        instance.save()
+        try:
+            instance.full_clean()
+            cls._validate_balance(payload, instance=instance)
+            cls._apply_object_balance_delta(instance, multiplier=-1)
+            instance.save()
+        except Exception:
+            cls._apply_object_balance_delta(original, multiplier=-1)
+            raise
         AuditLogService.log(
             user=user,
             action='transaction_updated',
@@ -196,16 +290,20 @@ class TransactionService:
     def soft_delete_transaction(cls, instance, *, user=None, request=None):
         if instance.is_deleted:
             return instance
-        instance.is_deleted = True
-        instance.deleted_by = user
-        instance.deleted_at = timezone.now()
-        instance.save(update_fields=['is_deleted', 'deleted_by', 'deleted_at', 'updated_at'])
+        transactions = list(cls._transfer_group_queryset(instance).select_related('object', 'manager_transfer'))
+        deleted_at = timezone.now()
+        for transaction in transactions:
+            cls._apply_object_balance_delta(transaction, multiplier=1)
+            transaction.is_deleted = True
+            transaction.deleted_by = user
+            transaction.deleted_at = deleted_at
+            transaction.save(update_fields=['is_deleted', 'deleted_by', 'deleted_at', 'updated_at'])
         AuditLogService.log(
             user=user,
             action='transaction_deleted',
             model_name='Transaction',
             object_id=str(instance.pk),
-            description=f'{instance.entry_type} transaction soft delete qilindi.',
+            description=f'{instance.entry_type} transaction soft delete qilindi. Bog`liq yozuvlar: {len(transactions)}.',
             ip_address=AuditLogService.get_ip_address(request) if request else None,
         )
         return instance

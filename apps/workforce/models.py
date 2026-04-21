@@ -66,6 +66,10 @@ class SalaryPayment(TimeStampedModel):
             raise ValidationError({'manager_account': 'Manager wallet uchun manager hisobi majburiy.'})
         if self.source_wallet == WalletTypeChoices.COMPANY and self.manager_account:
             raise ValidationError({'manager_account': 'Company wallet tanlanganda manager hisobi bo`sh bo`lishi kerak.'})
+        if self.source_wallet == WalletTypeChoices.OBJECT and not self.object:
+            raise ValidationError({'object': 'Obyekt hisobidan to`lov uchun obyekt tanlang.'})
+        if self.source_wallet == WalletTypeChoices.OBJECT and self.manager_account:
+            raise ValidationError({'manager_account': 'Obyekt hisobidan to`lovda manager hisobi bo`sh bo`lishi kerak.'})
 
     def __str__(self):
         return f'{self.worker.full_name} - {self.amount} {self.currency}'

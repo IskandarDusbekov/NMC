@@ -199,8 +199,12 @@ class TransactionDeleteView(PageMetadataMixin, DirectorRequiredMixin, View):
         transaction = get_object_or_404(Transaction.objects.active(), pk=pk)
         form = ConfirmDeleteForm(request.POST)
         if form.is_valid():
-            TransactionService.soft_delete_transaction(transaction, user=request.user, request=request)
-            messages.success(request, 'Transaction ochirildi.')
+            try:
+                TransactionService.soft_delete_transaction(transaction, user=request.user, request=request)
+            except ValidationError as error:
+                messages.error(request, '; '.join(error.messages if hasattr(error, 'messages') else [str(error)]))
+                return redirect('finance:transaction-list')
+            messages.success(request, 'Transaction ochirildi. Bog`liq ledger yozuvlari ham xavfsiz yangilandi.')
             return redirect('finance:transaction-list')
         return render(
             request,
@@ -429,6 +433,15 @@ class ExchangeRateManagementView(PageMetadataMixin, DirectorRequiredMixin, View)
         return render(request, self.template_name, self._build_context(form=ExchangeRateForm(), rates=rates))
 
     def post(self, request):
+        if request.POST.get('source') == 'cbu':
+            try:
+                ExchangeRateService.update_rate_from_cbu(user=request.user)
+            except ValidationError as error:
+                messages.error(request, '; '.join(error.messages if hasattr(error, 'messages') else [str(error)]))
+            else:
+                messages.success(request, 'USD kursi CBU API orqali yangilandi.')
+            return redirect('finance:exchange-rate-list')
+
         form = ExchangeRateForm(request.POST)
         if form.is_valid():
             ExchangeRateService.update_rate(usd_to_uzs=form.cleaned_data['usd_to_uzs'], user=request.user)

@@ -32,6 +32,7 @@ class NavigationService:
             NavigationItem('Kompaniya moliyasi', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True),
             NavigationItem('Manager hisoblari', 'finance:manager-account-list', '/finance/manager-accounts/', ('ADMIN', 'DIRECTOR', 'MANAGER')),
             NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True),
+            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'MANAGER')),
             NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR')),
             NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR')),
             NavigationItem('Sozlamalar', 'admin:index', '/admin/', ('ADMIN',)),

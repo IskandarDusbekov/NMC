@@ -19,6 +19,17 @@
             <div class="flex flex-wrap gap-2">
                 <a href="{% url 'finance:transaction-list' %}?object={{ work_item.object_id }}&work_item={{ work_item.pk }}&transaction_type=EXPENSE" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Umumiy tarix</a>
                 {% if request.user.role != 'MANAGER' %}
+                    <form method="post" action="{% url 'objects:work-item-status' work_item.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        {% if work_item.status == 'completed' %}
+                            <input type="hidden" name="action" value="reopen">
+                            <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">Qayta ishga tushirish</button>
+                        {% else %}
+                            <input type="hidden" name="action" value="complete">
+                            <button type="submit" class="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">Tugatildi</button>
+                        {% endif %}
+                    </form>
                     <a href="{% url 'objects:work-item-update' work_item.pk %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Edit</a>
                 {% endif %}
             </div>

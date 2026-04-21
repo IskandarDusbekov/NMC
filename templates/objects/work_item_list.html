@@ -12,6 +12,43 @@
         {% endif %}
     </section>
 
+    <section class="mt-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <form method="get" class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-600">Qidirish</label>
+                <input type="search" name="q" value="{{ filters.q }}" placeholder="Ish turi, obyekt yoki ishchi" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50">
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-600">Obyekt</label>
+                <select name="object" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50">
+                    <option value="">Barcha active obyektlar</option>
+                    {% for object_item in objects_filter %}
+                        {% with object_item.pk|stringformat:"s" as object_id_string %}
+                            <option value="{{ object_item.pk }}" {% if filters.object == object_id_string %}selected{% endif %}>{{ object_item.name }}{% if object_item.status == 'finished' %} (arxiv){% endif %}</option>
+                        {% endwith %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-600">Holat</label>
+                <select name="status" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50">
+                    <option value="">Barcha holatlar</option>
+                    {% for value,label in status_choices %}
+                        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <label class="flex items-end gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600">
+                <input type="checkbox" name="include_archived" value="1" class="h-5 w-5 rounded border-slate-300 text-blue-600" {% if filters.include_archived %}checked{% endif %}>
+                Arxivlangan obyekt ishlarini ham ko`rsatish
+            </label>
+            <div class="flex items-end gap-2">
+                <button type="submit" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white">Filtrlash</button>
+                <a href="{% url 'objects:work-item-list' %}" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600">Tozalash</a>
+            </div>
+        </form>
+    </section>
+
     <section class="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
@@ -55,6 +92,17 @@
                                     <a href="{% url 'objects:work-item-detail' item.pk %}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
                                     {% if request.user.role != 'MANAGER' %}
                                         <a href="{% url 'objects:work-item-update' item.pk %}" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white">Edit</a>
+                                        <form method="post" action="{% url 'objects:work-item-status' item.pk %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            {% if item.status == 'completed' %}
+                                                <input type="hidden" name="action" value="reopen">
+                                                <button type="submit" class="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700">Ishga tushirish</button>
+                                            {% else %}
+                                                <input type="hidden" name="action" value="complete">
+                                                <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">Tugatildi</button>
+                                            {% endif %}
+                                        </form>
                                     {% endif %}
                                 </div>
                             </td>

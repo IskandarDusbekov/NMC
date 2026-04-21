@@ -5,13 +5,20 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
-from django.db.models.functions import Coalesce, TruncDate, TruncMonth
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from .models import CurrencyChoices, ManagerAccount, ManagerTransfer, Transaction, TransactionTypeChoices, WalletTypeChoices
 
 
 ZERO = Decimal('0.00')
+CHART_COLORS = ['#2563eb', '#f59e0b', '#8b5cf6', '#ef4444', '#14b8a6', '#64748b', '#22c55e', '#f97316']
+
+
+def _percent(value, total):
+    if not total:
+        return 0
+    return int((Decimal(value) / Decimal(total)) * Decimal('100'))
 
 
 def _today():
@@ -92,29 +99,31 @@ def category_summary(transaction_type=TransactionTypeChoices.EXPENSE, filters=No
         .annotate(total=Coalesce(Sum('amount'), ZERO))
         .order_by('-total')[:8]
     )
+    currency_totals = defaultdict(lambda: ZERO)
+    for row in rows:
+        currency_totals[row['currency']] += row['total']
     return [
         {
             'label': f"{row['category__name']} ({row['currency']})",
             'total': row['total'],
             'currency': row['currency'],
+            'percent': _percent(row['total'], currency_totals[row['currency']]),
+            'color': CHART_COLORS[index % len(CHART_COLORS)],
         }
-        for row in rows
+        for index, row in enumerate(rows)
     ]
 
 
 def daily_expense_series(days=7, user=None):
     start = _today() - timedelta(days=days - 1)
-    rows = (
+    transactions = (
         transaction_list({'date_from': start, 'transaction_type': TransactionTypeChoices.EXPENSE}, user=user)
-        .annotate(period=TruncDate('date'))
-        .values('period', 'currency')
-        .annotate(total=Coalesce(Sum('amount'), ZERO))
-        .order_by('period')
+        .values_list('date', 'currency', 'amount')
     )
     mapping = defaultdict(lambda: {CurrencyChoices.UZS: ZERO, CurrencyChoices.USD: ZERO})
-    for row in rows:
-        mapping[row['period']][row['currency']] = row['total']
-    return [
+    for transaction_date, currency, amount in transactions:
+        mapping[transaction_date][currency] += amount
+    rows = [
         {
             'label': (start + timedelta(days=offset)).strftime('%d %b'),
             'UZS': mapping[start + timedelta(days=offset)][CurrencyChoices.UZS],
@@ -122,26 +131,32 @@ def daily_expense_series(days=7, user=None):
         }
         for offset in range(days)
     ]
+    max_uzs = max([row['UZS'] for row in rows] or [ZERO])
+    max_usd = max([row['USD'] for row in rows] or [ZERO])
+    for row in rows:
+        row['UZS_percent'] = _percent(row['UZS'], max_uzs)
+        row['USD_percent'] = _percent(row['USD'], max_usd)
+    return rows
 
 
 def monthly_expense_series(months=6, user=None):
     today = _today()
     start_month = today.replace(day=1)
-    rows = (
-        transaction_list({'date_from': start_month - timedelta(days=31 * (months - 1)), 'transaction_type': TransactionTypeChoices.EXPENSE}, user=user)
-        .annotate(period=TruncMonth('date'))
-        .values('period', 'currency')
-        .annotate(total=Coalesce(Sum('amount'), ZERO))
-        .order_by('period')
+    first_month = start_month
+    for _ in range(months - 1):
+        first_month = (first_month.replace(day=1) - timedelta(days=1)).replace(day=1)
+
+    transactions = (
+        transaction_list({'date_from': first_month, 'transaction_type': TransactionTypeChoices.EXPENSE}, user=user)
+        .values_list('date', 'currency', 'amount')
     )
     grouped = defaultdict(lambda: {CurrencyChoices.UZS: ZERO, CurrencyChoices.USD: ZERO})
-    for row in rows:
-        grouped[row['period'].date()][row['currency']] = row['total']
+    for transaction_date, currency, amount in transactions:
+        period = transaction_date.replace(day=1)
+        grouped[period][currency] += amount
 
     labels = []
-    cursor = start_month
-    for _ in range(months - 1):
-        cursor = (cursor.replace(day=1) - timedelta(days=1)).replace(day=1)
+    cursor = first_month
     for _ in range(months):
         labels.append(cursor)
         if cursor.month == 12:
@@ -149,7 +164,7 @@ def monthly_expense_series(months=6, user=None):
         else:
             cursor = cursor.replace(month=cursor.month + 1)
 
-    return [
+    rows = [
         {
             'label': period.strftime('%b %Y'),
             'UZS': grouped[period][CurrencyChoices.UZS],
@@ -157,3 +172,9 @@ def monthly_expense_series(months=6, user=None):
         }
         for period in labels
     ]
+    max_uzs = max([row['UZS'] for row in rows] or [ZERO])
+    max_usd = max([row['USD'] for row in rows] or [ZERO])
+    for row in rows:
+        row['UZS_percent'] = _percent(row['UZS'], max_uzs)
+        row['USD_percent'] = _percent(row['USD'], max_usd)
+    return rows

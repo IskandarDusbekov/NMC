@@ -10,7 +10,10 @@
                 <p class="mt-2 max-w-2xl text-sm text-slate-500">Asosiy pul amallari: kirim, chiqim, managerga pul berish, obyektga pul yo`naltirish va obyektdan qaytarib olish.</p>
             </div>
             {% if request.user.role != 'MANAGER' %}
-                <button type="button" data-modal-open="company-quick-action-modal" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Yangi moliya amali</button>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'finance:category-list' %}" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Xarajat turlari</a>
+                    <button type="button" data-modal-open="company-quick-action-modal" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Yangi moliya amali</button>
+                </div>
             {% endif %}
         </div>
     </section>

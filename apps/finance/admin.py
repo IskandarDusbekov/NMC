@@ -9,6 +9,7 @@ class TransactionCategoryAdmin(admin.ModelAdmin):
     list_filter = ('type', 'is_active')
     search_fields = ('name', 'description')
     ordering = ('type', 'name')
+    list_editable = ('is_active',)
 
 
 @admin.register(ExchangeRate)
@@ -26,6 +27,8 @@ class TransactionAdmin(admin.ModelAdmin):
     search_fields = ('description', 'reference_type', 'reference_id', 'object__name', 'worker__full_name', 'manager_account__user__full_name')
     autocomplete_fields = ('category', 'object', 'work_item', 'worker', 'manager_account', 'created_by', 'updated_by', 'deleted_by')
     readonly_fields = ('created_at', 'updated_at', 'deleted_at')
+    date_hierarchy = 'date'
+    list_per_page = 30
 
 
 @admin.register(ManagerAccount)
@@ -33,6 +36,7 @@ class ManagerAccountAdmin(admin.ModelAdmin):
     list_display = ('user', 'is_active', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('user__full_name', 'user__username', 'user__phone')
+    autocomplete_fields = ('user',)
 
 
 @admin.register(ManagerTransfer)
@@ -40,3 +44,4 @@ class ManagerTransferAdmin(admin.ModelAdmin):
     list_display = ('date', 'to_manager', 'amount', 'currency', 'transfer_kind', 'from_user')
     list_filter = ('currency', 'transfer_kind', 'date')
     search_fields = ('to_manager__user__full_name', 'description', 'from_user__full_name')
+    date_hierarchy = 'date'

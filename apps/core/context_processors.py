@@ -17,6 +17,8 @@ def global_layout(request):
         else:
             balances = company_balances
         exchange_rate = ExchangeRateService.latest_rate()
+        if exchange_rate is None:
+            exchange_rate = ExchangeRateService.update_rate_from_cbu(user=request.user if getattr(request.user, 'is_authenticated', False) else None)
     except (OperationalError, ProgrammingError, ImportError):
         balances = {'UZS': 0, 'USD': 0}
         company_balances = {'UZS': 0, 'USD': 0}

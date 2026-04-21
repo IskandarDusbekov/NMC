@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.objects.models import ConstructionObject
+from apps.objects.services import ObjectFinanceService
 
 from .forms import CompanyQuickActionForm
 from .models import CurrencyChoices, Transaction, TransactionCategory, TransactionTypeChoices
@@ -131,6 +132,86 @@ class TransactionServiceTest(TestCase):
                 worker=None,
                 user=self.other_manager,
             )
+
+    def test_deleting_manager_transfer_soft_deletes_both_ledger_entries(self):
+        transfer = TransferService.transfer_to_manager(
+            manager_account=self.manager.manager_account,
+            amount=Decimal('200000.00'),
+            currency=CurrencyChoices.UZS,
+            description='Transfer delete test',
+            date=date(2026, 4, 21),
+            user=self.director,
+        )
+        company_entry = Transaction.objects.get(manager_transfer=transfer, wallet_type='COMPANY')
+
+        TransactionService.soft_delete_transaction(company_entry, user=self.director)
+
+        self.assertFalse(Transaction.objects.active().filter(manager_transfer=transfer).exists())
+        self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.UZS), Decimal('1000000.00'))
+        self.assertEqual(ManagerBalanceService.summary_for_account(self.manager.manager_account)[CurrencyChoices.UZS], Decimal('0.00'))
+
+    def test_deleting_object_expense_restores_object_balance(self):
+        construction_object = ConstructionObject.objects.create(
+            name='Balance Object',
+            address='Tashkent',
+            start_date=date(2026, 4, 21),
+            balance_uzs=Decimal('500000.00'),
+        )
+        transaction = ObjectFinanceService.create_object_expense(
+            construction_object=construction_object,
+            user=self.director,
+            category=self.expense_category,
+            amount=Decimal('100000.00'),
+            currency=CurrencyChoices.UZS,
+            date=date(2026, 4, 22),
+            description='Elektr energiya',
+        )
+        construction_object.refresh_from_db()
+        self.assertEqual(construction_object.balance_uzs, Decimal('400000.00'))
+
+        TransactionService.soft_delete_transaction(transaction, user=self.director)
+
+        construction_object.refresh_from_db()
+        self.assertEqual(construction_object.balance_uzs, Decimal('500000.00'))
+
+    def test_updating_object_expense_recalculates_object_balance(self):
+        construction_object = ConstructionObject.objects.create(
+            name='Edit Balance Object',
+            address='Tashkent',
+            start_date=date(2026, 4, 21),
+            balance_uzs=Decimal('500000.00'),
+        )
+        transaction = ObjectFinanceService.create_object_expense(
+            construction_object=construction_object,
+            user=self.director,
+            category=self.expense_category,
+            amount=Decimal('100000.00'),
+            currency=CurrencyChoices.UZS,
+            date=date(2026, 4, 22),
+            description='Elektr energiya',
+        )
+
+        TransactionService.update_transaction(
+            transaction,
+            user=self.director,
+            type=TransactionTypeChoices.EXPENSE,
+            entry_type=transaction.entry_type,
+            wallet_type=transaction.wallet_type,
+            manager_account=None,
+            amount=Decimal('150000.00'),
+            currency=CurrencyChoices.UZS,
+            category=self.expense_category,
+            description='Elektr energiya edit',
+            date=date(2026, 4, 22),
+            object=construction_object,
+            work_item=None,
+            worker=None,
+            reference_type='object_expense',
+            reference_id=f'object-{construction_object.pk}',
+        )
+
+        construction_object.refresh_from_db()
+        self.assertEqual(construction_object.balance_uzs, Decimal('350000.00'))
 
 
 class FinancePermissionViewTest(TestCase):

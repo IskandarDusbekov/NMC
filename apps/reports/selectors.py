@@ -1,4 +1,6 @@
-from django.db.models import Sum
+from decimal import Decimal
+
+from django.db.models import DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
 
 from apps.finance.selectors import category_summary, transaction_list
@@ -29,4 +31,9 @@ def category_report(filters):
 
 
 def report_totals(queryset):
-    return queryset.values('currency', 'type').annotate(total=Coalesce(Sum('amount'), 0))
+    return queryset.values('currency', 'type').annotate(
+        total=Coalesce(
+            Sum('amount'),
+            Value(Decimal('0.00'), output_field=DecimalField(max_digits=18, decimal_places=2)),
+        )
+    )

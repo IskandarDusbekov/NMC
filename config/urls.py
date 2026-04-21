@@ -4,6 +4,10 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 from django.urls import include, path
 
+admin.site.site_header = 'QurilishPro admin panel'
+admin.site.site_title = 'QurilishPro admin'
+admin.site.index_title = 'Boshqaruv va sozlamalar'
+
 urlpatterns = [
     path('', lambda request: redirect('dashboard:index')),
     path('admin/', admin.site.urls),

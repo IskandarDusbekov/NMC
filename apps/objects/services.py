@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction as db_transaction
-from django.db.models import Avg, FloatField, Sum, Value
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from apps.finance.models import CurrencyChoices, TransactionCategory, TransactionEntryTypeChoices, TransactionTypeChoices, WalletTypeChoices
@@ -31,11 +31,14 @@ class ObjectAnalyticsService:
             type=TransactionTypeChoices.EXPENSE,
             currency=CurrencyChoices.USD,
         ).aggregate(total=Coalesce(Sum('amount'), ZERO))['total']
-        progress = work_items.aggregate(total=Coalesce(Avg('progress_percent'), Value(0.0), output_field=FloatField()))['total']
+        total_work_items = work_items.count()
+        completed_work_items = work_items.filter(status='completed').count()
+        progress = (completed_work_items / total_work_items * 100) if total_work_items else 0
         return {
             'total_expense_uzs': total_expense_uzs,
             'total_expense_usd': total_expense_usd,
-            'total_work_items': work_items.count(),
+            'total_work_items': total_work_items,
+            'completed_work_items': completed_work_items,
             'total_paid_uzs': total_expense_uzs,
             'total_paid_usd': total_expense_usd,
             'remaining_budget_uzs': (construction_object.budget_uzs or ZERO) - total_expense_uzs,

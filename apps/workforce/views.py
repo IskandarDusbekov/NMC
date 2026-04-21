@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -147,6 +149,9 @@ class SalaryPaymentListView(PageMetadataMixin, RoleRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        payments = list(self.object_list)
+        context['total_salary_uzs'] = sum((item.amount for item in payments if item.currency == 'UZS'), Decimal('0.00'))
+        context['total_salary_usd'] = sum((item.amount for item in payments if item.currency == 'USD'), Decimal('0.00'))
         context['breadcrumbs'] = [
             {'label': 'Dashboard', 'url': '/dashboard/'},
             {'label': 'Salary paymentlar', 'url': ''},

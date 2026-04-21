@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.db.models import Avg, Count, FloatField, Q, Sum, Value
+from django.db.models import Case, Count, ExpressionWrapper, F, FloatField, Q, Sum, Value, When
 from django.db.models.functions import Coalesce
 
 from apps.finance.models import CurrencyChoices, TransactionTypeChoices
@@ -38,7 +38,20 @@ def construction_object_queryset():
             ZERO,
         ),
         work_item_count=Count('work_items', distinct=True),
-        progress_average=Coalesce(Avg('work_items__progress_percent'), Value(0.0), output_field=FloatField()),
+        completed_work_item_count=Count(
+            'work_items',
+            filter=Q(work_items__status=WorkItem.Status.COMPLETED),
+            distinct=True,
+        ),
+    ).annotate(
+        progress_average=Case(
+            When(work_item_count=0, then=Value(0.0)),
+            default=ExpressionWrapper(
+                Value(100.0) * F('completed_work_item_count') / F('work_item_count'),
+                output_field=FloatField(),
+            ),
+            output_field=FloatField(),
+        ),
     )
 
 

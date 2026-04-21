@@ -163,6 +163,33 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleWorkerMonthlySalary();
     }
 
+    const salarySourceWalletInput = document.querySelector('[data-salary-source-wallet]');
+    const salaryManagerField = document.getElementById('salary-manager-field');
+    const salaryObjectField = document.getElementById('salary-object-field');
+
+    function toggleSalarySourceFields() {
+        if (!salarySourceWalletInput) return;
+        const source = salarySourceWalletInput.value;
+        if (salaryManagerField) {
+            salaryManagerField.classList.toggle('hidden', source !== 'MANAGER');
+            salaryManagerField.querySelectorAll('select, input, textarea').forEach((input) => {
+                input.disabled = source !== 'MANAGER';
+            });
+        }
+        if (salaryObjectField) {
+            const shouldShowObject = source === 'OBJECT' || source === 'MANAGER';
+            salaryObjectField.classList.toggle('hidden', !shouldShowObject);
+            salaryObjectField.querySelectorAll('select, input, textarea').forEach((input) => {
+                input.disabled = !shouldShowObject;
+            });
+        }
+    }
+
+    if (salarySourceWalletInput) {
+        salarySourceWalletInput.addEventListener('change', toggleSalarySourceFields);
+        toggleSalarySourceFields();
+    }
+
     const paymentWorkerInput = document.querySelector('[data-work-item-payment-worker]');
     const paymentWorkItemInput = document.querySelector('[data-work-item-payment-item]');
     function filterPaymentWorkItems() {

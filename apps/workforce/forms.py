@@ -55,7 +55,7 @@ class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
         model = SalaryPayment
         fields = ('worker', 'amount', 'currency', 'date', 'source_wallet', 'manager_account', 'object', 'description')
         widgets = {
-            'date': forms.DateInput(),
+            'date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 4}),
         }
 
@@ -68,15 +68,26 @@ class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
 
         self.fields['worker'].queryset = Worker.objects.filter(is_active=True).order_by('full_name')
         self.fields['object'].queryset = ConstructionObject.objects.order_by('name')
+        self.fields['source_wallet'].label = 'To`lov manbasi'
+        self.fields['manager_account'].label = 'Manager hisobi'
+        self.fields['object'].label = 'Obyekt'
+        self.fields['description'].label = 'Izoh'
+        self.fields['source_wallet'].help_text = 'Company, obyekt yoki manager hisobidan to`lov qiling.'
         manager_queryset = ManagerAccount.objects.select_related('user').filter(is_active=True).order_by('user__full_name')
         if user and getattr(user, 'role', '') == 'MANAGER' and not getattr(user, 'is_superuser', False):
             manager_queryset = manager_queryset.filter(user=user)
+            self.fields['source_wallet'].choices = [(WalletTypeChoices.MANAGER, 'Mening hisobim')]
+            self.fields['source_wallet'].initial = WalletTypeChoices.MANAGER
         self.fields['manager_account'].queryset = manager_queryset
+        self.fields['source_wallet'].widget.attrs['data-salary-source-wallet'] = 'true'
+        self.fields['manager_account'].widget.attrs['data-salary-manager-field-input'] = 'true'
+        self.fields['object'].widget.attrs['data-salary-object-field-input'] = 'true'
 
     def clean(self):
         cleaned_data = super().clean()
         source_wallet = cleaned_data.get('source_wallet')
         manager_account = cleaned_data.get('manager_account')
+        construction_object = cleaned_data.get('object')
         user = getattr(self, 'user', None)
 
         if source_wallet == WalletTypeChoices.MANAGER:
@@ -85,7 +96,12 @@ class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
                 cleaned_data['manager_account'] = manager_account
             if not manager_account:
                 self.add_error('manager_account', 'Manager wallet tanlansa manager hisobi majburiy.')
+        elif source_wallet == WalletTypeChoices.OBJECT:
+            cleaned_data['manager_account'] = None
+            if not construction_object:
+                self.add_error('object', 'Obyekt hisobidan to`lov uchun obyekt tanlang.')
         else:
             cleaned_data['manager_account'] = None
+            cleaned_data['object'] = None
 
         return cleaned_data

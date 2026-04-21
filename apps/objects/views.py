@@ -1,12 +1,14 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.core.forms import ConfirmDeleteForm
-from apps.core.mixins import PageMetadataMixin, RoleRequiredMixin
+from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin, RoleRequiredMixin
 from apps.logs.services import AuditLogService
 
 from .forms import ConstructionObjectCreateForm, ConstructionObjectUpdateForm, ObjectExpenseForm, ObjectWorkItemPaymentForm, WorkItemForm
@@ -251,9 +253,38 @@ class WorkItemListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     def get_queryset(self):
         queryset = work_item_queryset()
         object_id = self.request.GET.get('object')
+        search = self.request.GET.get('q', '').strip()
+        status = self.request.GET.get('status', '').strip()
+        include_archived = self.request.GET.get('include_archived') == '1'
         if object_id:
             queryset = queryset.filter(object_id=object_id)
-        return queryset
+        elif not include_archived:
+            queryset = queryset.exclude(object__status=ConstructionObject.Status.FINISHED)
+        if status:
+            queryset = queryset.filter(status=status)
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search)
+                | Q(object__name__icontains=search)
+                | Q(assigned_worker__full_name__icontains=search)
+            )
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['objects_filter'] = ConstructionObject.objects.order_by('name')
+        context['status_choices'] = WorkItem.Status.choices
+        context['filters'] = {
+            'q': self.request.GET.get('q', ''),
+            'object': self.request.GET.get('object', ''),
+            'status': self.request.GET.get('status', ''),
+            'include_archived': self.request.GET.get('include_archived') == '1',
+        }
+        context['breadcrumbs'] = [
+            {'label': 'Dashboard', 'url': '/dashboard/'},
+            {'label': 'Ish turlari', 'url': ''},
+        ]
+        return context
 
 
 class WorkItemDetailView(PageMetadataMixin, RoleRequiredMixin, DetailView):
@@ -358,3 +389,66 @@ class WorkItemDeleteView(PageMetadataMixin, RoleRequiredMixin, View):
             messages.success(request, 'Ish turi ochirildi.')
             return redirect('objects:work-item-list')
         return render(request, self.template_name, {'form': form, 'object_label': instance.title, 'cancel_url': reverse_lazy('objects:work-item-list')})
+
+
+class ConstructionObjectStatusView(PageMetadataMixin, DirectorRequiredMixin, View):
+    def post(self, request, pk):
+        instance = get_object_or_404(ConstructionObject, pk=pk)
+        action = request.POST.get('action')
+        if action == 'finish':
+            instance.status = ConstructionObject.Status.FINISHED
+            instance.end_date = instance.end_date or timezone.now().date()
+            message = 'Obyekt tugatildi va arxivlandi.'
+            audit_action = 'object_finished'
+        elif action == 'reactivate':
+            instance.status = ConstructionObject.Status.ACTIVE
+            instance.end_date = None
+            message = 'Obyekt qayta ishga tushirildi.'
+            audit_action = 'object_reactivated'
+        else:
+            messages.error(request, 'Nomalum obyekt amali.')
+            return redirect('objects:detail', pk=instance.pk)
+
+        instance.save(update_fields=['status', 'end_date', 'updated_at'])
+        AuditLogService.log_from_request(
+            request,
+            action=audit_action,
+            model_name='ConstructionObject',
+            object_id=str(instance.pk),
+            description=f'{instance.name}: {message}',
+        )
+        messages.success(request, message)
+        return redirect('objects:detail', pk=instance.pk)
+
+
+class WorkItemStatusView(PageMetadataMixin, DirectorRequiredMixin, View):
+    def post(self, request, pk):
+        instance = get_object_or_404(WorkItem, pk=pk)
+        action = request.POST.get('action')
+        if action == 'complete':
+            instance.status = WorkItem.Status.COMPLETED
+            instance.progress_percent = 100
+            instance.end_date = instance.end_date or timezone.now().date()
+            message = 'Ish turi tugallandi.'
+            audit_action = 'work_item_completed'
+        elif action == 'reopen':
+            instance.status = WorkItem.Status.IN_PROGRESS
+            instance.progress_percent = 0
+            instance.end_date = None
+            message = 'Ish turi qayta ishga tushirildi.'
+            audit_action = 'work_item_reopened'
+        else:
+            messages.error(request, 'Nomalum ish turi amali.')
+            return redirect('objects:work-item-detail', pk=instance.pk)
+
+        instance.save(update_fields=['status', 'progress_percent', 'end_date', 'updated_at'])
+        AuditLogService.log_from_request(
+            request,
+            action=audit_action,
+            model_name='WorkItem',
+            object_id=str(instance.pk),
+            description=f'{instance.title}: {message}',
+        )
+        messages.success(request, message)
+        next_url = request.POST.get('next') or reverse('objects:work-item-detail', args=[instance.pk])
+        return redirect(next_url)
