@@ -13,6 +13,7 @@ class NavigationItem:
     prefix: str
     roles: tuple[str, ...]
     mobile: bool = False
+    icon: str = 'circle'
 
     @property
     def url(self) -> str:
@@ -26,16 +27,16 @@ class NavigationService:
     @staticmethod
     def base_items() -> list[NavigationItem]:
         return [
-            NavigationItem('Dashboard', 'dashboard:index', '/dashboard/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True),
-            NavigationItem('Obyektlar', 'objects:list', '/objects/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True),
-            NavigationItem('Ish turlari', 'objects:work-item-list', '/work-items/', ('ADMIN', 'DIRECTOR', 'MANAGER')),
-            NavigationItem('Ferma moliyasi', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True),
-            NavigationItem('Manager hisoblari', 'finance:manager-account-list', '/finance/manager-accounts/', ('ADMIN', 'DIRECTOR', 'MANAGER')),
-            NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True),
-            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'MANAGER')),
-            NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR')),
-            NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR')),
-            NavigationItem('Sozlamalar', 'admin:index', '/admin/', ('ADMIN',)),
+            NavigationItem('Dashboard', 'dashboard:index', '/dashboard/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'dashboard'),
+            NavigationItem('Obyektlar', 'objects:list', '/objects/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'building'),
+            NavigationItem('Ish turlari', 'objects:work-item-list', '/work-items/', ('ADMIN', 'DIRECTOR', 'MANAGER'), False, 'tasks'),
+            NavigationItem('Ferma moliyasi', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'wallet'),
+            NavigationItem('Manager hisoblari', 'finance:manager-account-list', '/finance/manager-accounts/', ('ADMIN', 'DIRECTOR', 'MANAGER'), False, 'manager'),
+            NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'users'),
+            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'MANAGER'), False, 'salary'),
+            NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR'), False, 'reports'),
+            NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR'), False, 'logs'),
+            NavigationItem('Sozlamalar', 'admin:index', '/admin/', ('ADMIN',), False, 'settings'),
         ]
 
     @classmethod
@@ -56,6 +57,7 @@ class NavigationService:
                         'url': item.url,
                         'prefix': item.prefix,
                         'mobile': item.mobile,
+                        'icon': item.icon,
                     }
                 )
         return items

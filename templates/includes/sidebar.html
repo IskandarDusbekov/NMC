@@ -1,5 +1,5 @@
 {% load core_tags %}
-<aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-white px-5 py-6 shadow-xl transition-transform duration-300 md:translate-x-0">
+<aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-white px-5 py-6 shadow-xl transition-transform duration-300 lg:translate-x-0">
     <div class="mb-8 flex items-center gap-3 border-b border-slate-100 pb-5">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-lg">N</div>
         <div>
@@ -13,9 +13,34 @@
     <nav class="space-y-2 overflow-y-auto">
         {% for item in navigation_items %}
             {% nav_active request.path item.prefix as is_active %}
-            <a href="{{ item.url }}" class="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 {% if is_active %}nav-active text-white shadow-lg{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                <span>{{ item.label }}</span>
-                <span class="text-xs {% if is_active %}text-white/80{% else %}text-slate-400{% endif %}">{{ forloop.counter }}</span>
+            <a href="{{ item.url }}" class="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 {% if is_active %}nav-active text-white shadow-lg shadow-blue-500/20{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {% if is_active %}bg-white/15 text-white{% else %}bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600{% endif %}">
+                    {% if item.icon == 'dashboard' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 13.5 12 6l8 7.5M6.5 12v7h11v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {% elif item.icon == 'building' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h16M6 20V5.5A1.5 1.5 0 0 1 7.5 4h6A1.5 1.5 0 0 1 15 5.5V20M15 9h2.5A1.5 1.5 0 0 1 19 10.5V20M9 8h3M9 12h3M9 16h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    {% elif item.icon == 'tasks' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 7 1.5 1.5L10 5M13 7h6M5 16l1.5 1.5L10 14M13 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {% elif item.icon == 'wallet' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6.5A2.5 2.5 0 0 1 4 17.5v-9ZM17 13h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    {% elif item.icon == 'manager' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0M17 6l2 2 3-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {% elif item.icon == 'users' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM2.5 20a6.5 6.5 0 0 1 13 0M17 11a3 3 0 1 0 0-6M16.5 15a5.5 5.5 0 0 1 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    {% elif item.icon == 'salary' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16v10H4V7Zm4 10v3m8-3v3M8 11h.01M12 11h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {% elif item.icon == 'reports' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 20V4m0 16h15M9 16V9m4 7V6m4 10v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    {% elif item.icon == 'logs' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14M5 12h14M5 19h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    {% elif item.icon == 'settings' %}
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7.2 7.2 0 0 0-2-1.2L14 3h-4l-.5 2.6a7.2 7.2 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.5 2.4-1a7.2 7.2 0 0 0 2 1.2L10 21h4l.5-2.6a7.2 7.2 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5c.1-.4.1-.8.1-1.2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {% else %}
+                        <svg class="h-4 w-4" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><circle cx="6" cy="6" r="4"/></svg>
+                    {% endif %}
+                </span>
+                <span class="flex-1">{{ item.label }}</span>
+                <span class="h-2 w-2 rounded-full {% if is_active %}bg-white/80{% else %}bg-slate-300 group-hover:bg-blue-400{% endif %}"></span>
             </a>
         {% empty %}
             <p class="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">Navigatsiya login qilgandan keyin ko`rinadi.</p>
