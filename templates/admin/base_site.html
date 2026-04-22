@@ -14,7 +14,7 @@
 <style>
     :root {
         --primary: #2563eb;
-        --secondary: #0f172a;
+        --secondary: #1e293b;
         --accent: #059669;
         --primary-fg: #ffffff;
         --body-bg: #f8fafc;
@@ -23,19 +23,67 @@
         --link-selected-fg: #1d4ed8;
         --hairline-color: #e2e8f0;
         --border-color: #e2e8f0;
+        --header-bg: #ffffff;
+        --header-color: #0f172a;
+        --breadcrumbs-bg: #f8fafc;
+    }
+
+    body {
+        background: #f8fafc;
+        color: #0f172a;
     }
 
     #header {
-        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
-        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+        background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+        border-bottom: 1px solid #dbeafe;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
     }
 
     #branding h1,
     #branding h1 a:link,
     #branding h1 a:visited {
-        color: #ffffff;
+        color: #0f172a;
         font-weight: 800;
         letter-spacing: -0.02em;
+    }
+
+    #user-tools,
+    #user-tools a,
+    #user-tools a:link,
+    #user-tools a:visited {
+        color: #334155;
+        font-weight: 700;
+    }
+
+    #nav-sidebar {
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
+    }
+
+    #nav-sidebar .module,
+    #nav-sidebar .module table,
+    #nav-sidebar .module tbody,
+    #nav-sidebar .module tr,
+    #nav-sidebar .module td {
+        background: #ffffff;
+    }
+
+    #nav-sidebar .module h2,
+    #nav-sidebar .module caption {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-bottom: 1px solid #e2e8f0;
+        letter-spacing: 0.04em;
+    }
+
+    #nav-sidebar a:link,
+    #nav-sidebar a:visited {
+        color: #1d4ed8;
+        font-weight: 700;
+    }
+
+    #nav-sidebar .current-model {
+        background: #eff6ff;
     }
 
     .module,
@@ -50,14 +98,15 @@
     .module h2,
     .module caption,
     .inline-group h2 {
-        background: #0f172a;
-        color: #ffffff;
+        background: #f1f5f9;
+        color: #0f172a;
         font-weight: 800;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.04em;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     div.breadcrumbs {
-        background: #eff6ff;
+        background: #f8fafc;
         color: #334155;
         border-bottom: 1px solid #dbeafe;
     }
@@ -68,14 +117,15 @@
     }
 
     table thead th {
-        background: #020617;
-        color: #ffffff;
+        background: #f8fafc;
+        color: #334155;
         font-weight: 800;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     table thead th a:link,
     table thead th a:visited {
-        color: #ffffff;
+        color: #0f172a;
     }
 
     #changelist table tbody tr:nth-child(even) {
@@ -111,15 +161,65 @@
     }
 
     #changelist-filter {
+        background: #ffffff;
         border-radius: 18px;
-        border-left: 1px solid #e2e8f0;
+        border: 1px solid #e2e8f0;
         box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
     }
 
     #changelist-filter h2 {
-        background: #0f172a;
-        color: #ffffff;
+        background: #f1f5f9;
+        color: #0f172a;
         border-radius: 18px 18px 0 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    #changelist-filter h3,
+    #changelist-filter details summary {
+        color: #334155;
+        font-weight: 800;
+    }
+
+    #changelist-filter a {
+        color: #2563eb;
+        font-weight: 700;
+    }
+
+    #changelist-filter li.selected a {
+        color: #0f172a;
+    }
+
+    #toolbar {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px 18px 0 0;
+    }
+
+    #changelist .actions {
+        background: #ffffff;
+        border-left: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+    }
+
+    #result_list {
+        border: 1px solid #e2e8f0;
+        border-radius: 0 0 18px 18px;
+        overflow: hidden;
+    }
+
+    input,
+    select,
+    textarea {
+        border-radius: 10px;
+        border-color: #cbd5e1;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 </style>
 {% endblock %}
