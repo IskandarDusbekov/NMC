@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.conf import settings
 from django.contrib import messages
@@ -21,6 +22,8 @@ from apps.logs.services import AuditLogService
 
 from .services import TelegramAuthService, TokenService
 from .telegram_bot import TelegramBotConfigService, TelegramBotFlowService
+
+logger = logging.getLogger(__name__)
 
 
 class TelegramEntryView(TemplateView):
@@ -98,5 +101,10 @@ class TelegramBotWebhookView(View):
         except json.JSONDecodeError:
             return JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400)
 
-        TelegramBotFlowService.process_update(payload)
+        try:
+            TelegramBotFlowService.process_update(payload)
+        except ValidationError as error:
+            logger.warning('Telegram webhook validation error: %s', error)
+        except Exception:
+            logger.exception('Telegram webhook unexpected error')
         return JsonResponse({'ok': True})

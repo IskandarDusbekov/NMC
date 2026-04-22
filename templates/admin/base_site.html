@@ -7,7 +7,11 @@
 <h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:"NurafshonMega Ferma admin panel" }}</a></h1>
 {% endblock %}
 
-{% block nav-global %}{% endblock %}
+{% block nav-global %}
+<div class="admin-backup-actions">
+    <a href="{% url 'admin-backup-json' %}" class="admin-backup-button">JSON backup yuklab olish</a>
+</div>
+{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -220,6 +224,31 @@
     textarea:focus {
         border-color: #2563eb;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .admin-backup-actions {
+        margin-left: 16px;
+    }
+
+    .admin-backup-button,
+    .admin-backup-button:link,
+    .admin-backup-button:visited {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: #059669;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        padding: 9px 14px;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 10px 22px rgba(5, 150, 105, 0.24);
+    }
+
+    .admin-backup-button:hover {
+        background: #047857;
     }
 </style>
 {% endblock %}

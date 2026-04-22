@@ -105,6 +105,26 @@ Production uchun webhook endpoint tayyor:
 /accounts/telegram/webhook/
 ```
 
+Shared hostingda polling botni terminal yopilgandan keyin ham orqada ishlatish:
+
+```bash
+mkdir -p logs
+nohup python manage.py run_telegram_bot > logs/telegram_bot.log 2>&1 &
+```
+
+Bot ishlab turganini tekshirish:
+
+```bash
+ps aux | grep run_telegram_bot
+tail -f logs/telegram_bot.log
+```
+
+Botni to`xtatish kerak bo`lsa `ps aux` dan chiqqan `PID` ni olib:
+
+```bash
+kill PID
+```
+
 Bot ichida ishlatiladigan commandlar:
 
 - `/start`
@@ -127,6 +147,38 @@ Bot ichida ishlatiladigan commandlar:
 - Director/Admin company balansdan managerga transfer qiladi.
 - Manager expense faqat manager walletdan ayriladi.
 - Manager expense company balansga qayta ta`sir qilmaydi.
+
+## Kurs va backup
+
+USD kursini CBU API orqali qo`lda yangilash:
+
+```bash
+python manage.py update_exchange_rate
+```
+
+Kursni hostingda avtomatik yangilash uchun cron jobga shunga o`xshash buyruq qo`ying:
+
+```bash
+0 */3 * * * cd /home/USER/NMC && /home/USER/virtualenv/NMC/3.12/bin/python manage.py update_exchange_rate --quiet
+```
+
+JSON backup olish:
+
+```bash
+python manage.py backup_data
+```
+
+Admin panelda ham yuqorida `JSON backup yuklab olish` tugmasi bor. Shu tugma bazani `.json` qilib yuklab beradi, keyin tiklash uchun:
+
+```bash
+python manage.py restore_data backups/nmc-backup-YYYYMMDD-HHMMSS.json
+```
+
+Har kuni avtomatik JSON backup saqlash uchun cron:
+
+```bash
+30 2 * * * cd /home/USER/NMC && /home/USER/virtualenv/NMC/3.12/bin/python manage.py backup_data --output-dir backups
+```
 
 ## Demo seed
 

@@ -24,6 +24,8 @@ from .models import ExchangeRate, ExpenseItem, MeasurementUnit, Transaction, Tra
 from .selectors import (
     category_summary,
     daily_expense_series,
+    filtered_category_totals,
+    filtered_totals,
     manager_accounts,
     monthly_expense_series,
     recent_transfers,
@@ -73,6 +75,9 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
         context['filter_form'] = self.filter_form
         context['quick_action_form'] = context.get('quick_action_form') or CompanyQuickActionForm()
         context['quick_action_modal_open'] = context.get('quick_action_modal_open', False)
+        filters = self.filter_form.cleaned_data if getattr(self, 'filter_form', None) and self.filter_form.is_valid() else {}
+        context['filtered_totals'] = filtered_totals(filters, user=self.request.user)
+        context['filtered_category_totals'] = filtered_category_totals(filters, user=self.request.user)
         context['category_distribution'] = category_summary(user=self.request.user)
         context['daily_expense_series'] = daily_expense_series(user=self.request.user)
         context['monthly_expense_series'] = monthly_expense_series(user=self.request.user)

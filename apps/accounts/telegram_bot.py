@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -15,6 +16,8 @@ from config.settings.env import env
 
 from .models import TelegramBotState, TelegramLoginSession, User
 from .services import TelegramAuthService, TokenService
+
+logger = logging.getLogger(__name__)
 
 
 class TelegramBotConfigService:
@@ -311,6 +314,19 @@ class TelegramBotFlowService:
             'one_time_keyboard': False,
         }
 
+    @staticmethod
+    def _main_keyboard(user=None):
+        balance_button = 'Mening hisobim' if getattr(user, 'role', '') == User.Role.MANAGER else 'Ferma hisobi'
+        return {
+            'keyboard': [
+                [{'text': 'Saytga kirish'}],
+                [{'text': 'Bugungi kurs'}, {'text': balance_button}],
+                [{'text': 'Mini App'}, {'text': 'Yordam'}],
+            ],
+            'resize_keyboard': True,
+            'one_time_keyboard': False,
+        }
+
     @classmethod
     def _access_url(cls, token: str):
         path = reverse('accounts:access-token', kwargs={'token': token})
@@ -380,7 +396,7 @@ class TelegramBotFlowService:
         client.send_message(
             chat_id=chat_id,
             text='Menyu tayyor. Quyidagi tugmalardan foydalanishingiz mumkin.',
-            reply_markup=cls._main_keyboard(),
+            reply_markup=cls._main_keyboard(user),
         )
         AuditLogService.log(
             user=user,
@@ -391,15 +407,16 @@ class TelegramBotFlowService:
         )
 
     @classmethod
-    def _send_help(cls, *, client, chat_id):
+    def _send_help(cls, *, client, chat_id, user=None):
+        balance_button = 'Mening hisobim' if getattr(user, 'role', '') == User.Role.MANAGER else 'Ferma hisobi'
         client.send_message(
             chat_id=chat_id,
             text=(
                 'Kirish uchun /start yuboring.\n'
                 'Avval telefon raqam, keyin username va parol tekshiriladi.\n'
-                'Menyu tugmalari: Saytga kirish, Bugungi kurs, Ferma hisobi.'
+                f'Menyu tugmalari: Saytga kirish, Bugungi kurs, {balance_button}.'
             ),
-            reply_markup=cls._main_keyboard(),
+            reply_markup=cls._main_keyboard(user),
         )
 
     @staticmethod
@@ -415,13 +432,13 @@ class TelegramBotFlowService:
         return timezone.localtime(value).strftime('%Y-%m-%d %H:%M')
 
     @classmethod
-    def _send_rate(cls, *, client, chat_id):
+    def _send_rate(cls, *, client, chat_id, user=None):
         rate = ExchangeRateService.latest_rate(auto_update=True)
         if not rate:
             client.send_message(
                 chat_id=chat_id,
                 text='USD kursi hali kiritilmagan. Admin paneldan yoki moliya bo`limidan kursni yangilang.',
-                reply_markup=cls._main_keyboard(),
+                reply_markup=cls._main_keyboard(user),
             )
             return
         client.send_message(
@@ -431,7 +448,7 @@ class TelegramBotFlowService:
                 f'1 USD = {cls._money(rate.usd_to_uzs)} UZS\n'
                 f'Yangilangan vaqt: {cls._format_datetime(rate.effective_at)}'
             ),
-            reply_markup=cls._main_keyboard(),
+            reply_markup=cls._main_keyboard(user),
         )
 
     @classmethod
@@ -453,7 +470,7 @@ class TelegramBotFlowService:
                 f'UZS: {cls._money(balances[CurrencyChoices.UZS])}\n'
                 f'USD: {cls._money(balances[CurrencyChoices.USD])}'
             ),
-            reply_markup=cls._main_keyboard(),
+            reply_markup=cls._main_keyboard(user),
         )
 
     @classmethod
@@ -593,7 +610,7 @@ class TelegramBotFlowService:
         client.send_message(
             chat_id=actor['chat_id'],
             text='Akkaunt tasdiqlandi. Endi kirish havolasini yuboraman.',
-            reply_markup=cls._main_keyboard(),
+            reply_markup=cls._main_keyboard(user),
         )
         cls._send_access_menu(
             client=client,
@@ -620,7 +637,12 @@ class TelegramBotFlowService:
 
         text = (message.get('text') or '').strip().lower()
         if text in {'/help', 'help'}:
-            cls._send_help(client=client, chat_id=actor['chat_id'])
+            user = None
+            try:
+                user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
+            except ValidationError:
+                pass
+            cls._send_help(client=client, chat_id=actor['chat_id'], user=user)
             return
 
         session = TelegramLoginSession.objects.filter(telegram_id=telegram_id).select_related('user').first()
@@ -673,10 +695,15 @@ class TelegramBotFlowService:
             return
 
         if text in {'💱 bugungi kurs', 'bugungi kurs', 'kurs', '/kurs'}:
-            cls._send_rate(client=client, chat_id=actor['chat_id'])
+            user = None
+            try:
+                user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
+            except ValidationError:
+                pass
+            cls._send_rate(client=client, chat_id=actor['chat_id'], user=user)
             return
 
-        if text in {'💰 ferma hisobi', 'ferma hisobi', 'hisob', 'balans', '/balance'}:
+        if text in {'💰 ferma hisobi', 'ferma hisobi', 'mening hisobim', 'hisob', 'balans', '/balance'}:
             try:
                 user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
             except ValidationError:
@@ -691,6 +718,11 @@ class TelegramBotFlowService:
             return
 
         if text in {'📱 mini app', 'mini app'}:
+            user = None
+            try:
+                user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
+            except ValidationError:
+                pass
             webapp_url = TelegramBotConfigService.webapp_url()
             if webapp_url:
                 client.send_message(
@@ -702,7 +734,7 @@ class TelegramBotFlowService:
             client.send_message(
                 chat_id=actor['chat_id'],
                 text='Mini App uchun HTTPS TELEGRAM_WEBAPP_URL kerak. Localhost Telegram ichida Web App sifatida ochilmaydi.',
-                reply_markup=cls._main_keyboard(),
+                reply_markup=cls._main_keyboard(user),
             )
             return
 
@@ -728,22 +760,32 @@ class TelegramBotFlowService:
             )
             return
 
-        cls._send_help(client=client, chat_id=actor['chat_id'])
+        user = None
+        try:
+            user = TelegramAuthService.get_active_user_by_telegram_id(telegram_id)
+        except ValidationError:
+            pass
+        cls._send_help(client=client, chat_id=actor['chat_id'], user=user)
 
     @classmethod
     def process_update(cls, update: dict, client: TelegramBotApiClient | None = None):
         client = client or TelegramBotApiClient()
-        message = update.get('message')
-        if not message:
-            return
+        try:
+            message = update.get('message')
+            if not message:
+                return
 
-        if message.get('contact'):
-            cls.handle_contact(message, client)
-            return
+            if message.get('contact'):
+                cls.handle_contact(message, client)
+                return
 
-        text = (message.get('text') or '').strip()
-        if text.startswith('/start'):
-            cls.handle_start(message, client)
-            return
+            text = (message.get('text') or '').strip()
+            if text.startswith('/start'):
+                cls.handle_start(message, client)
+                return
 
-        cls.handle_text(message, client)
+            cls.handle_text(message, client)
+        except ValidationError as error:
+            logger.warning('Telegram update validation error: %s', error)
+        except Exception:
+            logger.exception('Telegram update unexpected error')

@@ -121,6 +121,40 @@ def category_summary(transaction_type=TransactionTypeChoices.EXPENSE, filters=No
     ]
 
 
+def filtered_totals(filters=None, user=None):
+    queryset = transaction_list(filters, user=user)
+    rows = (
+        queryset.values('currency', 'type')
+        .annotate(total=Coalesce(Sum('amount'), ZERO))
+        .order_by('currency', 'type')
+    )
+    totals = {
+        CurrencyChoices.UZS: {
+            TransactionTypeChoices.INCOME: ZERO,
+            TransactionTypeChoices.EXPENSE: ZERO,
+            TransactionTypeChoices.TRANSFER: ZERO,
+        },
+        CurrencyChoices.USD: {
+            TransactionTypeChoices.INCOME: ZERO,
+            TransactionTypeChoices.EXPENSE: ZERO,
+            TransactionTypeChoices.TRANSFER: ZERO,
+        },
+    }
+    for row in rows:
+        totals[row['currency']][row['type']] = row['total']
+    return totals
+
+
+def filtered_category_totals(filters=None, user=None):
+    queryset = transaction_list(filters, user=user).filter(type=TransactionTypeChoices.EXPENSE, category__isnull=False)
+    rows = (
+        queryset.values('category__name', 'currency')
+        .annotate(total=Coalesce(Sum('amount'), ZERO))
+        .order_by('category__name', 'currency')
+    )
+    return rows
+
+
 def daily_expense_series(days=7, user=None):
     start = _today() - timedelta(days=days - 1)
     transactions = (

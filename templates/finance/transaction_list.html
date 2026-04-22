@@ -101,6 +101,7 @@
                 {% include "includes/form_field.html" with field=filter_form.date_from %}
                 {% include "includes/form_field.html" with field=filter_form.date_to %}
                 {% include "includes/form_field.html" with field=filter_form.currency %}
+                {% include "includes/form_field.html" with field=filter_form.category %}
                 {% include "includes/form_field.html" with field=filter_form.object %}
                 {% include "includes/form_field.html" with field=filter_form.work_item %}
                 {% if not is_manager_view %}
@@ -113,6 +114,38 @@
                 </div>
             </form>
         </div>
+
+        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Kirim UZS</p>
+                <p class="mt-2 text-lg font-extrabold text-emerald-950">{{ filtered_totals.UZS.INCOME|money }} UZS</p>
+            </div>
+            <div class="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-rose-700">Chiqim UZS</p>
+                <p class="mt-2 text-lg font-extrabold text-rose-950">{{ filtered_totals.UZS.EXPENSE|money }} UZS</p>
+            </div>
+            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Kirim USD</p>
+                <p class="mt-2 text-lg font-extrabold text-emerald-950">{{ filtered_totals.USD.INCOME|money }} USD</p>
+            </div>
+            <div class="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-rose-700">Chiqim USD</p>
+                <p class="mt-2 text-lg font-extrabold text-rose-950">{{ filtered_totals.USD.EXPENSE|money }} USD</p>
+            </div>
+        </div>
+
+        {% if filtered_category_totals %}
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Xarajat turlari bo`yicha jami</span>
+                    {% for row in filtered_category_totals %}
+                        <span class="rounded-full bg-white px-3 py-2 text-xs font-extrabold text-slate-700 shadow-sm">
+                            {{ row.category__name }}: {{ row.total|money }} {{ row.currency }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
 
         <div class="mt-6 overflow-x-auto">
             <table class="min-w-full text-left text-sm">
