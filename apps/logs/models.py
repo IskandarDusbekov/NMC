@@ -19,6 +19,8 @@ class AuditLog(TimeStampedModel):
     ip_address = models.GenericIPAddressField(blank=True, null=True)
 
     class Meta:
+        verbose_name = 'Audit log'
+        verbose_name_plural = 'Audit loglar'
         ordering = ('-created_at',)
 
     def __str__(self):

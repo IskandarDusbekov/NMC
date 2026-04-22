@@ -12,9 +12,9 @@ from apps.finance.models import CurrencyChoices
 
 class ConstructionObject(TimeStampedModel):
     class Status(models.TextChoices):
-        ACTIVE = 'active', 'Active'
-        PAUSED = 'paused', 'Paused'
-        FINISHED = 'finished', 'Finished'
+        ACTIVE = 'active', 'Faol'
+        PAUSED = 'paused', 'To`xtatilgan'
+        FINISHED = 'finished', 'Tugallangan'
 
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
@@ -28,6 +28,8 @@ class ConstructionObject(TimeStampedModel):
     budget_usd = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
 
     class Meta:
+        verbose_name = 'Obyekt'
+        verbose_name_plural = 'Obyektlar'
         ordering = ('name',)
 
     def clean(self):
@@ -40,10 +42,10 @@ class ConstructionObject(TimeStampedModel):
 
 class WorkItem(TimeStampedModel):
     class Status(models.TextChoices):
-        PLANNED = 'planned', 'Planned'
-        IN_PROGRESS = 'in_progress', 'In progress'
-        COMPLETED = 'completed', 'Completed'
-        CANCELLED = 'cancelled', 'Cancelled'
+        PLANNED = 'planned', 'Rejada'
+        IN_PROGRESS = 'in_progress', 'Jarayonda'
+        COMPLETED = 'completed', 'Tugallangan'
+        CANCELLED = 'cancelled', 'Bekor qilingan'
 
     object = models.ForeignKey(
         'objects.ConstructionObject',
@@ -68,6 +70,8 @@ class WorkItem(TimeStampedModel):
     progress_percent = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
+        verbose_name = 'Ish turi'
+        verbose_name_plural = 'Ish turlari'
         ordering = ('object__name', 'title')
 
     def clean(self):

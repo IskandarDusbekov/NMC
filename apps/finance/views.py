@@ -58,7 +58,7 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     template_name = 'finance/transaction_list.html'
     context_object_name = 'transactions'
     paginate_by = 20
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Moliya ledger'
     page_subtitle = 'Ferma va manager wallet harakatlarini bitta markaziy jurnal orqali ko`ring'
 
@@ -77,7 +77,9 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
         context['daily_expense_series'] = daily_expense_series(user=self.request.user)
         context['monthly_expense_series'] = monthly_expense_series(user=self.request.user)
         is_manager_view = getattr(self.request.user, 'role', '') == 'MANAGER' and not getattr(self.request.user, 'is_superuser', False)
+        can_manage_finance = getattr(self.request.user, 'is_superuser', False) or getattr(self.request.user, 'role', '') in {'ADMIN', 'DIRECTOR'}
         context['is_manager_view'] = is_manager_view
+        context['can_manage_finance'] = can_manage_finance
         if is_manager_view and hasattr(self.request.user, 'manager_account'):
             context['manager_balances'] = ManagerBalanceService.summary_for_account(self.request.user.manager_account)
         else:
@@ -93,7 +95,7 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
         return context
 
     def post(self, request, *args, **kwargs):
-        if getattr(request.user, 'role', '') == 'MANAGER' and not getattr(request.user, 'is_superuser', False):
+        if not (getattr(request.user, 'is_superuser', False) or getattr(request.user, 'role', '') in {'ADMIN', 'DIRECTOR'}):
             return redirect('finance:transaction-list')
         form = CompanyQuickActionForm(request.POST)
         self.object_list = self.get_queryset()

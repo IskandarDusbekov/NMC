@@ -4,9 +4,9 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 from django.urls import include, path
 
-admin.site.site_header = 'QurilishPro admin panel'
-admin.site.site_title = 'QurilishPro admin'
-admin.site.index_title = 'Boshqaruv va sozlamalar'
+admin.site.site_header = getattr(settings, 'ADMIN_SITE_HEADER', 'NurafshonMega Ferma admin panel')
+admin.site.site_title = getattr(settings, 'ADMIN_SITE_TITLE', 'Ferma admin')
+admin.site.index_title = getattr(settings, 'ADMIN_INDEX_TITLE', 'Sozlamalar va ma`lumotlar boshqaruvi')
 
 urlpatterns = [
     path('', lambda request: redirect('dashboard:index')),

@@ -34,7 +34,7 @@ def _apply_validation_error(form, error: ValidationError):
 class ConstructionObjectListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     template_name = 'objects/object_list.html'
     context_object_name = 'objects_list'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Qurilish obyektlari'
     page_subtitle = 'Real pul emas, analytics va progress boshqaruvi'
 
@@ -46,7 +46,7 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
     template_name = 'objects/object_detail.html'
     queryset = construction_object_queryset()
     context_object_name = 'construction_object'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Obyekt detali'
     page_subtitle = 'Ish turlari va xarajatlar bo`yicha obyekt kesimi'
 
@@ -70,6 +70,9 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        if not (getattr(request.user, 'is_superuser', False) or getattr(request.user, 'role', '') in {'ADMIN', 'DIRECTOR', 'MANAGER'}):
+            messages.error(request, 'Bu amal uchun sizda ruxsat yo`q.')
+            return redirect('objects:detail', pk=self.object.pk)
         form_type = request.POST.get('form_type')
 
         if form_type == 'work_item_payment':
@@ -144,7 +147,7 @@ class ConstructionObjectExpenseCategoryDetailView(PageMetadataMixin, RoleRequire
     template_name = 'objects/object_expense_category_detail.html'
     queryset = construction_object_queryset()
     context_object_name = 'construction_object'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Xarajat category detali'
     page_subtitle = 'Ichki turlar, cheklar va transactionlar bo`yicha batafsil ko`rinish'
 
@@ -278,7 +281,7 @@ class ConstructionObjectDeleteView(PageMetadataMixin, RoleRequiredMixin, View):
 class WorkItemListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     template_name = 'objects/work_item_list.html'
     context_object_name = 'work_items'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Ish turlari'
     page_subtitle = 'Obyekt, ishchi va kelishilgan summa bo`yicha ro`yxat'
 
@@ -323,7 +326,7 @@ class WorkItemDetailView(PageMetadataMixin, RoleRequiredMixin, DetailView):
     template_name = 'objects/work_item_detail.html'
     context_object_name = 'work_item'
     queryset = work_item_queryset()
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Ish turi detali'
     page_subtitle = 'Asosiy ma`lumotlar va bog`langan to`lovlar'
 

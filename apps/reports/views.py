@@ -1,14 +1,15 @@
 from django.views.generic import TemplateView
 
-from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin
+from apps.core.mixins import PageMetadataMixin, RoleRequiredMixin
 
 from .forms import ReportFilterForm
 from .selectors import category_report, report_totals, report_transactions, worker_payment_report
 from .services import ReportExportService
 
 
-class ReportsDashboardView(PageMetadataMixin, DirectorRequiredMixin, TemplateView):
+class ReportsDashboardView(PageMetadataMixin, RoleRequiredMixin, TemplateView):
     template_name = 'reports/index.html'
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'OBSERVER')
     page_title = 'Hisobotlar'
     page_subtitle = 'Transaction, obyekt, worker va kategoriya kesimlari'
 

@@ -4,7 +4,7 @@ from django.apps import AppConfig
 class AccountsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.accounts'
-    verbose_name = 'Accounts'
+    verbose_name = 'Foydalanuvchilar va Telegram'
 
     def ready(self):
         from . import signals  # noqa: F401

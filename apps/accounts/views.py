@@ -51,7 +51,7 @@ class AccessTokenLoginView(View):
             action='telegram_token_login',
             model_name='User',
             object_id=str(user.pk),
-            description=f'{user} bir martalik token orqali tizimga kirdi.',
+            description=f'{user} bir martalik token orqali tizimga kirdi. Token ID: {getattr(user, "_consumed_access_token_id", "-")}',
         )
         return redirect(request.GET.get('next') or reverse('dashboard:index'))
 

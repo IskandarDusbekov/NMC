@@ -16,15 +16,15 @@ class CurrencyChoices(models.TextChoices):
 
 
 class TransactionTypeChoices(models.TextChoices):
-    INCOME = 'INCOME', 'Income'
-    EXPENSE = 'EXPENSE', 'Expense'
+    INCOME = 'INCOME', 'Kirim'
+    EXPENSE = 'EXPENSE', 'Chiqim'
     TRANSFER = 'TRANSFER', 'Transfer'
 
 
 class WalletTypeChoices(models.TextChoices):
     COMPANY = 'COMPANY', 'Ferma'
     MANAGER = 'MANAGER', 'Manager'
-    OBJECT = 'OBJECT', 'Object'
+    OBJECT = 'OBJECT', 'Obyekt'
 
 
 class TransactionEntryTypeChoices(models.TextChoices):
@@ -128,6 +128,8 @@ class ExchangeRate(TimeStampedModel):
     )
 
     class Meta:
+        verbose_name = 'USD kursi'
+        verbose_name_plural = 'USD kurslari'
         ordering = ('-effective_at', '-created_at')
 
     def __str__(self):
@@ -143,11 +145,13 @@ class ManagerAccount(TimeStampedModel):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        verbose_name = 'Manager hisobi'
+        verbose_name_plural = 'Manager hisoblari'
         ordering = ('user__full_name',)
 
     def clean(self):
-        if self.user.role != 'MANAGER':
-            raise ValidationError({'user': 'Manager account faqat MANAGER role dagi user uchun yaratiladi.'})
+        if self.user.role not in {'MANAGER', 'DIRECTOR'}:
+            raise ValidationError({'user': 'Operatsion hisob faqat MANAGER yoki DIRECTOR role dagi user uchun yaratiladi.'})
 
     def __str__(self):
         return self.user.full_name or self.user.username
@@ -155,8 +159,8 @@ class ManagerAccount(TimeStampedModel):
 
 class ManagerTransfer(TimeStampedModel):
     class TransferKind(models.TextChoices):
-        TRANSFER = 'TRANSFER', 'Transfer'
-        RETURN = 'RETURN', 'Return'
+        TRANSFER = 'TRANSFER', 'Pul berish'
+        RETURN = 'RETURN', 'Pul qaytarish'
 
     from_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -180,6 +184,8 @@ class ManagerTransfer(TimeStampedModel):
     transfer_kind = models.CharField(max_length=20, choices=TransferKind.choices, default=TransferKind.TRANSFER)
 
     class Meta:
+        verbose_name = 'Manager o`tkazmasi'
+        verbose_name_plural = 'Manager o`tkazmalari'
         ordering = ('-date', '-created_at')
 
     def __str__(self):
@@ -293,6 +299,8 @@ class Transaction(TimeStampedModel, SoftDeleteModel):
     objects = TransactionQuerySet.as_manager()
 
     class Meta:
+        verbose_name = 'Pul harakati'
+        verbose_name_plural = 'Pul harakatlari'
         ordering = ('-date', '-created_at')
 
     def clean(self):

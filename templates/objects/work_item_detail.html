@@ -18,7 +18,7 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 <a href="{% url 'finance:transaction-list' %}?object={{ work_item.object_id }}&work_item={{ work_item.pk }}&transaction_type=EXPENSE" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Umumiy tarix</a>
-                {% if request.user.role != 'MANAGER' %}
+                {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
                     <form method="post" action="{% url 'objects:work-item-status' work_item.pk %}">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.get_full_path }}">

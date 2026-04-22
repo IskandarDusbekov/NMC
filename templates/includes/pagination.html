@@ -1,13 +1,46 @@
+{% load core_tags %}
+
 {% if is_paginated %}
-    <div class="mt-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
-        <p class="text-slate-500">Sahifa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</p>
-        <div class="flex items-center gap-2">
+    {% pagination_window page_obj as pages %}
+    <nav class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm lg:flex-row lg:items-center lg:justify-between" aria-label="Pagination">
+        <p class="text-slate-500">
+            Sahifa <span class="font-bold text-slate-900">{{ page_obj.number }}</span> / {{ page_obj.paginator.num_pages }}
+            <span class="ml-2 text-slate-400">Jami: {{ page_obj.paginator.count }}</span>
+        </p>
+
+        <div class="flex flex-wrap items-center gap-2">
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="rounded-xl border border-slate-200 px-3 py-2 text-slate-600 hover:bg-slate-50">Oldingi</a>
+                {% page_url 1 as first_url %}
+                {% page_url page_obj.previous_page_number as previous_url %}
+                <a href="{{ first_url }}" class="rounded-xl border border-slate-200 px-3 py-2 font-semibold text-slate-600 hover:bg-slate-50">Birinchi</a>
+                <a href="{{ previous_url }}" class="rounded-xl border border-slate-200 px-3 py-2 font-semibold text-slate-600 hover:bg-slate-50">Oldingi</a>
+            {% else %}
+                <span class="rounded-xl border border-slate-100 px-3 py-2 font-semibold text-slate-300">Birinchi</span>
+                <span class="rounded-xl border border-slate-100 px-3 py-2 font-semibold text-slate-300">Oldingi</span>
             {% endif %}
+
+            <div class="flex flex-wrap items-center gap-1">
+                {% for page_number in pages %}
+                    {% if page_number == '...' %}
+                        <span class="px-2 py-2 font-bold text-slate-400">...</span>
+                    {% elif page_number == page_obj.number %}
+                        <span class="rounded-xl bg-slate-950 px-3 py-2 font-black text-white">{{ page_number }}</span>
+                    {% else %}
+                        {% page_url page_number as number_url %}
+                        <a href="{{ number_url }}" class="rounded-xl border border-slate-200 px-3 py-2 font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700">{{ page_number }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="rounded-xl border border-slate-200 px-3 py-2 text-slate-600 hover:bg-slate-50">Keyingi</a>
+                {% page_url page_obj.next_page_number as next_url %}
+                {% page_url page_obj.paginator.num_pages as last_url %}
+                <a href="{{ next_url }}" class="rounded-xl border border-slate-200 px-3 py-2 font-semibold text-slate-600 hover:bg-slate-50">Keyingi</a>
+                <a href="{{ last_url }}" class="rounded-xl border border-slate-200 px-3 py-2 font-semibold text-slate-600 hover:bg-slate-50">Oxirgi</a>
+            {% else %}
+                <span class="rounded-xl border border-slate-100 px-3 py-2 font-semibold text-slate-300">Keyingi</span>
+                <span class="rounded-xl border border-slate-100 px-3 py-2 font-semibold text-slate-300">Oxirgi</span>
             {% endif %}
         </div>
-    </div>
+    </nav>
 {% endif %}

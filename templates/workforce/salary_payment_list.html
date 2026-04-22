@@ -8,7 +8,9 @@
             <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Oylik va ish haqi to`lovlari</h2>
             <p class="mt-1 text-sm text-slate-500">Ferma, obyekt yoki manager hisobidan berilgan barcha to`lovlar.</p>
         </div>
-        <a href="{% url 'workforce:salary-payment-create' %}" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Yangi to`lov</a>
+        {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' or request.user.role == 'MANAGER' %}
+            <a href="{% url 'workforce:salary-payment-create' %}" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Yangi to`lov</a>
+        {% endif %}
     </section>
 
     <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

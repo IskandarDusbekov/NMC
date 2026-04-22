@@ -75,6 +75,7 @@ class WorkItemForm(StyledFormMixin, forms.ModelForm):
         fields = (
             'object',
             'title',
+            'description',
             'assigned_worker',
             'agreed_amount',
             'currency',
@@ -82,10 +83,12 @@ class WorkItemForm(StyledFormMixin, forms.ModelForm):
         )
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 3}),
         }
         labels = {
             'object': 'Obyekt',
             'title': 'Ish turi nomi',
+            'description': 'Izoh',
             'assigned_worker': 'Ishchi',
             'currency': 'Valyuta',
             'start_date': 'Boshlanish sanasi',

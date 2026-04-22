@@ -27,15 +27,15 @@ class NavigationService:
     @staticmethod
     def base_items() -> list[NavigationItem]:
         return [
-            NavigationItem('Dashboard', 'dashboard:index', '/dashboard/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'dashboard'),
-            NavigationItem('Obyektlar', 'objects:list', '/objects/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'building'),
-            NavigationItem('Ish turlari', 'objects:work-item-list', '/work-items/', ('ADMIN', 'DIRECTOR', 'MANAGER'), False, 'tasks'),
-            NavigationItem('Ferma moliyasi', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'wallet'),
+            NavigationItem('Dashboard', 'dashboard:index', '/dashboard/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'dashboard'),
+            NavigationItem('Obyektlar', 'objects:list', '/objects/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'building'),
+            NavigationItem('Ish turlari', 'objects:work-item-list', '/work-items/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), False, 'tasks'),
+            NavigationItem('Ferma moliyasi', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'wallet'),
             NavigationItem('Manager hisoblari', 'finance:manager-account-list', '/finance/manager-accounts/', ('ADMIN', 'DIRECTOR'), False, 'manager'),
-            NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER'), True, 'users'),
-            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR'), False, 'salary'),
-            NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR'), False, 'reports'),
-            NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR'), False, 'logs'),
+            NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'users'),
+            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'salary'),
+            NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'reports'),
+            NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'logs'),
             NavigationItem('Sozlamalar', 'admin:index', '/admin/', ('ADMIN',), False, 'settings'),
         ]
 
@@ -44,7 +44,7 @@ class NavigationService:
         if not getattr(user, 'is_authenticated', False):
             return []
 
-        user_role = 'ADMIN' if getattr(user, 'is_superuser', False) else getattr(user, 'role', '')
+        user_role = getattr(user, 'role', '')
         items = []
         for item in cls.base_items():
             if user_role in item.roles:

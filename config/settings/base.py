@@ -8,6 +8,9 @@ from django.contrib.messages import constants as message_constants
 from .env import BASE_DIR, env, env_bool, env_list
 
 
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 SECRET_KEY = env('DJANGO_SECRET_KEY', 'change-me-in-env')
 DEBUG = env_bool('DJANGO_DEBUG', False)
 ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
@@ -129,6 +132,11 @@ LOGOUT_REDIRECT_URL = 'accounts:telegram-entry'
 
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+SECURE_REFERRER_POLICY = 'same-origin'
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 MESSAGE_TAGS = {
     message_constants.DEBUG: 'info',
@@ -138,6 +146,68 @@ MESSAGE_TAGS = {
     message_constants.ERROR: 'error',
 }
 
-ADMIN_SITE_HEADER = 'NMC Construction Management'
-ADMIN_SITE_TITLE = 'NMC Admin'
-ADMIN_INDEX_TITLE = 'Platform administration'
+ADMIN_SITE_HEADER = 'NurafshonMega Ferma admin panel'
+ADMIN_SITE_TITLE = 'Ferma boshqaruv'
+ADMIN_INDEX_TITLE = 'Sozlamalar va ma`lumotlar boshqaruvi'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} {module}:{lineno} - {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '[{asctime}] {levelname} - {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'django_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'django.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'error.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 10,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['django_file', 'error_file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['error_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['django_file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

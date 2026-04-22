@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Ferma admin" }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:"NurafshonMega Ferma admin panel" }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --primary: #2563eb;
+        --secondary: #0f172a;
+        --accent: #059669;
+        --primary-fg: #ffffff;
+        --body-bg: #f8fafc;
+        --body-fg: #0f172a;
+        --link-fg: #2563eb;
+        --link-selected-fg: #1d4ed8;
+        --hairline-color: #e2e8f0;
+        --border-color: #e2e8f0;
+    }
+
+    #header {
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+    }
+
+    #branding h1,
+    #branding h1 a:link,
+    #branding h1 a:visited {
+        color: #ffffff;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .module,
+    .grp-module,
+    #content-related {
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .module h2,
+    .module caption,
+    .inline-group h2 {
+        background: #0f172a;
+        color: #ffffff;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    div.breadcrumbs {
+        background: #eff6ff;
+        color: #334155;
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    div.breadcrumbs a {
+        color: #1d4ed8;
+        font-weight: 700;
+    }
+
+    table thead th {
+        background: #020617;
+        color: #ffffff;
+        font-weight: 800;
+    }
+
+    table thead th a:link,
+    table thead th a:visited {
+        color: #ffffff;
+    }
+
+    #changelist table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+
+    #changelist table tbody tr:hover {
+        background: #eff6ff;
+    }
+
+    .button,
+    input[type=submit],
+    input[type=button],
+    .submit-row input,
+    a.button {
+        border-radius: 12px;
+        background: #2563eb;
+        font-weight: 800;
+    }
+
+    .button.default,
+    input[type=submit].default,
+    .submit-row input.default {
+        background: #059669;
+    }
+
+    .object-tools a,
+    .object-tools a:link,
+    .object-tools a:visited {
+        border-radius: 999px;
+        background: #2563eb;
+        font-weight: 800;
+    }
+
+    #changelist-filter {
+        border-radius: 18px;
+        border-left: 1px solid #e2e8f0;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    #changelist-filter h2 {
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 18px 18px 0 0;
+    }
+</style>
+{% endblock %}

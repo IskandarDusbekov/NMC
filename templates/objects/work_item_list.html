@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-slate-800">Ish turlari</h2>
             <p class="text-sm text-slate-500">Obyekt, ishchi va summa bo`yicha soddalashtirilgan ro`yxat</p>
         </div>
-        {% if request.user.role != 'MANAGER' %}
+        {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
             <a href="{% url 'objects:work-item-create' %}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Yangi work item</a>
         {% endif %}
     </section>
@@ -90,7 +90,7 @@
                             <td class="px-4 py-4">
                                 <div class="flex flex-wrap gap-2">
                                     <a href="{% url 'objects:work-item-detail' item.pk %}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Ko`rish</a>
-                                    {% if request.user.role != 'MANAGER' %}
+                                    {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
                                         <a href="{% url 'objects:work-item-update' item.pk %}" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white">Edit</a>
                                         <form method="post" action="{% url 'objects:work-item-status' item.pk %}">
                                             {% csrf_token %}

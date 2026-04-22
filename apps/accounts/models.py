@@ -10,6 +10,7 @@ class User(AbstractUser):
         ADMIN = 'ADMIN', 'Admin'
         DIRECTOR = 'DIRECTOR', 'Director'
         MANAGER = 'MANAGER', 'Manager'
+        OBSERVER = 'OBSERVER', 'Kuzatuvchi'
 
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=32, blank=True)
@@ -17,6 +18,18 @@ class User(AbstractUser):
     telegram_id = models.BigIntegerField(unique=True, blank=True, null=True)
     telegram_username = models.CharField(max_length=150, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Foydalanuvchi'
+        verbose_name_plural = 'Foydalanuvchilar'
+
+    def save(self, *args, **kwargs):
+        if self.role == self.Role.ADMIN:
+            self.is_staff = True
+            self.is_superuser = True
+        elif not self.is_superuser:
+            self.is_staff = False
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.full_name or self.username
@@ -30,6 +43,8 @@ class AccessToken(TimeStampedModel):
     used_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
+        verbose_name = 'Kirish tokeni'
+        verbose_name_plural = 'Kirish tokenlari'
         ordering = ('-created_at',)
 
     def __str__(self):
@@ -63,6 +78,8 @@ class TelegramLoginSession(TimeStampedModel):
     last_interaction_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
+        verbose_name = 'Telegram login sessiyasi'
+        verbose_name_plural = 'Telegram login sessiyalari'
         ordering = ('-last_interaction_at', '-created_at')
 
     def __str__(self):
@@ -74,8 +91,8 @@ class TelegramBotState(TimeStampedModel):
     last_update_id = models.BigIntegerField(default=0)
 
     class Meta:
-        verbose_name = 'Telegram bot state'
-        verbose_name_plural = 'Telegram bot states'
+        verbose_name = 'Telegram bot holati'
+        verbose_name_plural = 'Telegram bot holatlari'
 
     def __str__(self):
         return f'{self.name}: {self.last_update_id}'

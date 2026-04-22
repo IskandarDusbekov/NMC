@@ -57,7 +57,9 @@ class TokenService:
         access_token.is_used = True
         access_token.used_at = now
         access_token.save(update_fields=['is_used', 'used_at', 'updated_at'])
-        return access_token.user
+        user = access_token.user
+        user._consumed_access_token_id = access_token.pk
+        return user
 
 
 class TelegramAuthService:

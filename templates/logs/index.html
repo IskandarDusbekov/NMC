@@ -34,10 +34,16 @@
                 <tbody class="divide-y divide-slate-100">
                     {% for item in logs %}
                         <tr>
-                            <td class="px-2 py-3 text-slate-600">{{ item.created_at }}</td>
+                            <td class="px-2 py-3 text-slate-600">{{ item.created_at|date:"d.m.Y H:i" }}</td>
                             <td class="px-2 py-3 font-semibold text-slate-800">{{ item.action }}</td>
                             <td class="px-2 py-3 text-slate-600">{{ item.model_name }}</td>
-                            <td class="px-2 py-3 text-slate-600">{{ item.user.full_name|default:item.user.username|default:"System" }}</td>
+                            <td class="px-2 py-3 text-slate-600">
+                                {% if item.user %}
+                                    {{ item.user.full_name|default:item.user.username }}
+                                {% else %}
+                                    Tizim
+                                {% endif %}
+                            </td>
                             <td class="px-2 py-3 text-slate-600">{{ item.description }}</td>
                             <td class="px-2 py-3 text-slate-600">{{ item.ip_address|default:"-" }}</td>
                         </tr>

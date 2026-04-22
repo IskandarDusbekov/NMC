@@ -1,13 +1,14 @@
 from django.views.generic import ListView
 
-from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin
+from apps.core.mixins import PageMetadataMixin, RoleRequiredMixin
 
 from .forms import AuditLogFilterForm
 from .selectors import audit_log_list
 
 
-class AuditLogListView(PageMetadataMixin, DirectorRequiredMixin, ListView):
+class AuditLogListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     template_name = 'logs/index.html'
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'OBSERVER')
     context_object_name = 'logs'
     paginate_by = 20
     page_title = 'Audit loglar'

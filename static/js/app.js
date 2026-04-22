@@ -267,8 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const isManagerTransfer = quickActionInput.value === 'MANAGER_TRANSFER';
         const isObjectAction = quickActionInput.value === 'OBJECT_FUNDING' || quickActionInput.value === 'OBJECT_RETURN';
         const isConvertibleTransfer = quickActionInput.value === 'MANAGER_TRANSFER' || quickActionInput.value === 'OBJECT_FUNDING';
+        const needsCategory = quickActionInput.value === 'COMPANY_EXPENSE';
         if (quickActionCategoryField) {
-            quickActionCategoryField.classList.add('hidden');
+            quickActionCategoryField.classList.toggle('hidden', !needsCategory);
         }
         if (quickActionManagerField) {
             quickActionManagerField.classList.toggle('hidden', !isManagerTransfer);

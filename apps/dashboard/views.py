@@ -12,7 +12,7 @@ from .services import DashboardService
 
 class DashboardView(PageMetadataMixin, RoleRequiredMixin, TemplateView):
     template_name = 'dashboard/index.html'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Dashboard'
     page_subtitle = 'Global balans, obyektlar va pul oqimining markaziy ko`rinishi'
 

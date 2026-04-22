@@ -9,3 +9,5 @@ class AuditLogAdmin(admin.ModelAdmin):
     list_filter = ('action', 'model_name', 'created_at')
     search_fields = ('description', 'object_id', 'user__username', 'user__full_name')
     readonly_fields = ('created_at',)
+    date_hierarchy = 'created_at'
+    list_per_page = 50

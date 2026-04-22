@@ -10,8 +10,8 @@ from apps.finance.models import CurrencyChoices, WalletTypeChoices
 
 class Worker(TimeStampedModel):
     class WorkerType(models.TextChoices):
-        MONTHLY = 'monthly', 'Monthly'
-        BRIGADE = 'brigade', 'Brigade'
+        MONTHLY = 'monthly', 'Oylik ishchi'
+        BRIGADE = 'brigade', 'Brigada'
 
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=32, blank=True)
@@ -23,6 +23,8 @@ class Worker(TimeStampedModel):
     notes = models.TextField(blank=True)
 
     class Meta:
+        verbose_name = 'Ishchi'
+        verbose_name_plural = 'Ishchilar'
         ordering = ('full_name',)
 
     def __str__(self):
@@ -60,6 +62,8 @@ class SalaryPayment(TimeStampedModel):
     receipt_file = models.FileField(upload_to='salary_receipts/%Y/%m/', blank=True, null=True)
 
     class Meta:
+        verbose_name = 'Ish haqi to`lovi'
+        verbose_name_plural = 'Ish haqi to`lovlari'
         ordering = ('-date', '-created_at')
 
     def clean(self):

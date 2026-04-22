@@ -21,7 +21,7 @@ from .services import SalaryPaymentService
 class WorkerListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     template_name = 'workforce/worker_list.html'
     context_object_name = 'workers'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Ishchilar'
     page_subtitle = 'Oylik va brigade xodimlari bo`yicha hisob'
 
@@ -41,7 +41,7 @@ class WorkerDetailView(PageMetadataMixin, RoleRequiredMixin, DetailView):
     template_name = 'workforce/worker_detail.html'
     context_object_name = 'worker'
     queryset = worker_queryset()
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Worker detali'
     page_subtitle = 'To`lovlar, obyekt birikmalari va umumiy xarajatlar'
 
@@ -140,7 +140,7 @@ class WorkerDeleteView(PageMetadataMixin, RoleRequiredMixin, View):
 class SalaryPaymentListView(PageMetadataMixin, RoleRequiredMixin, ListView):
     template_name = 'workforce/salary_payment_list.html'
     context_object_name = 'salary_payments'
-    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
     page_title = 'Salary paymentlar'
     page_subtitle = 'Ishchilarga berilgan to`lovlar va obyekt bog`lanishi'
 

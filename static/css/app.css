@@ -145,6 +145,10 @@ main {
         display: none;
     }
 
+    .dashboard-visual-section {
+        display: none;
+    }
+
     table th {
         font-size: 0.78rem;
     }
@@ -160,5 +164,7 @@ main {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
         scrollbar-width: thin;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }

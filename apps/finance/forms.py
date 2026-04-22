@@ -210,7 +210,10 @@ class CompanyQuickActionForm(StyledFormMixin, forms.Form):
         if action == self.ACTION_COMPANY_INCOME:
             cleaned_data['category'] = self._default_category(TransactionTypeChoices.INCOME)
         elif action == self.ACTION_COMPANY_EXPENSE:
-            cleaned_data['category'] = self._default_category(TransactionTypeChoices.EXPENSE)
+            if not cleaned_data.get('category'):
+                self.add_error('category', 'Ferma chiqimi uchun kategoriya tanlang.')
+            elif cleaned_data['category'].type != TransactionTypeChoices.EXPENSE:
+                self.add_error('category', 'Ferma chiqimi uchun faqat xarajat kategoriyasi tanlanadi.')
 
         cleaned_data['object'] = None
         return cleaned_data
