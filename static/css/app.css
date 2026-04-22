@@ -137,6 +137,28 @@ main {
         background: #f8fafc;
     }
 
+    .app-header {
+        position: sticky;
+    }
+
+    .app-header > div {
+        min-height: 3.5rem;
+    }
+
+    .app-header-breadcrumbs,
+    .app-header-subtitle {
+        display: none;
+    }
+
+    .app-header-title {
+        max-width: calc(100vw - 5rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 1.05rem;
+        line-height: 1.2;
+    }
+
     .dashboard-hero,
     .dashboard-visual-section,
     .dashboard-monthly-section {
