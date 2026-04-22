@@ -3,7 +3,7 @@ from datetime import date
 
 from django import forms
 
-from apps.core.forms import StyledFormMixin
+from apps.core.forms import StyledFormMixin, validate_receipt_file
 from apps.finance.forms import ExpenseCategorySelect, ExpenseItemSelect
 from apps.finance.models import CurrencyChoices, ExpenseItem, MeasurementUnit, TransactionCategory, TransactionTypeChoices
 from apps.workforce.models import Worker
@@ -150,6 +150,9 @@ class ObjectWorkItemPaymentForm(StyledFormMixin, forms.Form):
 
         return cleaned_data
 
+    def clean_receipt_file(self):
+        return validate_receipt_file(self.cleaned_data.get('receipt_file'))
+
 
 class ObjectExpenseForm(StyledFormMixin, forms.Form):
     category = forms.ModelChoiceField(queryset=TransactionCategory.objects.none(), label='Xarajat turi', widget=ExpenseCategorySelect)
@@ -191,3 +194,6 @@ class ObjectExpenseForm(StyledFormMixin, forms.Form):
         if category and expense_item and expense_item.category_id != category.id:
             self.add_error('expense_item', 'Ichki tur tanlangan xarajat turiga tegishli emas.')
         return cleaned_data
+
+    def clean_receipt_file(self):
+        return validate_receipt_file(self.cleaned_data.get('receipt_file'))

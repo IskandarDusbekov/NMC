@@ -82,7 +82,10 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': env('SQLITE_PATH', str(BASE_DIR / 'db.sqlite3')),
+            'OPTIONS': {
+                'timeout': int(env('SQLITE_TIMEOUT', '20')),
+            },
         }
     }
 

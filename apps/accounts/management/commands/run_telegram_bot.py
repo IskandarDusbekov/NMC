@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 
+from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 
 from apps.accounts.telegram_bot import TelegramBotApiClient, TelegramBotFlowService, TelegramBotStateService
@@ -18,7 +19,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         client = TelegramBotApiClient()
-        TelegramBotFlowService.sync_commands(client)
+        try:
+            TelegramBotFlowService.sync_commands(client)
+        except ValidationError as error:
+            self.stderr.write(self.style.WARNING(f'Telegram commands sync xatosi: {error}'))
 
         once = options['once']
         timeout = options['timeout']
@@ -28,8 +32,15 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Telegram bot polling boshlandi.'))
 
         while True:
-            offset = TelegramBotStateService.current_offset(name=state_name)
-            updates = client.get_updates(offset=offset or None, timeout=timeout)
+            try:
+                offset = TelegramBotStateService.current_offset(name=state_name)
+                updates = client.get_updates(offset=offset or None, timeout=timeout)
+            except ValidationError as error:
+                self.stderr.write(self.style.WARNING(f'Telegram polling xatosi: {error}'))
+                if once:
+                    break
+                time.sleep(max(pause, 5))
+                continue
 
             if not updates:
                 if once:
@@ -38,8 +49,15 @@ class Command(BaseCommand):
                 continue
 
             for update in updates:
-                TelegramBotFlowService.process_update(update, client=client)
-                TelegramBotStateService.store_offset(update.get('update_id', 0) + 1, name=state_name)
+                update_id = update.get('update_id', 0)
+                try:
+                    TelegramBotFlowService.process_update(update, client=client)
+                except ValidationError as error:
+                    self.stderr.write(self.style.WARNING(f'Telegram update #{update_id} xatosi: {error}'))
+                except Exception as error:  # noqa: BLE001
+                    self.stderr.write(self.style.ERROR(f'Telegram update #{update_id} kutilmagan xato: {error}'))
+                finally:
+                    TelegramBotStateService.store_offset(update_id + 1, name=state_name)
 
             if once:
                 break

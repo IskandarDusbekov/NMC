@@ -1,6 +1,26 @@
 from django import forms
 
 
+ALLOWED_RECEIPT_CONTENT_TYPES = {
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'application/pdf',
+}
+MAX_RECEIPT_FILE_SIZE = 5 * 1024 * 1024
+
+
+def validate_receipt_file(file):
+    if not file:
+        return file
+    if file.size > MAX_RECEIPT_FILE_SIZE:
+        raise forms.ValidationError('Fayl hajmi 5 MB dan oshmasligi kerak.')
+    content_type = getattr(file, 'content_type', '')
+    if content_type and content_type not in ALLOWED_RECEIPT_CONTENT_TYPES:
+        raise forms.ValidationError('Faqat JPG, PNG, WEBP yoki PDF fayl yuklash mumkin.')
+    return file
+
+
 class StyledFormMixin:
     input_class = (
         'mt-2 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 '

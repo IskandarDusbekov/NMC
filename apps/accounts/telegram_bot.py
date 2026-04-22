@@ -299,6 +299,18 @@ class TelegramBotFlowService:
             'one_time_keyboard': False,
         }
 
+    @staticmethod
+    def _main_keyboard():
+        return {
+            'keyboard': [
+                [{'text': 'Saytga kirish'}],
+                [{'text': 'Bugungi kurs'}, {'text': 'Ferma hisobi'}],
+                [{'text': 'Mini App'}, {'text': 'Yordam'}],
+            ],
+            'resize_keyboard': True,
+            'one_time_keyboard': False,
+        }
+
     @classmethod
     def _access_url(cls, token: str):
         path = reverse('accounts:access-token', kwargs={'token': token})
@@ -404,7 +416,7 @@ class TelegramBotFlowService:
 
     @classmethod
     def _send_rate(cls, *, client, chat_id):
-        rate = ExchangeRateService.latest_rate()
+        rate = ExchangeRateService.latest_rate(auto_update=True)
         if not rate:
             client.send_message(
                 chat_id=chat_id,
@@ -462,7 +474,7 @@ class TelegramBotFlowService:
             )
             return
 
-        TelegramLoginSessionService.mark_waiting_password(
+        TelegramLoginSessionService.mark_waiting_username(
             telegram_id=telegram_id,
             chat_id=actor['chat_id'],
             username=actor['username'],
@@ -471,7 +483,7 @@ class TelegramBotFlowService:
         )
         client.send_message(
             chat_id=actor['chat_id'],
-            text=f'{user.full_name}, akkaunt topildi. Xavfsizlik uchun parolingizni yuboring.',
+            text=f'{user.full_name}, akkaunt topildi. Xavfsizlik uchun avval Django username yuboring.',
             reply_markup=cls._remove_keyboard(),
         )
 

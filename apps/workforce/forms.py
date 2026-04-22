@@ -1,6 +1,6 @@
 from django import forms
 
-from apps.core.forms import StyledFormMixin
+from apps.core.forms import StyledFormMixin, validate_receipt_file
 from apps.finance.models import WalletTypeChoices
 
 from .models import SalaryPayment, Worker
@@ -106,3 +106,6 @@ class SalaryPaymentForm(StyledFormMixin, forms.ModelForm):
             cleaned_data['object'] = None
 
         return cleaned_data
+
+    def clean_receipt_file(self):
+        return validate_receipt_file(self.cleaned_data.get('receipt_file'))
