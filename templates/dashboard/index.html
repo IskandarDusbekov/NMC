@@ -164,25 +164,25 @@
     </section>
 
     <section class="dashboard-visual-section mt-6 grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-        <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] md:p-6">
+        <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:rounded-[2rem] md:p-5">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600">Diagramma</p>
-                    <h3 class="mt-2 text-xl font-black text-slate-950">So`nggi 7 kun xarajatlar</h3>
-                    <p class="mt-1 text-sm text-slate-500">UZS va USD alohida ustunlarda ko`rsatiladi.</p>
+                    <h3 class="mt-2 text-lg font-black text-slate-950">So`nggi 7 kun xarajatlar</h3>
+                    <p class="mt-1 text-xs text-slate-500">UZS yoki USD bo`yicha alohida ko`ring.</p>
                 </div>
-                <div class="flex rounded-2xl bg-slate-100 p-1 text-xs font-bold">
-                    <span class="rounded-xl bg-blue-600 px-3 py-2 text-white">UZS</span>
-                    <span class="px-3 py-2 text-slate-500">USD</span>
+                <div class="flex rounded-2xl bg-slate-100 p-1 text-xs font-bold" data-dashboard-currency-toggle>
+                    <button type="button" class="rounded-xl bg-blue-600 px-3 py-2 text-white" data-dashboard-currency="UZS">UZS</button>
+                    <button type="button" class="rounded-xl px-3 py-2 text-slate-500" data-dashboard-currency="USD">USD</button>
                 </div>
             </div>
-            <div class="mt-6 h-64 rounded-3xl bg-gradient-to-b from-slate-50 to-white p-3 sm:h-72 sm:p-4">
+            <div class="mt-4 h-48 rounded-3xl bg-gradient-to-b from-slate-50 to-white p-3 sm:h-56">
                 <div class="dashboard-chart flex h-full items-end gap-2 overflow-x-auto pb-2 sm:gap-3">
                     {% for row in daily_expense_series %}
-                        <div class="flex min-w-[48px] flex-1 flex-col items-center justify-end gap-2 sm:min-w-[72px]">
-                            <div class="flex h-52 w-full items-end justify-center gap-2 rounded-2xl border border-slate-100 bg-white/70 px-2 py-3">
-                                <div class="w-3 rounded-full bg-gradient-to-t from-blue-600 to-blue-300 shadow-sm sm:w-4" style="height: {{ row.UZS_percent }}%;"></div>
-                                <div class="w-3 rounded-full bg-gradient-to-t from-emerald-500 to-emerald-200 shadow-sm sm:w-4" style="height: {{ row.USD_percent }}%;"></div>
+                        <div class="flex min-w-[44px] flex-1 flex-col items-center justify-end gap-2 sm:min-w-[62px]">
+                            <div class="flex h-36 w-full items-end justify-center gap-2 rounded-2xl border border-slate-100 bg-white/70 px-2 py-3 sm:h-44">
+                                <div class="dashboard-currency-bar w-4 rounded-full bg-gradient-to-t from-blue-600 to-blue-300 shadow-sm" data-currency-bar="UZS" style="height: {{ row.UZS_percent }}%;"></div>
+                                <div class="dashboard-currency-bar hidden w-4 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300 shadow-sm" data-currency-bar="USD" style="height: {{ row.USD_percent }}%;"></div>
                             </div>
                             <p class="text-xs font-bold text-slate-500">{{ row.label }}</p>
                         </div>

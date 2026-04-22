@@ -372,4 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         toggleExpenseDetailFields();
     }
+
+    const dashboardCurrencyButtons = document.querySelectorAll('[data-dashboard-currency]');
+    const dashboardCurrencyBars = document.querySelectorAll('[data-currency-bar]');
+
+    function setDashboardCurrency(currency) {
+        dashboardCurrencyButtons.forEach((button) => {
+            const isActive = button.dataset.dashboardCurrency === currency;
+            button.classList.toggle('bg-blue-600', isActive && currency === 'UZS');
+            button.classList.toggle('bg-emerald-600', isActive && currency === 'USD');
+            button.classList.toggle('text-white', isActive);
+            button.classList.toggle('text-slate-500', !isActive);
+        });
+        dashboardCurrencyBars.forEach((bar) => {
+            bar.classList.toggle('hidden', bar.dataset.currencyBar !== currency);
+        });
+    }
+
+    dashboardCurrencyButtons.forEach((button) => {
+        button.addEventListener('click', () => setDashboardCurrency(button.dataset.dashboardCurrency));
+    });
 });

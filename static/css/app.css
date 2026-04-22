@@ -188,13 +188,54 @@ main {
     }
 
     .overflow-x-auto {
-        margin-left: -0.5rem;
-        margin-right: -0.5rem;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        margin-left: -0.85rem;
+        margin-right: -0.85rem;
+        padding-left: 0.15rem;
+        padding-right: 0.15rem;
+        border-radius: 0.65rem;
         scrollbar-width: thin;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .overflow-x-auto > table {
+        min-width: 640px;
+        border-width: 1px;
+    }
+
+    .overflow-x-auto > table th {
+        padding: 0.52rem 0.55rem;
+        font-size: 0.68rem;
+        line-height: 1.15;
+        letter-spacing: 0;
+    }
+
+    .overflow-x-auto > table td {
+        padding: 0.5rem 0.55rem;
+        font-size: 0.78rem;
+        line-height: 1.2;
+    }
+
+    .overflow-x-auto > table th,
+    .overflow-x-auto > table td {
+        border-color: #e2e8f0;
+    }
+
+    .overflow-x-auto > table td .rounded-xl,
+    .overflow-x-auto > table td .rounded-2xl,
+    .overflow-x-auto > table td .rounded-full {
+        padding: 0.28rem 0.45rem;
+        font-size: 0.68rem;
+    }
+
+    .overflow-x-auto > table td .text-xs {
+        font-size: 0.68rem;
+        line-height: 1.1;
+    }
+
+    section:has(.overflow-x-auto) {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
     }
 
     .dashboard-stat-card {
