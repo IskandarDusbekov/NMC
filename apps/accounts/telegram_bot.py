@@ -303,9 +303,9 @@ class TelegramBotFlowService:
     def _main_keyboard():
         return {
             'keyboard': [
-                [{'text': 'Saytga kirish'}],
-                [{'text': 'Bugungi kurs'}, {'text': 'Ferma hisobi'}],
-                [{'text': 'Mini App'}, {'text': 'Yordam'}],
+                [{'text': '🔗 Saytga kirish'}],
+                [{'text': '💱 Bugungi kurs'}, {'text': '💰 Ferma hisobi'}],
+                [{'text': '📱 Mini App'}, {'text': 'ℹ️ Yordam'}],
             ],
             'resize_keyboard': True,
             'one_time_keyboard': False,
@@ -318,10 +318,10 @@ class TelegramBotFlowService:
 
     @classmethod
     def _menu_markup(cls, access_url: str):
-        inline_keyboard = [[{'text': 'Saytga kirish', 'url': access_url}]]
+        inline_keyboard = [[{'text': '🔗 Saytga kirish', 'url': access_url}]]
         webapp_url = TelegramBotConfigService.webapp_url()
         if webapp_url:
-            inline_keyboard.append([{'text': 'Mini App ochish', 'web_app': {'url': webapp_url}}])
+            inline_keyboard.append([{'text': '📱 Mini App ochish', 'web_app': {'url': webapp_url}}])
         return {'inline_keyboard': inline_keyboard}
 
     @classmethod
@@ -329,7 +329,7 @@ class TelegramBotFlowService:
         client.set_my_commands(
             [
                 {'command': 'start', 'description': 'Tizimga kirish'},
-                {'command': 'token', 'description': 'Yangi access link olish'},
+                {'command': 'token', 'description': 'Yangi kirish linki olish'},
                 {'command': 'help', 'description': 'Yordam'},
             ]
         )
@@ -353,7 +353,7 @@ class TelegramBotFlowService:
         )
         client.send_message(
             chat_id=chat_id,
-            text='Assalomu alaykum. Tizimga kirish uchun telefon raqamingizni Telegram contact sifatida yuboring.',
+            text='Assalomu alaykum.\n\nTizimga kirish uchun telefon raqamingizni Telegram contact sifatida yuboring.',
             reply_markup=cls._contact_keyboard(),
         )
 
@@ -474,17 +474,13 @@ class TelegramBotFlowService:
             )
             return
 
-        TelegramLoginSessionService.mark_waiting_username(
-            telegram_id=telegram_id,
+        cls._send_access_menu(
+            client=client,
+            user=user,
             chat_id=actor['chat_id'],
+            telegram_id=telegram_id,
             username=actor['username'],
             phone=user.phone,
-            user=user,
-        )
-        client.send_message(
-            chat_id=actor['chat_id'],
-            text=f'{user.full_name}, akkaunt topildi. Xavfsizlik uchun avval Django username yuboring.',
-            reply_markup=cls._remove_keyboard(),
         )
 
     @classmethod
@@ -649,7 +645,7 @@ class TelegramBotFlowService:
                 )
                 client.send_message(
                     chat_id=actor['chat_id'],
-                    text='Username noto`g`ri. Django admin paneldagi username bilan bir xil kiriting.',
+                    text='Username mos kelmadi. Django admin paneldagi username bilan bir xil kiriting.',
                     reply_markup=cls._remove_keyboard(),
                 )
                 return
@@ -662,7 +658,7 @@ class TelegramBotFlowService:
             )
             client.send_message(
                 chat_id=actor['chat_id'],
-                text='Username tasdiqlandi. Endi parolingizni yuboring.',
+                text='Username qabul qilindi. Endi parolingizni yuboring.',
                 reply_markup=cls._remove_keyboard(),
             )
             return
@@ -700,7 +696,7 @@ class TelegramBotFlowService:
                 client.send_message(
                     chat_id=actor['chat_id'],
                     text='Mini App tugmasi:',
-                    reply_markup={'inline_keyboard': [[{'text': 'Mini App ochish', 'web_app': {'url': webapp_url}}]]},
+                    reply_markup={'inline_keyboard': [[{'text': '📱 Mini App ochish', 'web_app': {'url': webapp_url}}]]},
                 )
                 return
             client.send_message(

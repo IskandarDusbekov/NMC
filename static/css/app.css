@@ -127,14 +127,25 @@ main {
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     html,
     body {
         overflow-x: hidden;
     }
 
+    main {
+        background: #f8fafc;
+    }
+
+    .dashboard-hero,
+    .dashboard-visual-section,
+    .dashboard-monthly-section {
+        display: none;
+    }
+
     .dashboard-stats {
         scroll-padding-left: 0.75rem;
+        margin-top: 0.25rem;
     }
 
     .dashboard-chart {
@@ -142,10 +153,6 @@ main {
     }
 
     .dashboard-chart::-webkit-scrollbar {
-        display: none;
-    }
-
-    .dashboard-visual-section {
         display: none;
     }
 
@@ -166,5 +173,25 @@ main {
         scrollbar-width: thin;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .dashboard-stat-card {
+        min-width: min(9.75rem, 44vw);
+        padding: 0.85rem;
+    }
+
+    .dashboard-stat-card svg {
+        height: 1.1rem;
+        width: 1.1rem;
+    }
+
+    .dashboard-stat-card p {
+        line-height: 1.25;
+    }
+
+    .dashboard-stat-card .text-xl,
+    .dashboard-stat-card .sm\:text-2xl {
+        font-size: 1rem;
+        line-height: 1.35;
     }
 }
