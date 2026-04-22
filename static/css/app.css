@@ -201,20 +201,40 @@ main {
         -webkit-overflow-scrolling: touch;
     }
 
-    .finance-summary-cards > * {
+    .object-summary-cards,
+    .salary-summary-cards {
+        display: flex !important;
+        gap: 0.55rem !important;
+        overflow-x: auto !important;
+        margin: 0.2rem -0.35rem 0 !important;
+        padding: 0 0.35rem 0.35rem !important;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .finance-summary-cards > *,
+    .object-summary-cards > *,
+    .salary-summary-cards > * {
         min-width: min(10.5rem, 46vw) !important;
         scroll-snap-align: start;
         padding: 0.8rem !important;
         border-radius: 1rem !important;
     }
 
-    .finance-summary-cards p {
+    .finance-summary-cards p,
+    .object-summary-cards p,
+    .salary-summary-cards p {
         font-size: 0.72rem !important;
         line-height: 1.2 !important;
     }
 
     .finance-summary-cards .text-2xl,
-    .finance-summary-cards .text-lg {
+    .finance-summary-cards .text-lg,
+    .object-summary-cards .text-2xl,
+    .object-summary-cards .text-lg,
+    .salary-summary-cards .text-2xl,
+    .salary-summary-cards .text-lg {
         font-size: 0.98rem !important;
         line-height: 1.25 !important;
         margin-top: 0.45rem !important;
@@ -222,6 +242,55 @@ main {
 
     .finance-quick-actions {
         display: none !important;
+    }
+
+    .object-detail-header .mt-1 {
+        gap: 0.35rem !important;
+        margin-top: 0 !important;
+    }
+
+    .object-detail-header h2 {
+        display: block !important;
+        max-width: calc(100vw - 1rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 1.05rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .object-detail-header p,
+    .object-detail-header .text-xs:first-child {
+        display: none !important;
+    }
+
+    .object-detail-header span {
+        padding: 0.25rem 0.55rem !important;
+        font-size: 0.68rem !important;
+    }
+
+    .object-tabs-bar {
+        margin-left: -0.1rem !important;
+        margin-right: -0.1rem !important;
+        padding: 0.45rem !important;
+        border-radius: 1rem !important;
+        gap: 0.45rem !important;
+    }
+
+    .object-tabs-bar > div {
+        display: grid !important;
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem !important;
+    }
+
+    .object-tabs-bar a,
+    .object-tabs-bar button {
+        width: 100%;
+        border-radius: 0.85rem !important;
+        padding: 0.62rem 0.55rem !important;
+        text-align: center;
+        font-size: 0.75rem !important;
     }
 
     .dashboard-stats {

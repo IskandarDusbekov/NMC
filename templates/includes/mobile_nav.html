@@ -13,9 +13,9 @@
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6.5A2.5 2.5 0 0 1 4 17.5v-9ZM17 13h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             <span>Moliya</span>
         </a>
-        <a href="{% url 'workforce:worker-list' %}" class="flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[10px] font-semibold sm:text-[11px] {% if request.path|slice:':9' == '/workers/' %}bg-blue-600 text-white{% else %}text-slate-600{% endif %}">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM2.5 20a6.5 6.5 0 0 1 13 0M17 11a3 3 0 1 0 0-6M16.5 15a5.5 5.5 0 0 1 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            <span>Ishchi</span>
+        <a href="{% url 'workforce:salary-payment-list' %}" class="flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[10px] font-semibold sm:text-[11px] {% if request.path|slice:':17' == '/salary-payments/' %}bg-blue-600 text-white{% else %}text-slate-600{% endif %}">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16v10H4V7Zm4 10v3m8-3v3M8 11h.01M12 11h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Ish haqi</span>
         </a>
         <button type="button" data-sidebar-open class="flex flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-[10px] font-semibold text-slate-600 sm:text-[11px]">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>

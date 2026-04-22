@@ -2,7 +2,7 @@
 {% load core_tags %}
 
 {% block content %}
-    <section class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+    <section class="object-detail-header mobile-page-intro rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Obyekt</p>
@@ -36,7 +36,7 @@
         </div>
     </section>
 
-<section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+<section class="object-summary-cards mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
     {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
         <!-- UZS -->
@@ -128,7 +128,7 @@
 
 </section>
 
-    <section class="mt-6 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <section class="object-tabs-bar mt-6 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap gap-2">
             <a href="{% url 'objects:detail' construction_object.pk %}?tab=work-items" class="rounded-2xl px-4 py-3 text-sm font-semibold {% if active_tab != 'expenses' %}bg-slate-950 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">Ish turlari</a>
             <a href="{% url 'objects:detail' construction_object.pk %}?tab=expenses" class="rounded-2xl px-4 py-3 text-sm font-semibold {% if active_tab == 'expenses' %}bg-slate-950 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">Xarajatlar</a>

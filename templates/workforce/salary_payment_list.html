@@ -2,7 +2,7 @@
 {% load core_tags %}
 
 {% block content %}
-    <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section class="mobile-page-intro flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ish haqi</p>
             <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Oylik va ish haqi to`lovlari</h2>
@@ -13,7 +13,7 @@
         {% endif %}
     </section>
 
-    <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section class="salary-summary-cards mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
             <p class="text-sm font-semibold text-emerald-700">Jami UZS</p>
             <p class="mt-3 text-2xl font-extrabold text-emerald-950">{{ total_salary_uzs|money }} UZS</p>
