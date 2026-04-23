@@ -210,6 +210,20 @@ main {
         min-width: 560px;
     }
 
+    .dashboard-ledger-table.overflow-x-auto {
+        margin-left: -0.35rem !important;
+        margin-right: -0.35rem !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .dashboard-ledger-table.overflow-x-auto > table {
+        min-width: 640px !important;
+    }
+
     .mobile-page-intro {
         margin-top: 0 !important;
         border: 0 !important;
