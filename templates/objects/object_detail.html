@@ -166,7 +166,6 @@
                             <th class="border border-slate-800 px-4 py-4 font-semibold">UZS jami</th>
                             <th class="border border-slate-800 px-4 py-4 font-semibold">USD jami</th>
                             <th class="border border-slate-800 px-4 py-4 font-semibold">Yozuv</th>
-                            <th class="border border-slate-800 px-4 py-4 font-semibold">Chek</th>
                             <th class="border border-slate-800 px-4 py-4 font-semibold">Oxirgi sana</th>
                             <th class="border border-slate-800 px-4 py-4 font-semibold">Amal</th>
                         </tr>
@@ -181,20 +180,13 @@
                                 <td class="border border-slate-200 px-4 py-3 font-extrabold text-emerald-700">{{ row.total_uzs|money }}</td>
                                 <td class="border border-slate-200 px-4 py-3 font-extrabold text-cyan-700">{{ row.total_usd|money }}</td>
                                 <td class="border border-slate-200 px-4 py-3 text-center font-semibold text-slate-700">{{ row.count }}</td>
-                                <td class="border border-slate-200 px-4 py-3 text-center">
-                                    {% if row.has_receipt %}
-                                        <a href="{% url 'objects:expense-category-detail' construction_object.pk row.category_id %}" class="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">Ko`rish</a>
-                                    {% else %}
-                                        <span class="text-slate-400">-</span>
-                                    {% endif %}
-                                </td>
                                 <td class="border border-slate-200 px-4 py-3 text-slate-600">{{ row.latest_date|date:"d.m.Y" }}</td>
                                 <td class="border border-slate-200 px-4 py-3">
                                     <a href="{% url 'objects:expense-category-detail' construction_object.pk row.category_id %}" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700">Batafsil</a>
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr><td colspan="10" class="px-4 py-10">{% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Xarajat qo`shilganda yoki ish turiga to`lov berilganda shu yerda ko`rinadi." %}</td></tr>
+                            <tr><td colspan="9" class="px-4 py-10">{% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Xarajat qo`shilganda yoki ish turiga to`lov berilganda shu yerda ko`rinadi." %}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -329,6 +321,7 @@
                 {% for error in object_expense_form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
                 <div class="md:col-span-2 flex justify-end gap-3">
                     <button type="button" data-modal-close class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</button>
+                    <button type="submit" name="save_and_add" value="1" class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700">Saqlash va yana qo`shish</button>
                     <button type="submit" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
                 </div>
             </form>

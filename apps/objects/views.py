@@ -59,7 +59,7 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
         context['object_expense_form'] = context.get('object_expense_form') or ObjectExpenseForm()
         context['active_tab'] = context.get('active_tab') or self.request.GET.get('tab', 'work-items')
         context['work_item_payment_modal_open'] = context.get('work_item_payment_modal_open', False)
-        context['object_expense_modal_open'] = context.get('object_expense_modal_open', False)
+        context['object_expense_modal_open'] = context.get('object_expense_modal_open', False) or self.request.GET.get('add_expense') == '1'
         context['recent_transactions'] = self.object.transactions.active().select_related('category', 'worker', 'work_item')[:10]
         context['breadcrumbs'] = [
             {'label': 'Dashboard', 'url': '/dashboard/'},
@@ -130,6 +130,8 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                     _apply_validation_error(object_expense_form, error)
                 else:
                     messages.success(request, 'Obyekt xarajati qo`shildi.')
+                    if request.POST.get('save_and_add') == '1':
+                        return redirect(f"{reverse('objects:detail', args=[self.object.pk])}?tab=expenses&add_expense=1")
                     return redirect(f"{reverse('objects:detail', args=[self.object.pk])}?tab=expenses")
             return self.render_to_response(
                 self.get_context_data(
