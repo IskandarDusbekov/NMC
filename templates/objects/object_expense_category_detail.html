@@ -7,7 +7,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajat category</p>
                 <h2 class="mt-2 text-2xl font-extrabold text-slate-900">{{ category.name }}</h2>
-                <p class="mt-2 text-sm text-slate-500">{{ construction_object.name }} bo`yicha ichki turlar, miqdorlar va cheklar.</p>
+                <p class="mt-2 text-sm text-slate-500">{{ construction_object.name }} bo`yicha ichki turlar va miqdorlar. Cheklar faqat tarixdagi konkret yozuvlarda turadi.</p>
             </div>
             <a href="{% url 'objects:detail' construction_object.pk %}?tab=expenses" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Ortga</a>
         </div>
@@ -47,7 +47,6 @@
                         <th class="border border-slate-800 px-4 py-4 font-semibold">UZS jami</th>
                         <th class="border border-slate-800 px-4 py-4 font-semibold">USD jami</th>
                         <th class="border border-slate-800 px-4 py-4 font-semibold">Yozuv</th>
-                        <th class="border border-slate-800 px-4 py-4 font-semibold">Chek</th>
                         <th class="border border-slate-800 px-4 py-4 font-semibold">Oxirgi sana</th>
                     </tr>
                 </thead>
@@ -60,17 +59,10 @@
                             <td class="border border-slate-200 px-4 py-3 font-extrabold text-emerald-700">{{ row.total_uzs|money }}</td>
                             <td class="border border-slate-200 px-4 py-3 font-extrabold text-cyan-700">{{ row.total_usd|money }}</td>
                             <td class="border border-slate-200 px-4 py-3 text-center font-semibold text-slate-700">{{ row.count }}</td>
-                            <td class="border border-slate-200 px-4 py-3 text-center">
-                                {% if row.receipt_url %}
-                                    <a href="{{ row.receipt_url }}" target="_blank" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Chek</a>
-                                {% else %}
-                                    <span class="text-slate-400">-</span>
-                                {% endif %}
-                            </td>
                             <td class="border border-slate-200 px-4 py-3 text-slate-600">{{ row.latest_date|date:"d.m.Y" }}</td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="8" class="px-4 py-10">{% include "includes/empty_state.html" with title="Ichki tur yo`q" text="Bu category bo`yicha yozuv topilmadi." %}</td></tr>
+                        <tr><td colspan="7" class="px-4 py-10">{% include "includes/empty_state.html" with title="Ichki tur yo`q" text="Bu category bo`yicha yozuv topilmadi." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
