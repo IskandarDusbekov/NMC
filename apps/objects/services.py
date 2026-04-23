@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction as db_transaction
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
+from django.urls import reverse
 
 from apps.finance.models import CurrencyChoices, TransactionCategory, TransactionEntryTypeChoices, TransactionSourceChoices, TransactionTypeChoices, WalletTypeChoices
 from apps.finance.services import ManagerExpenseService, TransactionService
@@ -265,7 +266,7 @@ class ObjectFinanceService:
             if transaction.quantity and transaction.unit:
                 row['quantity_totals'][transaction.unit] = row['quantity_totals'].get(transaction.unit, ZERO) + transaction.quantity
             if transaction.receipt_file and not row['receipt_url']:
-                row['receipt_url'] = transaction.receipt_file.url
+                row['receipt_url'] = reverse('finance:transaction-receipt', args=[transaction.pk])
             row['count'] += 1
             if transaction.date and (not row['latest_date'] or transaction.date > row['latest_date']):
                 row['latest_date'] = transaction.date

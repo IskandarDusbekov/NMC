@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     SalaryPaymentCreateView,
     SalaryPaymentListView,
+    SalaryPaymentReceiptView,
     WorkerCreateView,
     WorkerDeleteView,
     WorkerDetailView,
@@ -20,4 +21,5 @@ urlpatterns = [
     path('workers/<int:pk>/delete/', WorkerDeleteView.as_view(), name='worker-delete'),
     path('salary-payments/', SalaryPaymentListView.as_view(), name='salary-payment-list'),
     path('salary-payments/create/', SalaryPaymentCreateView.as_view(), name='salary-payment-create'),
+    path('salary-payments/<int:pk>/receipt/', SalaryPaymentReceiptView.as_view(), name='salary-payment-receipt'),
 ]

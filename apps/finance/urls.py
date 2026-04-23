@@ -10,6 +10,7 @@ from .views import (
     TransactionCreateView,
     TransactionDeleteView,
     TransactionListView,
+    TransactionReceiptView,
     TransactionUpdateView,
 )
 
@@ -20,6 +21,7 @@ urlpatterns = [
     path('finance/transactions/create/', TransactionCreateView.as_view(), name='transaction-create'),
     path('finance/transactions/<int:pk>/edit/', TransactionUpdateView.as_view(), name='transaction-update'),
     path('finance/transactions/<int:pk>/delete/', TransactionDeleteView.as_view(), name='transaction-delete'),
+    path('finance/transactions/<int:pk>/receipt/', TransactionReceiptView.as_view(), name='transaction-receipt'),
     path('finance/manager-accounts/', ManagerAccountListView.as_view(), name='manager-account-list'),
     path('finance/transfers/create/', ManagerTransferCreateView.as_view(), name='manager-transfer-create'),
     path('finance/manager-returns/create/', ManagerReturnCreateView.as_view(), name='manager-return-create'),

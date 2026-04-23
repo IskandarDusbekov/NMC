@@ -117,7 +117,7 @@
                             <td class="border border-slate-200 px-4 py-3 text-slate-500">{{ item.description|default:"-" }}</td>
                             <td class="border border-slate-200 px-4 py-3">
                                 {% if item.receipt_file %}
-                                    <a href="{{ item.receipt_file.url }}" target="_blank" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Ko`rish</a>
+                                    <a href="{% url 'finance:transaction-receipt' item.pk %}" target="_blank" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Ko`rish</a>
                                 {% else %}
                                     <span class="text-slate-400">-</span>
                                 {% endif %}

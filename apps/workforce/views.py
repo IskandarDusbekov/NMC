@@ -1,7 +1,11 @@
+import mimetypes
+from pathlib import Path
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import View
@@ -13,7 +17,7 @@ from apps.finance.views import _apply_validation_error
 from apps.logs.services import AuditLogService
 
 from .forms import SalaryPaymentForm, WorkerForm
-from .models import Worker
+from .models import SalaryPayment, Worker
 from .selectors import recent_salary_payments, worker_queryset
 from .services import SalaryPaymentService
 
@@ -191,3 +195,35 @@ class SalaryPaymentCreateView(PageMetadataMixin, RoleRequiredMixin, View):
             messages.success(request, 'Salary payment yaratildi.')
             return redirect('workforce:salary-payment-list')
         return render(request, self.template_name, self._build_context(form))
+
+
+class SalaryPaymentReceiptView(RoleRequiredMixin, View):
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
+
+    def get(self, request, pk):
+        payment = get_object_or_404(
+            SalaryPayment.objects.select_related('manager_account__user', 'created_by'),
+            pk=pk,
+        )
+        if getattr(request.user, 'role', '') == 'MANAGER' and not getattr(request.user, 'is_superuser', False):
+            owns_payment = (
+                payment.created_by_id == request.user.id
+                or getattr(payment.manager_account, 'user_id', None) == request.user.id
+            )
+            if not owns_payment:
+                raise PermissionDenied
+        if not payment.receipt_file:
+            raise Http404('Chek fayli topilmadi.')
+
+        filename = Path(payment.receipt_file.name).name
+        content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        try:
+            file_handle = payment.receipt_file.open('rb')
+        except FileNotFoundError as exc:
+            raise Http404('Chek fayli diskda topilmadi.') from exc
+        return FileResponse(
+            file_handle,
+            as_attachment=request.GET.get('download') == '1',
+            filename=filename,
+            content_type=content_type,
+        )

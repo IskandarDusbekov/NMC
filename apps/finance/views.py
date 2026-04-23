@@ -1,5 +1,10 @@
+import mimetypes
+from pathlib import Path
+
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
@@ -230,6 +235,38 @@ class TransactionDeleteView(PageMetadataMixin, DirectorRequiredMixin, View):
                 'object_label': str(transaction),
                 'cancel_url': reverse_lazy('finance:transaction-list'),
             },
+        )
+
+
+class TransactionReceiptView(RoleRequiredMixin, View):
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
+
+    def get(self, request, pk):
+        transaction = get_object_or_404(
+            Transaction.objects.select_related('manager_account__user', 'created_by'),
+            pk=pk,
+        )
+        if getattr(request.user, 'role', '') == 'MANAGER' and not getattr(request.user, 'is_superuser', False):
+            owns_transaction = (
+                transaction.created_by_id == request.user.id
+                or getattr(transaction.manager_account, 'user_id', None) == request.user.id
+            )
+            if not owns_transaction:
+                raise PermissionDenied
+        if not transaction.receipt_file:
+            raise Http404('Chek fayli topilmadi.')
+
+        filename = Path(transaction.receipt_file.name).name
+        content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        try:
+            file_handle = transaction.receipt_file.open('rb')
+        except FileNotFoundError as exc:
+            raise Http404('Chek fayli diskda topilmadi.') from exc
+        return FileResponse(
+            file_handle,
+            as_attachment=request.GET.get('download') == '1',
+            filename=filename,
+            content_type=content_type,
         )
 
 
