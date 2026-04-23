@@ -172,6 +172,33 @@ main {
         display: block !important;
     }
 
+    .mobile-service-tile {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #eef2f7;
+        border-radius: 1.35rem;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+        color: #0f172a;
+        display: flex;
+        flex-direction: column;
+        font-size: 0.78rem;
+        font-weight: 900;
+        gap: 0.55rem;
+        justify-content: center;
+        min-height: 6.7rem;
+        padding: 0.85rem 0.45rem;
+        text-align: center;
+    }
+
+    .mobile-service-icon {
+        align-items: center;
+        border-radius: 1.05rem;
+        display: inline-flex;
+        height: 3rem;
+        justify-content: center;
+        width: 3rem;
+    }
+
     .mobile-page-intro {
         margin-top: 0 !important;
         border: 0 !important;
