@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.html import format_html
 
 from .models import ExchangeRate, ExpenseItem, ManagerAccount, ManagerTransfer, MeasurementUnit, Transaction, TransactionCategory
@@ -11,6 +13,14 @@ def _money(value, currency=''):
     return f'{formatted} {currency}'.strip()
 
 
+class ExpenseItemInline(admin.TabularInline):
+    model = ExpenseItem
+    extra = 1
+    fields = ('name', 'default_unit', 'is_active', 'description')
+    autocomplete_fields = ('default_unit',)
+    show_change_link = True
+
+
 @admin.register(TransactionCategory)
 class TransactionCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'type_badge', 'detail_mode', 'active_badge', 'description')
@@ -19,6 +29,11 @@ class TransactionCategoryAdmin(admin.ModelAdmin):
     ordering = ('type', 'name')
     list_editable = ('detail_mode',)
     list_per_page = 30
+
+    def get_inlines(self, request, obj):
+        if obj and obj.type == 'EXPENSE':
+            return [ExpenseItemInline]
+        return []
 
     @admin.display(description='Turi', ordering='type')
     def type_badge(self, obj):
@@ -47,6 +62,19 @@ class ExpenseItemAdmin(admin.ModelAdmin):
     autocomplete_fields = ('category', 'default_unit')
     list_editable = ('default_unit', 'is_active')
     list_per_page = 30
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if request.GET.get('category'):
+            initial['category'] = request.GET.get('category')
+        return initial
+
+    def response_add(self, request, obj, post_url_continue=None):
+        response = super().response_add(request, obj, post_url_continue)
+        if '_addanother' in request.POST and obj.category_id:
+            add_url = reverse('admin:finance_expenseitem_add')
+            return HttpResponseRedirect(f'{add_url}?category={obj.category_id}')
+        return response
 
 
 @admin.register(ExchangeRate)
