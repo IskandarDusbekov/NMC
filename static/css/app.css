@@ -199,6 +199,17 @@ main {
         width: 3rem;
     }
 
+    .mobile-dashboard-table.overflow-x-auto {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 1.15rem !important;
+    }
+
+    .mobile-dashboard-table.overflow-x-auto > table {
+        border-radius: 0 !important;
+        min-width: 560px;
+    }
+
     .mobile-page-intro {
         margin-top: 0 !important;
         border: 0 !important;
