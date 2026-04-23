@@ -168,6 +168,10 @@ main {
         display: none !important;
     }
 
+    .mobile-dashboard-panel {
+        display: block !important;
+    }
+
     .mobile-page-intro {
         margin-top: 0 !important;
         border: 0 !important;
