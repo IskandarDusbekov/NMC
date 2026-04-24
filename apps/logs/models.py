@@ -25,3 +25,20 @@ class AuditLog(TimeStampedModel):
 
     def __str__(self):
         return f'{self.action} - {self.model_name}'
+
+
+class BlockedIP(TimeStampedModel):
+    ip_address = models.GenericIPAddressField(unique=True)
+    failed_attempts = models.PositiveIntegerField(default=0)
+    window_started_at = models.DateTimeField(blank=True, null=True)
+    last_attempt_at = models.DateTimeField(blank=True, null=True)
+    blocked_until = models.DateTimeField(blank=True, null=True)
+    reason = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = 'Bloklangan IP'
+        verbose_name_plural = 'Bloklangan IP lar'
+        ordering = ('-blocked_until', '-last_attempt_at')
+
+    def __str__(self):
+        return f'{self.ip_address} ({self.blocked_until or "not-blocked"})'

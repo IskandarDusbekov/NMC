@@ -12,6 +12,7 @@ from django.views.generic import FormView, ListView, TemplateView, UpdateView
 
 from apps.core.forms import ConfirmDeleteForm
 from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin, RoleRequiredMixin
+from apps.core.services import SubmissionGuardService
 
 from .forms import (
     CompanyQuickActionForm,
@@ -110,6 +111,9 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
         form = CompanyQuickActionForm(request.POST)
         self.object_list = self.get_queryset()
         if form.is_valid():
+            if SubmissionGuardService.is_duplicate(request, action='finance.quick_action', payload=form.cleaned_data):
+                messages.warning(request, 'Bir xil moliya amali ketma-ket ikki marta yuborildi. Ikkinchi submit bekor qilindi.')
+                return redirect('finance:transaction-list')
             try:
                 CompanyQuickActionService.execute(
                     user=request.user,
@@ -128,6 +132,7 @@ class TransactionListView(PageMetadataMixin, RoleRequiredMixin, ListView):
             except ValidationError as error:
                 _apply_validation_error(form, error)
             else:
+                SubmissionGuardService.remember(request, action='finance.quick_action', payload=form.cleaned_data)
                 messages.success(request, 'Moliya amali saqlandi.')
                 return redirect('finance:transaction-list')
         context = self.get_context_data(object_list=self.object_list)
@@ -144,6 +149,9 @@ class TransactionCreateView(PageMetadataMixin, DirectorRequiredMixin, FormView):
     page_subtitle = 'Faqat ferma wallet uchun kirim yoki chiqim yaratiladi'
 
     def form_valid(self, form):
+        if SubmissionGuardService.is_duplicate(self.request, action='finance.transaction_create', payload=form.cleaned_data):
+            messages.warning(self.request, 'Bir xil transaction qayta yuborildi. Ikkinchi submit bekor qilindi.')
+            return redirect(self.success_url)
         try:
             TransactionService.create_transaction(
                 user=self.request.user,
@@ -155,6 +163,7 @@ class TransactionCreateView(PageMetadataMixin, DirectorRequiredMixin, FormView):
         except ValidationError as error:
             _apply_validation_error(form, error)
             return self.form_invalid(form)
+        SubmissionGuardService.remember(self.request, action='finance.transaction_create', payload=form.cleaned_data)
         messages.success(self.request, 'Ferma transaction muvaffaqiyatli yaratildi.')
         return super().form_valid(form)
 
@@ -312,6 +321,16 @@ class ManagerTransferCreateView(PageMetadataMixin, DirectorRequiredMixin, FormVi
     page_subtitle = 'Ferma balansidan manager operatsion hisobiga ichki transfer'
 
     def form_valid(self, form):
+        payload = {
+            'to_manager': form.cleaned_data['to_manager'],
+            'amount': form.cleaned_data['amount'],
+            'currency': form.cleaned_data['currency'],
+            'description': form.cleaned_data['description'],
+            'date': form.cleaned_data['date'],
+        }
+        if SubmissionGuardService.is_duplicate(self.request, action='finance.manager_transfer', payload=payload):
+            messages.warning(self.request, 'Bir xil transfer qayta yuborildi. Ikkinchi submit bekor qilindi.')
+            return redirect(self.success_url)
         try:
             TransferService.transfer_to_manager(
                 manager_account=form.cleaned_data['to_manager'],
@@ -325,6 +344,7 @@ class ManagerTransferCreateView(PageMetadataMixin, DirectorRequiredMixin, FormVi
         except ValidationError as error:
             _apply_validation_error(form, error)
             return self.form_invalid(form)
+        SubmissionGuardService.remember(self.request, action='finance.manager_transfer', payload=payload)
         messages.success(self.request, 'Managerga pul o`tkazildi.')
         return super().form_valid(form)
 
@@ -352,6 +372,16 @@ class ManagerReturnCreateView(PageMetadataMixin, RoleRequiredMixin, FormView):
         return kwargs
 
     def form_valid(self, form):
+        payload = {
+            'to_manager': form.cleaned_data['to_manager'],
+            'amount': form.cleaned_data['amount'],
+            'currency': form.cleaned_data['currency'],
+            'description': form.cleaned_data['description'],
+            'date': form.cleaned_data['date'],
+        }
+        if SubmissionGuardService.is_duplicate(self.request, action='finance.manager_return', payload=payload):
+            messages.warning(self.request, 'Bir xil qaytarish amali qayta yuborildi. Ikkinchi submit bekor qilindi.')
+            return redirect(self.success_url)
         try:
             TransferService.return_to_company(
                 manager_account=form.cleaned_data['to_manager'],
@@ -365,6 +395,7 @@ class ManagerReturnCreateView(PageMetadataMixin, RoleRequiredMixin, FormView):
         except ValidationError as error:
             _apply_validation_error(form, error)
             return self.form_invalid(form)
+        SubmissionGuardService.remember(self.request, action='finance.manager_return', payload=payload)
         messages.success(self.request, 'Mablag` ferma hisobiga qaytarildi.')
         return super().form_valid(form)
 
@@ -407,6 +438,11 @@ class ManagerExpenseCreateView(PageMetadataMixin, RoleRequiredMixin, View):
         form = ManagerExpenseForm(request.POST, user=request.user)
         if form.is_valid():
             manager_account = form.cleaned_data['manager_account'] or getattr(request.user, 'manager_account', None)
+            payload = form.cleaned_data.copy()
+            payload['manager_account'] = manager_account
+            if SubmissionGuardService.is_duplicate(request, action='finance.manager_expense', payload=payload):
+                messages.warning(request, 'Bir xil manager xarajati qayta yuborildi. Ikkinchi submit bekor qilindi.')
+                return redirect('finance:transaction-list')
             try:
                 ManagerExpenseService.create_expense(
                     manager_account=manager_account,
@@ -424,6 +460,7 @@ class ManagerExpenseCreateView(PageMetadataMixin, RoleRequiredMixin, View):
             except ValidationError as error:
                 _apply_validation_error(form, error)
                 return render(request, self.template_name, self._build_context(request, form))
+            SubmissionGuardService.remember(request, action='finance.manager_expense', payload=payload)
             messages.success(request, 'Manager expense yaratildi.')
             return redirect('finance:transaction-list')
         return render(request, self.template_name, self._build_context(request, form))

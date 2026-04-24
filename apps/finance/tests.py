@@ -193,6 +193,34 @@ class TransactionServiceTest(TestCase):
         self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.UZS), Decimal('1000000.00'))
         self.assertEqual(ManagerBalanceService.summary_for_account(self.manager.manager_account)[CurrencyChoices.UZS], Decimal('0.00'))
 
+    def test_deleting_manager_transfer_is_blocked_if_manager_already_spent_money(self):
+        transfer = TransferService.transfer_to_manager(
+            manager_account=self.manager.manager_account,
+            amount=Decimal('200000.00'),
+            currency=CurrencyChoices.UZS,
+            description='Transfer delete blocked',
+            date=date(2026, 4, 21),
+            user=self.director,
+        )
+        ManagerExpenseService.create_expense(
+            manager_account=self.manager.manager_account,
+            category=self.expense_category,
+            amount=Decimal('200000.00'),
+            currency=CurrencyChoices.UZS,
+            description='Spent all funds',
+            date=date(2026, 4, 22),
+            object=None,
+            work_item=None,
+            worker=None,
+            user=self.manager,
+        )
+        company_entry = Transaction.objects.get(manager_transfer=transfer, wallet_type='COMPANY')
+
+        with self.assertRaises(ValidationError):
+            TransactionService.soft_delete_transaction(company_entry, user=self.director)
+
+        self.assertTrue(Transaction.objects.active().filter(manager_transfer=transfer).exists())
+
     def test_deleting_object_expense_restores_object_balance(self):
         construction_object = ConstructionObject.objects.create(
             name='Balance Object',
@@ -400,3 +428,19 @@ class FinanceQuickActionViewTest(TestCase):
         self.object.refresh_from_db()
         self.assertEqual(self.object.balance_uzs, Decimal('0.00'))
         self.assertEqual(CompanyBalanceService.current_balance(CurrencyChoices.USD), Decimal('100.00'))
+
+    def test_quick_income_duplicate_post_is_ignored(self):
+        payload = {
+            'action': CompanyQuickActionForm.ACTION_COMPANY_INCOME,
+            'amount': '500000.00',
+            'currency': CurrencyChoices.UZS,
+            'date': '2026-04-21',
+            'description': 'Duplicate quick income',
+        }
+
+        first_response = self.client.post(reverse('finance:transaction-list'), payload)
+        second_response = self.client.post(reverse('finance:transaction-list'), payload)
+
+        self.assertEqual(first_response.status_code, 302)
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(Transaction.objects.filter(description='Duplicate quick income').count(), 1)

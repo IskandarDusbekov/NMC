@@ -44,8 +44,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'apps.core.middleware.AuthenticatedNoCacheMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'apps.core.middleware.SecurityHardeningMiddleware',
+    'apps.core.middleware.AuthenticatedNoCacheMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -154,6 +155,13 @@ MESSAGE_TAGS = {
 ADMIN_SITE_HEADER = 'NurafshonMega Ferma admin panel'
 ADMIN_SITE_TITLE = 'Ferma boshqaruv'
 ADMIN_INDEX_TITLE = 'Sozlamalar va ma`lumotlar boshqaruvi'
+ADMIN_URL_PATH = env('DJANGO_ADMIN_PATH', 'secure-console/')
+if not ADMIN_URL_PATH.endswith('/'):
+    ADMIN_URL_PATH = f'{ADMIN_URL_PATH}/'
+ADMIN_LOGIN_FAILURE_LIMIT = int(env('ADMIN_LOGIN_FAILURE_LIMIT', '5'))
+ADMIN_LOGIN_FAILURE_WINDOW_SECONDS = int(env('ADMIN_LOGIN_FAILURE_WINDOW_SECONDS', '900'))
+BLOCKED_IP_TTL_SECONDS = int(env('BLOCKED_IP_TTL_SECONDS', '3600'))
+SESSION_TIMEOUT_SECONDS = int(env('SESSION_TIMEOUT_SECONDS', '1800'))
 
 LOGGING = {
     'version': 1,

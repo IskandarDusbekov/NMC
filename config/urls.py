@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import include, path
 
@@ -10,10 +11,19 @@ admin.site.site_header = getattr(settings, 'ADMIN_SITE_HEADER', 'NurafshonMega F
 admin.site.site_title = getattr(settings, 'ADMIN_SITE_TITLE', 'Ferma admin')
 admin.site.index_title = getattr(settings, 'ADMIN_INDEX_TITLE', 'Sozlamalar va ma`lumotlar boshqaruvi')
 
+
+def hidden_admin_disabled(_request, *_args, **_kwargs):
+    raise Http404
+
+
+admin_url = getattr(settings, 'ADMIN_URL_PATH', 'secure-console/')
+
 urlpatterns = [
     path('', lambda request: redirect('dashboard:index')),
-    path('admin/backup-json/', admin.site.admin_view(download_json_backup), name='admin-backup-json'),
-    path('admin/', admin.site.urls),
+    path(f'{admin_url}backup-json/', admin.site.admin_view(download_json_backup), name='admin-backup-json'),
+    path(admin_url, admin.site.urls),
+    path('admin/', hidden_admin_disabled),
+    path('admin/<path:_extra>/', hidden_admin_disabled),
     path('accounts/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('', include(('apps.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('', include(('apps.objects.urls', 'objects'), namespace='objects')),

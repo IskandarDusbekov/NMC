@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import date
 
 from django.conf import settings
@@ -213,6 +214,7 @@ class TransactionQuerySet(models.QuerySet):
 
 
 class Transaction(TimeStampedModel, SoftDeleteModel):
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     type = models.CharField(max_length=10, choices=TransactionTypeChoices.choices)
     entry_type = models.CharField(max_length=40, choices=TransactionEntryTypeChoices.choices)
     wallet_type = models.CharField(max_length=20, choices=WalletTypeChoices.choices, default=WalletTypeChoices.COMPANY)

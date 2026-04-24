@@ -13,7 +13,9 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.core.forms import ConfirmDeleteForm
 from apps.core.mixins import PageMetadataMixin, RoleRequiredMixin
+from apps.core.services import SubmissionGuardService
 from apps.finance.views import _apply_validation_error
+from apps.finance.models import Transaction
 from apps.logs.services import AuditLogService
 
 from .forms import SalaryPaymentForm, WorkerForm
@@ -51,7 +53,13 @@ class WorkerDetailView(PageMetadataMixin, RoleRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['salary_payments'] = self.object.salary_payments.select_related('object')[:20]
+        active_salary_payment_ids = Transaction.objects.active().filter(
+            worker=self.object,
+            salary_payment__isnull=False,
+        ).values_list('salary_payment_id', flat=True)
+        context['salary_payments'] = self.object.salary_payments.select_related('object').filter(
+            pk__in=active_salary_payment_ids,
+        )[:20]
         context['breadcrumbs'] = [
             {'label': 'Dashboard', 'url': '/dashboard/'},
             {'label': 'Ishchilar', 'url': reverse('workforce:worker-list')},
@@ -187,11 +195,15 @@ class SalaryPaymentCreateView(PageMetadataMixin, RoleRequiredMixin, View):
     def post(self, request):
         form = SalaryPaymentForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
+            if SubmissionGuardService.is_duplicate(request, action='workforce.salary_payment', payload=form.cleaned_data):
+                messages.warning(request, 'Bir xil ish haqi to`lovi qayta yuborildi. Ikkinchi submit bekor qilindi.')
+                return redirect('workforce:salary-payment-list')
             try:
                 SalaryPaymentService.create_salary_payment(user=request.user, request=request, **form.cleaned_data)
             except ValidationError as error:
                 _apply_validation_error(form, error)
                 return render(request, self.template_name, self._build_context(form))
+            SubmissionGuardService.remember(request, action='workforce.salary_payment', payload=form.cleaned_data)
             messages.success(request, 'Salary payment yaratildi.')
             return redirect('workforce:salary-payment-list')
         return render(request, self.template_name, self._build_context(form))

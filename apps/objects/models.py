@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import date
 from decimal import Decimal
 
@@ -16,6 +17,7 @@ class ConstructionObject(TimeStampedModel):
         PAUSED = 'paused', 'To`xtatilgan'
         FINISHED = 'finished', 'Tugallangan'
 
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -47,6 +49,7 @@ class WorkItem(TimeStampedModel):
         COMPLETED = 'completed', 'Tugallangan'
         CANCELLED = 'cancelled', 'Bekor qilingan'
 
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     object = models.ForeignKey(
         'objects.ConstructionObject',
         on_delete=models.CASCADE,

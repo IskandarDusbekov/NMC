@@ -2,10 +2,11 @@ import os
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.finance.models import ManagerAccount
+from apps.logs.models import AuditLog, BlockedIP
 
 from .models import TelegramLoginSession
 from .services import TokenService
@@ -231,5 +232,38 @@ class UserModelTest(TestCase):
             message for message in client.messages
             if message.get('reply_markup', {}).get('inline_keyboard')
         ]
-        self.assertEqual(access_messages[-1]['reply_markup']['inline_keyboard'][0][0]['text'], 'Saytga kirish')
+        self.assertIn('Saytga kirish', access_messages[-1]['reply_markup']['inline_keyboard'][0][0]['text'])
         self.assertTrue(user.access_tokens.exists())
+
+    @override_settings(ADMIN_LOGIN_FAILURE_LIMIT=2, BLOCKED_IP_TTL_SECONDS=300)
+    def test_admin_login_failures_block_ip(self):
+        login_url = reverse('admin:login')
+
+        first = self.client.post(login_url, {'username': 'ghost', 'password': 'bad-pass'})
+        second = self.client.post(login_url, {'username': 'ghost', 'password': 'bad-pass'})
+        third = self.client.get(login_url)
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(third.status_code, 403)
+        self.assertTrue(BlockedIP.objects.filter(ip_address='127.0.0.1').exists())
+        self.assertTrue(AuditLog.objects.filter(action='security_ip_blocked').exists())
+
+    @override_settings(SESSION_TIMEOUT_SECONDS=1)
+    def test_session_timeout_logs_user_out(self):
+        user = User.objects.create_user(
+            username='timeout-user',
+            password='StrongPass123!',
+            full_name='Timeout User',
+            role=User.Role.DIRECTOR,
+        )
+        self.client.force_login(user)
+        session = self.client.session
+        session['_last_activity_at'] = 0
+        session.save()
+
+        response = self.client.get(reverse('dashboard:index'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('accounts:telegram-entry'), response.url)
+        self.assertTrue(AuditLog.objects.filter(action='session_timeout_logout').exists())

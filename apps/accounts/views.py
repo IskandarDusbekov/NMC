@@ -20,6 +20,7 @@ from config.settings.env import env
 
 from apps.logs.services import AuditLogService
 
+from .security import SecurityService
 from .services import TelegramAuthService, TokenService
 from .telegram_bot import TelegramBotConfigService, TelegramBotFlowService
 
@@ -48,6 +49,7 @@ class AccessTokenLoginView(View):
             messages.error(request, error.message)
             return redirect('accounts:telegram-entry')
         login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+        SecurityService.log_new_ip_if_needed(request, user)
         AuditLogService.log_from_request(
             request,
             user=user,
@@ -74,6 +76,7 @@ class TelegramMiniAppVerifyView(View):
             return JsonResponse({'ok': False, 'error': error.message}, status=400)
 
         login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+        SecurityService.log_new_ip_if_needed(request, user)
         AuditLogService.log_from_request(
             request,
             user=user,

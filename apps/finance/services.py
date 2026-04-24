@@ -201,6 +201,37 @@ class TransactionService:
         construction_object.save(update_fields=['balance_usd', 'updated_at'])
 
     @classmethod
+    def _validate_soft_delete_balances(cls, transactions):
+        company_deltas: dict[str, Decimal] = {}
+        manager_deltas: dict[tuple[int, str], Decimal] = {}
+
+        for transaction in transactions:
+            signed_amount = transaction.amount * Decimal(transaction.sign)
+            if transaction.wallet_type == WalletTypeChoices.COMPANY:
+                company_deltas[transaction.currency] = company_deltas.get(transaction.currency, ZERO) + signed_amount
+            if transaction.wallet_type == WalletTypeChoices.MANAGER and transaction.manager_account_id:
+                key = (transaction.manager_account_id, transaction.currency)
+                manager_deltas[key] = manager_deltas.get(key, ZERO) + signed_amount
+
+        company_queryset = Transaction.objects.company_wallet()
+        for currency, delta in company_deltas.items():
+            next_balance = CompanyBalanceService.current_balance(currency, company_queryset) - delta
+            if next_balance < 0:
+                raise ValidationError(
+                    {'__all__': f'Bu yozuvni o`chirishdan keyin ferma balansi manfiy bo`lib qoladi: {next_balance} {currency}.'}
+                )
+
+        for (manager_account_id, currency), delta in manager_deltas.items():
+            manager_queryset = Transaction.objects.manager_wallet().filter(manager_account_id=manager_account_id)
+            manager_account = ManagerAccount.objects.get(pk=manager_account_id)
+            next_balance = ManagerBalanceService.current_balance(manager_account, currency, manager_queryset) - delta
+            if next_balance < 0:
+                manager_name = getattr(manager_account.user, 'full_name', '') or getattr(manager_account.user, 'username', '')
+                raise ValidationError(
+                    {'__all__': f'Bu yozuvni o`chirishdan keyin {manager_name} manager balansida manfiy qoldiq chiqadi: {next_balance} {currency}.'}
+                )
+
+    @classmethod
     def _transfer_group_queryset(cls, instance):
         if instance.manager_transfer_id:
             return Transaction.objects.active().filter(manager_transfer=instance.manager_transfer)
@@ -210,6 +241,21 @@ class TransactionService:
                 reference_id=instance.reference_id,
             )
         return Transaction.objects.active().filter(pk=instance.pk)
+
+    @staticmethod
+    def _resolve_instance(instance):
+        if instance is None:
+            raise ValidationError('Transaction topilmadi.')
+        if getattr(instance, 'pk', None):
+            resolved = Transaction.objects.filter(pk=instance.pk).first()
+            if resolved is not None:
+                return resolved
+        salary_payment = getattr(instance, 'salary_payment', None)
+        if salary_payment is not None:
+            resolved = Transaction.objects.filter(salary_payment=salary_payment).first()
+            if resolved is not None:
+                return resolved
+        raise ValidationError('Transaction topilmadi yoki allaqachon ochirilgan.')
 
     @staticmethod
     def _prepare_payload(data):
@@ -317,16 +363,20 @@ class TransactionService:
     @classmethod
     @db_transaction.atomic
     def soft_delete_transaction(cls, instance, *, user=None, request=None):
+        instance = cls._resolve_instance(instance)
         if instance.is_deleted:
             return instance
         transactions = list(cls._transfer_group_queryset(instance).select_related('object', 'manager_transfer'))
+        cls._validate_soft_delete_balances(transactions)
         deleted_at = timezone.now()
         for transaction in transactions:
             cls._apply_object_balance_delta(transaction, multiplier=1)
-            transaction.is_deleted = True
-            transaction.deleted_by = user
-            transaction.deleted_at = deleted_at
-            transaction.save(update_fields=['is_deleted', 'deleted_by', 'deleted_at', 'updated_at'])
+            Transaction.objects.filter(pk=transaction.pk).update(
+                is_deleted=True,
+                deleted_by=user,
+                deleted_at=deleted_at,
+                updated_at=deleted_at,
+            )
         AuditLogService.log(
             user=user,
             action='transaction_deleted',

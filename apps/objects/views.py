@@ -9,6 +9,7 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.core.forms import ConfirmDeleteForm
 from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin, RoleRequiredMixin
+from apps.core.services import SubmissionGuardService
 from apps.finance.models import TransactionCategory
 from apps.logs.services import AuditLogService
 
@@ -79,6 +80,13 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
             work_item_payment_form = ObjectWorkItemPaymentForm(request.POST, request.FILES, construction_object=self.object)
             object_expense_form = ObjectExpenseForm()
             if work_item_payment_form.is_valid():
+                if SubmissionGuardService.is_duplicate(
+                    request,
+                    action='objects.work_item_payment',
+                    payload=work_item_payment_form.cleaned_data,
+                ):
+                    messages.warning(request, 'Bir xil ish turi to`lovi qayta yuborildi. Ikkinchi submit bekor qilindi.')
+                    return redirect(f"{reverse('objects:detail', args=[self.object.pk])}?tab=work-items")
                 try:
                     ObjectFinanceService.create_work_item_payment(
                         construction_object=self.object,
@@ -95,6 +103,11 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                 except ValidationError as error:
                     _apply_validation_error(work_item_payment_form, error)
                 else:
+                    SubmissionGuardService.remember(
+                        request,
+                        action='objects.work_item_payment',
+                        payload=work_item_payment_form.cleaned_data,
+                    )
                     messages.success(request, 'Ish turiga to`lov qo`shildi.')
                     return redirect(f"{reverse('objects:detail', args=[self.object.pk])}?tab=work-items")
             return self.render_to_response(
@@ -110,6 +123,13 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
             work_item_payment_form = ObjectWorkItemPaymentForm(construction_object=self.object)
             object_expense_form = ObjectExpenseForm(request.POST, request.FILES)
             if object_expense_form.is_valid():
+                if SubmissionGuardService.is_duplicate(
+                    request,
+                    action='objects.object_expense',
+                    payload=object_expense_form.cleaned_data,
+                ):
+                    messages.warning(request, 'Bir xil obyekt xarajati qayta yuborildi. Ikkinchi submit bekor qilindi.')
+                    return redirect(f"{reverse('objects:detail', args=[self.object.pk])}?tab=expenses")
                 try:
                     ObjectFinanceService.create_object_expense(
                         construction_object=self.object,
@@ -129,6 +149,11 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                 except ValidationError as error:
                     _apply_validation_error(object_expense_form, error)
                 else:
+                    SubmissionGuardService.remember(
+                        request,
+                        action='objects.object_expense',
+                        payload=object_expense_form.cleaned_data,
+                    )
                     messages.success(request, 'Obyekt xarajati qo`shildi.')
                     if request.POST.get('save_and_add') == '1':
                         return redirect(f"{reverse('objects:detail', args=[self.object.pk])}?tab=expenses&add_expense=1")

@@ -36,11 +36,23 @@ class WorkerAdmin(admin.ModelAdmin):
 
     @admin.display(description='To`langan UZS')
     def total_paid_uzs(self, obj):
-        return _money(sum(payment.amount for payment in obj.salary_payments.filter(currency='UZS')), 'UZS')
+        return _money(
+            sum(
+                transaction.amount
+                for transaction in obj.transactions.filter(currency='UZS', salary_payment__isnull=False, is_deleted=False)
+            ),
+            'UZS',
+        )
 
     @admin.display(description='To`langan USD')
     def total_paid_usd(self, obj):
-        return _money(sum(payment.amount for payment in obj.salary_payments.filter(currency='USD')), 'USD')
+        return _money(
+            sum(
+                transaction.amount
+                for transaction in obj.transactions.filter(currency='USD', salary_payment__isnull=False, is_deleted=False)
+            ),
+            'USD',
+        )
 
 
 @admin.register(SalaryPayment)

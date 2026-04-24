@@ -8,6 +8,7 @@ from apps.finance.models import CurrencyChoices, TransactionCategory, Transactio
 from apps.finance.services import CompanyBalanceService, ManagerBalanceService, TransactionService, TransferService
 
 from .models import Worker
+from .selectors import recent_salary_payments, worker_queryset
 from .services import SalaryPaymentService
 
 
@@ -92,3 +93,22 @@ class SalaryPaymentServiceTest(TestCase):
         self.assertEqual(salary_payment.ledger_transaction.wallet_type, WalletTypeChoices.MANAGER)
         self.assertEqual(manager_balance[CurrencyChoices.USD], Decimal('1600.00'))
         self.assertEqual(company_balance[CurrencyChoices.USD], Decimal('8000.00'))
+
+    def test_deleted_salary_payment_is_excluded_from_worker_totals_and_recent_list(self):
+        salary_payment = SalaryPaymentService.create_salary_payment(
+            user=self.admin,
+            worker=self.worker,
+            amount=Decimal('500.00'),
+            currency=CurrencyChoices.USD,
+            date=date(2026, 4, 20),
+            source_wallet=WalletTypeChoices.COMPANY,
+            manager_account=None,
+            object=None,
+            description='Monthly salary',
+        )
+
+        TransactionService.soft_delete_transaction(salary_payment.ledger_transaction, user=self.admin)
+
+        worker = worker_queryset().get(pk=self.worker.pk)
+        self.assertEqual(worker.total_paid_usd, Decimal('0.00'))
+        self.assertEqual(list(recent_salary_payments(user=self.admin)), [])
