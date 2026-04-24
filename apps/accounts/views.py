@@ -88,6 +88,20 @@ class TelegramMiniAppVerifyView(View):
 class UserLogoutView(LogoutView):
     next_page = reverse_lazy('accounts:telegram-entry')
 
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            AuditLogService.log_from_request(
+                request,
+                user=request.user,
+                action='logout',
+                model_name='User',
+                object_id=str(request.user.pk),
+                description=f'{request.user} tizimdan chiqdi.',
+            )
+        response = super().post(request, *args, **kwargs)
+        messages.success(request, 'Tizimdan chiqildi.')
+        return response
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TelegramBotWebhookView(View):
