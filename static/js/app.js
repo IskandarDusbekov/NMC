@@ -183,6 +183,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-toggle-panel]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const panel = document.getElementById(button.dataset.togglePanel);
+            if (!panel) return;
+            const willOpen = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden');
+            button.textContent = willOpen
+                ? (button.dataset.openLabel || 'Yashirish')
+                : (button.dataset.closedLabel || 'Ochish');
+        });
+    });
+
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closeObjectModal();

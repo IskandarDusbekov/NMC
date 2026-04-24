@@ -79,6 +79,20 @@ table {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
+.finance-category-totals {
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+.finance-category-totals::-webkit-scrollbar {
+    height: 8px;
+}
+
+.finance-category-totals::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.45);
+    border-radius: 999px;
+}
+
 .stat-card {
     transition: all 0.2s ease;
 }
@@ -460,6 +474,34 @@ main {
     #object-info-modal h3 {
         font-size: 1.1rem !important;
         line-height: 1.25 !important;
+    }
+
+    .finance-ledger-section {
+        padding: 0.85rem 0.4rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .finance-ledger-section > div:not(.overflow-x-auto) {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+
+    .finance-category-totals {
+        margin-left: -0.15rem !important;
+        margin-right: -0.15rem !important;
+        padding-left: 0.15rem !important;
+        padding-right: 0.15rem !important;
+    }
+
+    .finance-category-totals > div {
+        min-width: 9.8rem !important;
+        border-radius: 1rem !important;
+        padding: 0.8rem !important;
+    }
+
+    .finance-category-totals > div p:last-child {
+        font-size: 0.9rem !important;
+        line-height: 1.2 !important;
     }
 
     .dashboard-stats {
