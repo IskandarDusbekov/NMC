@@ -52,6 +52,11 @@
             <span class="text-xs text-emerald-500">live</span>
         </div>
         <p class="text-2xl font-bold text-slate-800">{% if ui_exchange_rate %}{{ ui_exchange_rate.usd_to_uzs|money }}{% else %}N/A{% endif %}</p>
-        <p class="mt-1 text-xs text-slate-500">{% if ui_exchange_rate %}Yangilangan: {{ ui_exchange_rate.effective_at }}{% else %}Kurs kiritilmagan{% endif %}</p>
+        {% if ui_exchange_rate %}
+            <p class="mt-1 text-xs text-slate-500">Yangilab olindi: {{ ui_exchange_rate.created_at|date:"d.m.Y H:i" }}</p>
+            <p class="mt-1 text-xs text-slate-400">CBU sanasi: {{ ui_exchange_rate.effective_at|date:"d.m.Y" }}</p>
+        {% else %}
+            <p class="mt-1 text-xs text-slate-500">Kurs kiritilmagan</p>
+        {% endif %}
     </div>
 </aside>

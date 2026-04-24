@@ -446,7 +446,8 @@ class TelegramBotFlowService:
             text=(
                 'Bugungi USD kursi:\n'
                 f'1 USD = {cls._money(rate.usd_to_uzs)} UZS\n'
-                f'Yangilangan vaqt: {cls._format_datetime(rate.effective_at)}'
+                f'Yangilab olindi: {cls._format_datetime(rate.created_at)}\n'
+                f'CBU sanasi: {cls._format_datetime(rate.effective_at)}'
             ),
             reply_markup=cls._main_keyboard(user),
         )

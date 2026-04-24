@@ -1,4 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('form[method="post"], form[method="POST"]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.submitting === 'true') {
+                event.preventDefault();
+                return;
+            }
+
+            form.dataset.submitting = 'true';
+
+            const submitter = event.submitter;
+            if (submitter && submitter.name) {
+                const marker = document.createElement('input');
+                marker.type = 'hidden';
+                marker.name = submitter.name;
+                marker.value = submitter.value;
+                marker.dataset.generatedSubmitter = 'true';
+                form.appendChild(marker);
+            }
+
+            const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+            submitButtons.forEach((button) => {
+                if (!button.dataset.originalLabel) {
+                    button.dataset.originalLabel = button.tagName === 'INPUT' ? button.value : button.textContent.trim();
+                }
+            });
+
+            window.setTimeout(() => {
+                submitButtons.forEach((button) => {
+                    button.disabled = true;
+                    button.classList.add('opacity-60', 'cursor-not-allowed');
+                    if (button === submitter) {
+                        if (button.tagName === 'INPUT') {
+                            button.value = 'Saqlanmoqda...';
+                        } else {
+                            button.textContent = 'Saqlanmoqda...';
+                        }
+                    }
+                });
+            }, 0);
+        });
+    });
+
     const sidebar = document.getElementById('app-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     const openButtons = document.querySelectorAll('[data-sidebar-open]');

@@ -28,7 +28,8 @@
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <p class="font-semibold text-slate-900">1 USD = {{ item.usd_to_uzs|money }} UZS</p>
-                                <p class="text-sm text-slate-500">{{ item.effective_at }}</p>
+                                <p class="text-sm text-slate-500">Yangilab olindi: {{ item.created_at|date:"d.m.Y H:i" }}</p>
+                                <p class="text-xs text-slate-400">CBU sanasi: {{ item.effective_at|date:"d.m.Y" }}</p>
                             </div>
                             <span class="rounded-full px-3 py-1 text-xs font-semibold {% if item.is_active %}bg-emerald-50 text-emerald-600{% else %}bg-slate-100 text-slate-500{% endif %}">{{ item.is_active|yesno:"Active,Archived" }}</span>
                         </div>
