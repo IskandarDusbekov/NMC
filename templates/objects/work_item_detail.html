@@ -2,7 +2,7 @@
 {% load core_tags %}
 
 {% block content %}
-    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section class="mobile-page-intro detail-page-intro rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <h2 class="text-3xl font-bold text-slate-800">{{ work_item.title }}</h2>
@@ -16,7 +16,7 @@
                     <p class="mt-4 text-sm text-slate-600">{{ work_item.description }}</p>
                 {% endif %}
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="work-item-header-actions flex flex-wrap gap-2">
                 <a href="{% url 'finance:transaction-list' %}?object={{ work_item.object_id }}&work_item={{ work_item.pk }}&transaction_type=EXPENSE" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Umumiy tarix</a>
                 {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
                     <form method="post" action="{% url 'objects:work-item-status' work_item.pk %}">
@@ -43,7 +43,7 @@
         {% include "includes/stats_card.html" with title="Qolgan summa" value=remaining_amount|money|add:" "|add:work_item.currency %}
     </section>
 
-    <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section class="detail-table-section mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="text-lg font-bold text-slate-800">Bog`langan to`lovlar</h3>
         <div class="mt-5 space-y-3">
             {% for item in payment_transactions %}
@@ -55,7 +55,7 @@
                             <p class="mt-2 font-bold text-rose-600">{{ item.amount|money }} {{ item.currency }}</p>
                         </div>
                         {% if item.receipt_file %}
-                            <a href="{% url 'finance:transaction-receipt' item.pk %}" target="_blank" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Rasmni ko`rish</a>
+                            <a href="{% url 'finance:transaction-receipt' item.pk %}" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Chekni ko`rish</a>
                         {% endif %}
                     </div>
                 </div>

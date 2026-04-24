@@ -18,7 +18,7 @@
                 {% endif %}
             </div>
             {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
-                <div class="flex flex-wrap gap-2">
+                <div class="object-header-actions flex flex-wrap gap-2">
                     <a href="{% url 'objects:update' construction_object.pk %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Edit</a>
                     <a href="{% url 'objects:work-item-create' %}?object={{ construction_object.pk }}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turi qo`shish</a>
                     <form method="post" action="{% url 'objects:status' construction_object.pk %}">
@@ -134,17 +134,21 @@
             <a href="{% url 'objects:detail' construction_object.pk %}?tab=expenses" class="rounded-2xl px-4 py-3 text-sm font-semibold {% if active_tab == 'expenses' %}bg-slate-950 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">Xarajatlar</a>
         </div>
         {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' or request.user.role == 'MANAGER' %}
+            <div class="object-detail-quick-actions hidden gap-2 lg:flex">
+                <button type="button" data-modal-open="object-expense-modal" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">Xarajat qo`shish</button>
+                <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turiga to`lov</button>
+            </div>
             {% if active_tab == 'expenses' %}
-                <button type="button" data-modal-open="object-expense-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Xarajat qo`shish</button>
+                <button type="button" data-modal-open="object-expense-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white lg:hidden">Xarajat qo`shish</button>
             {% else %}
-                <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turiga to`lov qo`shish</button>
+                <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white lg:hidden">Ish turiga to`lov</button>
             {% endif %}
         {% endif %}
     </section>
 
     {% if active_tab == 'expenses' %}
 
-        <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section class="detail-table-section mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajatlar jadvali</p>
@@ -194,7 +198,7 @@
         </section>
 
     {% else %}
-        <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section class="detail-table-section mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ish turlari</p>
@@ -267,14 +271,14 @@
 
     {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' or request.user.role == 'MANAGER' %}
     <div id="work-item-payment-modal" class="{% if work_item_payment_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
-        <div class="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl">
-            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+        <div class="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="sticky top-0 z-10 -mx-6 -mt-6 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">To`lov</p>
                     <h3 class="mt-2 text-xl font-extrabold text-slate-900">Ish turiga to`lov qo`shish</h3>
                     <p class="mt-2 text-sm text-slate-500">Ishchi tanlansa, faqat shu ishchiga bog`langan ish turlari qoladi.</p>
                 </div>
-                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
+                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600" aria-label="Yopish">&times;</button>
             </div>
             <form method="post" enctype="multipart/form-data" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
                 {% csrf_token %}
@@ -297,13 +301,13 @@
 
     <div id="object-expense-modal" class="{% if object_expense_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
         <div class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+            <div class="sticky top-0 z-10 -mx-6 -mt-6 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Xarajat</p>
                     <h3 class="mt-2 text-xl font-extrabold text-slate-900">Xarajat qo`shish</h3>
                     <p class="mt-2 text-sm text-slate-500">Material, elektr energiya, yoqilg`i, oziq-ovqat, texnika yoki boshqa xarajat turi.</p>
                 </div>
-                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
+                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600" aria-label="Yopish">&times;</button>
             </div>
             <form method="post" enctype="multipart/form-data" class="mt-5 grid gap-4 md:grid-cols-2">
                 {% csrf_token %}

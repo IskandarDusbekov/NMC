@@ -211,7 +211,7 @@
                                 {% if item.source == 'TELEGRAM' %}
                                     <span class="mt-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">Telegram</span>
                                 {% elif item.receipt_file %}
-                                    <a href="{% url 'finance:transaction-receipt' item.pk %}" target="_blank" class="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Chek</a>
+                                    <a href="{% url 'finance:transaction-receipt' item.pk %}" class="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Chek</a>
                                 {% endif %}
                             </td>
                             <td class="px-4 py-4 text-slate-500">
