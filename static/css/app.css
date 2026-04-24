@@ -393,7 +393,7 @@ main {
     .work-item-header-actions {
         display: grid !important;
         width: 100%;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.35rem !important;
     }
 
@@ -411,14 +411,72 @@ main {
     .work-item-header-actions a,
     .work-item-header-actions button {
         display: inline-flex !important;
-        min-height: 2.85rem;
+        min-height: 3rem;
         align-items: center;
         justify-content: center;
-        padding: 0.68rem 0.4rem !important;
+        padding: 0.78rem 0.55rem !important;
         border-radius: 0.95rem !important;
-        font-size: 0.7rem !important;
-        line-height: 1.15 !important;
+        font-size: 0.74rem !important;
+        line-height: 1.2 !important;
         text-align: center;
+    }
+
+    .object-header-actions {
+        margin-top: 0.2rem !important;
+        align-items: stretch !important;
+    }
+
+    .object-header-actions a:nth-child(2) {
+        order: -1;
+        grid-column: 1 / -1;
+    }
+
+    .object-header-actions a:first-child,
+    .object-header-actions form button {
+        background: #fff !important;
+        color: #0f172a !important;
+        border: 1px solid #dbe3ee !important;
+    }
+
+    .object-header-actions a:nth-child(2) {
+        background: #2563eb !important;
+        color: #fff !important;
+        border: 1px solid #2563eb !important;
+    }
+
+    .object-header-actions form {
+        display: flex !important;
+    }
+
+    .object-header-actions form button {
+        min-height: 3rem !important;
+    }
+
+    .object-tabs-bar {
+        background: #fff !important;
+        padding: 0.55rem !important;
+    }
+
+    .object-tabs-bar > div {
+        margin-bottom: 0.1rem !important;
+        gap: 0.45rem !important;
+    }
+
+    .object-tabs-bar > div + button {
+        margin-top: 0.1rem !important;
+        min-height: 3rem !important;
+        padding: 0.78rem 0.7rem !important;
+        border-radius: 0.95rem !important;
+        font-size: 0.74rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .object-tabs-bar > div > a {
+        min-height: 3rem !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0.78rem 0.55rem !important;
     }
 
     .detail-table-section {

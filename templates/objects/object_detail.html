@@ -19,16 +19,16 @@
             </div>
             {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
                 <div class="object-header-actions flex flex-wrap gap-2">
-                    <a href="{% url 'objects:update' construction_object.pk %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Edit</a>
-                    <a href="{% url 'objects:work-item-create' %}?object={{ construction_object.pk }}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turi qo`shish</a>
+                    <a href="{% url 'objects:update' construction_object.pk %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Tahrirlash</a>
+                    <a href="{% url 'objects:work-item-create' %}?object={{ construction_object.pk }}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Yangi ish turi</a>
                     <form method="post" action="{% url 'objects:status' construction_object.pk %}">
                         {% csrf_token %}
                         {% if construction_object.status == 'finished' %}
                             <input type="hidden" name="action" value="reactivate">
-                            <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">Qayta ishga tushirish</button>
+                            <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">Qayta ochish</button>
                         {% else %}
                             <input type="hidden" name="action" value="finish">
-                            <button type="submit" class="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">Tugatish / Arxivlash</button>
+                            <button type="submit" class="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">Yakunlash</button>
                         {% endif %}
                     </form>
                 </div>
@@ -139,9 +139,9 @@
                 <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Ish turiga to`lov</button>
             </div>
             {% if active_tab == 'expenses' %}
-                <button type="button" data-modal-open="object-expense-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white lg:hidden">Xarajat qo`shish</button>
+                <button type="button" data-modal-open="object-expense-modal" class="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white lg:hidden">Shu obyektga xarajat qo`shish</button>
             {% else %}
-                <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white lg:hidden">Ish turiga to`lov</button>
+                <button type="button" data-modal-open="work-item-payment-modal" class="rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white lg:hidden">Shu obyekt ish turiga to`lov</button>
             {% endif %}
         {% endif %}
     </section>
