@@ -135,6 +135,10 @@ main {
     box-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.45);
 }
 
+.mobile-nav-item {
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
 @media (min-width: 1024px) {
     html {
         font-size: 15px;
@@ -159,21 +163,32 @@ main {
     }
 
     .app-header > div {
-        min-height: 3.5rem;
+        min-height: 3.4rem;
+        gap: 0.7rem !important;
+        padding-top: 0.55rem !important;
+        padding-bottom: 0.55rem !important;
     }
 
-    .app-header-breadcrumbs,
-    .app-header-subtitle {
-        display: none;
+    .app-header-breadcrumbs {
+        display: flex;
+        gap: 0.25rem !important;
+        margin-bottom: 0.15rem !important;
+        font-size: 0.55rem !important;
+        letter-spacing: 0.1em !important;
+        opacity: 0.72;
     }
 
     .app-header-title {
-        max-width: calc(100vw - 5rem);
+        max-width: calc(100vw - 4.9rem);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: 1.05rem;
-        line-height: 1.2;
+        font-size: 1.02rem;
+        line-height: 1.15;
+    }
+
+    .app-header-subtitle {
+        display: none !important;
     }
 
     .dashboard-hero,
@@ -295,10 +310,10 @@ main {
     .object-summary-cards,
     .salary-summary-cards {
         display: flex !important;
-        gap: 0.55rem !important;
+        gap: 0.7rem !important;
         overflow-x: auto !important;
-        margin: 0.2rem -0.35rem 0 !important;
-        padding: 0 0.35rem 0.35rem !important;
+        margin: 0.2rem -0.25rem 0 !important;
+        padding: 0 0.25rem 0.45rem !important;
         scroll-snap-type: x mandatory;
         scrollbar-width: thin;
         -webkit-overflow-scrolling: touch;
@@ -307,9 +322,13 @@ main {
     .finance-summary-cards > *,
     .object-summary-cards > *,
     .salary-summary-cards > * {
-        min-width: min(10.5rem, 46vw) !important;
+        min-width: min(10.9rem, 48vw) !important;
+        min-height: 8.4rem !important;
         scroll-snap-align: start;
-        padding: 0.8rem !important;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0.9rem !important;
         border-radius: 1rem !important;
     }
 
@@ -317,7 +336,9 @@ main {
     .object-summary-cards p,
     .salary-summary-cards p {
         font-size: 0.72rem !important;
-        line-height: 1.2 !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        word-break: break-word;
     }
 
     .finance-summary-cards .text-2xl,
@@ -331,62 +352,71 @@ main {
         margin-top: 0.45rem !important;
     }
 
+    .object-summary-cards::after {
+        content: '';
+        min-width: 0.4rem;
+        align-self: stretch;
+    }
+
     .finance-quick-actions {
         display: none !important;
     }
 
+    .object-detail-header {
+        padding: 0.5rem 0.35rem 0.2rem !important;
+    }
+
     .object-detail-header .mt-1 {
-        gap: 0.35rem !important;
-        margin-top: 0 !important;
+        gap: 0.45rem !important;
+        margin-top: 0.05rem !important;
     }
 
     .object-detail-header h2 {
         display: block !important;
-        max-width: calc(100vw - 1rem);
+        max-width: calc(100vw - 7rem);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: 1.05rem !important;
+        font-size: 1.08rem !important;
         line-height: 1.25 !important;
     }
 
-    .object-detail-header p,
     .object-detail-header .text-xs:first-child {
         display: none !important;
     }
 
     .object-detail-header span {
-        padding: 0.25rem 0.55rem !important;
-        font-size: 0.68rem !important;
+        padding: 0.26rem 0.6rem !important;
+        font-size: 0.67rem !important;
+        line-height: 1.15 !important;
+    }
+
+    .object-detail-header > div > div:first-child > p {
+        display: block !important;
+        margin-top: 0.3rem !important;
+        font-size: 0.72rem !important;
+        line-height: 1.3 !important;
     }
 
     .object-tabs-bar {
-        margin-left: -0.1rem !important;
-        margin-right: -0.1rem !important;
-        padding: 0.45rem !important;
+        margin-left: -0.05rem !important;
+        margin-right: -0.05rem !important;
+        padding: 0.6rem !important;
         border-radius: 1rem !important;
-        gap: 0.45rem !important;
+        gap: 0.5rem !important;
+        background: #fff !important;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05) !important;
     }
 
     .object-tabs-bar > div {
         display: grid !important;
         width: 100%;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.35rem !important;
-    }
-
-    .object-tabs-bar a,
-    .object-tabs-bar button {
-        width: 100%;
-        border-radius: 0.85rem !important;
-        padding: 0.62rem 0.55rem !important;
-        text-align: center;
-        font-size: 0.75rem !important;
-    }
-
-    .object-tabs-bar > div > a,
-    .object-tabs-bar > div > button {
-        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+        gap: 0.4rem !important;
+        margin-bottom: 0.1rem !important;
+        padding: 0.2rem !important;
+        border-radius: 1rem !important;
+        background: #f8fafc !important;
     }
 
     .object-header-actions,
@@ -406,19 +436,27 @@ main {
         width: 100%;
     }
 
+    .object-tabs-bar a,
+    .object-tabs-bar button,
     .object-header-actions a,
     .object-header-actions button,
     .work-item-header-actions a,
     .work-item-header-actions button {
         display: inline-flex !important;
-        min-height: 3rem;
+        width: 100%;
+        min-height: 2.75rem;
         align-items: center;
         justify-content: center;
-        padding: 0.78rem 0.55rem !important;
-        border-radius: 0.95rem !important;
-        font-size: 0.74rem !important;
-        line-height: 1.2 !important;
+        padding: 0.72rem 0.55rem !important;
+        border-radius: 0.9rem !important;
         text-align: center;
+        font-size: 0.72rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .object-tabs-bar > div > a,
+    .object-tabs-bar > div > button {
+        box-shadow: none !important;
     }
 
     .object-header-actions {
@@ -449,41 +487,29 @@ main {
     }
 
     .object-header-actions form button {
-        min-height: 3rem !important;
+        min-height: 2.75rem !important;
     }
 
-    .object-tabs-bar {
-        background: #fff !important;
-        padding: 0.55rem !important;
-    }
-
-    .object-tabs-bar > div {
-        margin-bottom: 0.1rem !important;
+    .object-mobile-actions {
+        margin-top: 0.05rem !important;
         gap: 0.45rem !important;
     }
 
-    .object-tabs-bar > div + button {
+    .object-mobile-actions > * {
         margin-top: 0.1rem !important;
-        min-height: 3rem !important;
-        padding: 0.78rem 0.7rem !important;
+        min-height: 2.75rem !important;
+        padding: 0.72rem 0.6rem !important;
         border-radius: 0.95rem !important;
-        font-size: 0.74rem !important;
+        font-size: 0.72rem !important;
         line-height: 1.2 !important;
     }
 
-    .object-tabs-bar > div > a {
-        min-height: 3rem !important;
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        padding: 0.78rem 0.55rem !important;
-    }
-
     .detail-table-section {
-        margin-left: -0.1rem !important;
-        margin-right: -0.1rem !important;
+        margin-left: -0.05rem !important;
+        margin-right: -0.05rem !important;
         border-radius: 1rem !important;
-        padding: 0.8rem 0.35rem !important;
+        padding: 0.75rem 0.4rem !important;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04) !important;
     }
 
     .detail-table-section > div:first-child {
@@ -585,39 +611,44 @@ main {
     }
 
     .overflow-x-auto {
-        margin-left: -0.35rem !important;
-        margin-right: -0.35rem !important;
+        margin-left: -0.15rem !important;
+        margin-right: -0.15rem !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
-        border-radius: 0 !important;
+        border-radius: 1rem !important;
         scrollbar-width: thin;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        background: #fff;
     }
 
     .overflow-x-auto > table {
         min-width: 600px;
-        border-left: 0 !important;
-        border-right: 0 !important;
-        border-radius: 0 !important;
+        border-left: 1px solid #e2e8f0 !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-radius: 1rem !important;
     }
 
     .overflow-x-auto > table th {
-        padding: 0.42rem 0.45rem !important;
-        font-size: 0.62rem !important;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 0.52rem 0.5rem !important;
+        font-size: 0.68rem !important;
         line-height: 1.15;
-        letter-spacing: 0;
+        letter-spacing: 0.02em;
     }
 
     .overflow-x-auto > table td {
-        padding: 0.43rem 0.45rem !important;
+        padding: 0.5rem 0.5rem !important;
         font-size: 0.72rem !important;
-        line-height: 1.2;
+        line-height: 1.25;
     }
 
     .overflow-x-auto > table th,
     .overflow-x-auto > table td {
-        border-color: #e2e8f0;
+        border-color: #e8eef5;
     }
 
     .overflow-x-auto > table td .rounded-xl,
@@ -635,7 +666,7 @@ main {
     section:has(.overflow-x-auto) {
         border-left: 0 !important;
         border-right: 0 !important;
-        border-radius: 0.85rem !important;
+        border-radius: 1rem !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
         overflow: visible !important;
@@ -670,5 +701,34 @@ main {
     .dashboard-stat-card .sm\:text-2xl {
         font-size: 1rem;
         line-height: 1.35;
+    }
+
+    nav.fixed.inset-x-3.bottom-3 {
+        left: 0.55rem !important;
+        right: 0.55rem !important;
+        bottom: 0.5rem !important;
+        border-radius: 1.1rem !important;
+        padding: 0.35rem !important;
+    }
+
+    nav.fixed.inset-x-3.bottom-3 > div {
+        gap: 0.2rem !important;
+    }
+
+    nav.fixed.inset-x-3.bottom-3 a,
+    nav.fixed.inset-x-3.bottom-3 button {
+        min-height: 3.1rem !important;
+        border-radius: 0.95rem !important;
+        padding: 0.35rem 0.2rem !important;
+        font-size: 0.6rem !important;
+    }
+
+    nav.fixed.inset-x-3.bottom-3 svg {
+        height: 1.1rem !important;
+        width: 1.1rem !important;
+    }
+
+    main {
+        padding-bottom: 5.9rem !important;
     }
 }
