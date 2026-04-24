@@ -491,6 +491,7 @@ main {
     }
 
     .object-mobile-actions {
+        display: grid !important;
         margin-top: 0.05rem !important;
         gap: 0.45rem !important;
     }
@@ -502,6 +503,10 @@ main {
         border-radius: 0.95rem !important;
         font-size: 0.72rem !important;
         line-height: 1.2 !important;
+    }
+
+    .object-detail-quick-actions {
+        display: none !important;
     }
 
     .detail-table-section {
