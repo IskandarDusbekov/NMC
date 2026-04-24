@@ -180,6 +180,34 @@ def daily_expense_series(days=7, user=None):
     return rows
 
 
+def object_spending_summary(limit=6, user=None):
+    queryset = transaction_list({'transaction_type': TransactionTypeChoices.EXPENSE}, user=user).filter(object__isnull=False)
+    rows = (
+        queryset.values('object_id', 'object__name', 'currency')
+        .annotate(total=Coalesce(Sum('amount'), ZERO))
+        .order_by('-total')
+    )
+
+    grouped = defaultdict(lambda: {'pk': None, 'label': '', 'UZS': ZERO, 'USD': ZERO})
+    for row in rows:
+        item = grouped[row['object_id']]
+        item['pk'] = row['object_id']
+        item['label'] = row['object__name'] or f"Obyekt #{row['object_id']}"
+        item[row['currency']] = row['total']
+
+    summary = list(grouped.values())
+    summary.sort(key=lambda item: (item['UZS'] + item['USD'], item['UZS'], item['USD']), reverse=True)
+    summary = summary[:limit]
+
+    max_uzs = max([item['UZS'] for item in summary] or [ZERO])
+    max_usd = max([item['USD'] for item in summary] or [ZERO])
+    for index, item in enumerate(summary, start=1):
+        item['rank'] = index
+        item['UZS_percent'] = _percent(item['UZS'], max_uzs)
+        item['USD_percent'] = _percent(item['USD'], max_usd)
+    return summary
+
+
 def monthly_expense_series(months=6, user=None):
     today = _today()
     start_month = today.replace(day=1)

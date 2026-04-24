@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const dashboardCurrencyButtons = document.querySelectorAll('[data-dashboard-currency]');
-    const dashboardCurrencyBars = document.querySelectorAll('[data-currency-bar]');
+    const dashboardCurrencyTargets = document.querySelectorAll('[data-dashboard-currency-target]');
 
     function setDashboardCurrency(currency) {
         dashboardCurrencyButtons.forEach((button) => {
@@ -441,12 +441,16 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.toggle('text-white', isActive);
             button.classList.toggle('text-slate-500', !isActive);
         });
-        dashboardCurrencyBars.forEach((bar) => {
-            bar.classList.toggle('hidden', bar.dataset.currencyBar !== currency);
+        dashboardCurrencyTargets.forEach((target) => {
+            target.classList.toggle('hidden', target.dataset.dashboardCurrencyTarget !== currency);
         });
     }
 
     dashboardCurrencyButtons.forEach((button) => {
         button.addEventListener('click', () => setDashboardCurrency(button.dataset.dashboardCurrency));
     });
+
+    if (dashboardCurrencyButtons.length) {
+        setDashboardCurrency('UZS');
+    }
 });
