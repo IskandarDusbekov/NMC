@@ -214,7 +214,26 @@
                                     <a href="{% url 'finance:transaction-receipt' item.pk %}" target="_blank" class="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Chek</a>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-4 text-slate-500">{{ item.description|default:"-" }}</td>
+                            <td class="px-4 py-4 text-slate-500">
+                                {% if item.description %}
+                                    <div class="max-w-[220px]">
+                                        <span>{{ item.description|truncatechars:18 }}</span>
+                                        {% if item.description|length > 18 %}
+                                            <button
+                                                type="button"
+                                                data-description-modal-open
+                                                data-description-title="Transaction #{{ item.pk }}"
+                                                data-description-text="{{ item.description|escape }}"
+                                                class="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600"
+                                            >
+                                                To`liq ko`rish
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                             {% if can_manage_finance %}
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap gap-2">
@@ -234,6 +253,21 @@
         </div>
         {% include "includes/pagination.html" %}
     </section>
+
+    <div id="description-preview-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
+        <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Izoh</p>
+                    <h3 id="description-preview-title" class="mt-2 text-lg font-extrabold text-slate-900">Transaction</h3>
+                </div>
+                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
+            </div>
+            <div class="mt-4 rounded-2xl bg-slate-50 p-4">
+                <p id="description-preview-text" class="whitespace-pre-line text-sm leading-6 text-slate-700">-</p>
+            </div>
+        </div>
+    </div>
 
     {% if can_manage_finance %}
         <div id="company-quick-action-modal" class="{% if quick_action_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>

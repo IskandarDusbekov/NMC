@@ -137,6 +137,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const descriptionModal = document.getElementById('description-preview-modal');
+    const descriptionModalTitle = document.getElementById('description-preview-title');
+    const descriptionModalText = document.getElementById('description-preview-text');
+
+    document.querySelectorAll('[data-description-modal-open]').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!descriptionModal || !descriptionModalTitle || !descriptionModalText) return;
+            descriptionModalTitle.textContent = button.dataset.descriptionTitle || 'Izoh';
+            descriptionModalText.textContent = button.dataset.descriptionText || '-';
+            descriptionModal.classList.remove('hidden');
+            descriptionModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        });
+    });
+
     function openGenericModal(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
