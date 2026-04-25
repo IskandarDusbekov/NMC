@@ -32,12 +32,36 @@ class ObjectAnalyticsService:
             type=TransactionTypeChoices.EXPENSE,
             currency=CurrencyChoices.USD,
         ).aggregate(total=Coalesce(Sum('amount'), ZERO))['total']
+        work_item_paid_uzs = transactions.filter(
+            type=TransactionTypeChoices.EXPENSE,
+            currency=CurrencyChoices.UZS,
+            work_item__isnull=False,
+        ).aggregate(total=Coalesce(Sum('amount'), ZERO))['total']
+        work_item_paid_usd = transactions.filter(
+            type=TransactionTypeChoices.EXPENSE,
+            currency=CurrencyChoices.USD,
+            work_item__isnull=False,
+        ).aggregate(total=Coalesce(Sum('amount'), ZERO))['total']
+        other_expense_uzs = transactions.filter(
+            type=TransactionTypeChoices.EXPENSE,
+            currency=CurrencyChoices.UZS,
+            work_item__isnull=True,
+        ).aggregate(total=Coalesce(Sum('amount'), ZERO))['total']
+        other_expense_usd = transactions.filter(
+            type=TransactionTypeChoices.EXPENSE,
+            currency=CurrencyChoices.USD,
+            work_item__isnull=True,
+        ).aggregate(total=Coalesce(Sum('amount'), ZERO))['total']
         total_work_items = work_items.count()
         completed_work_items = work_items.filter(status='completed').count()
         progress = (completed_work_items / total_work_items * 100) if total_work_items else 0
         return {
             'total_expense_uzs': total_expense_uzs,
             'total_expense_usd': total_expense_usd,
+            'work_item_paid_uzs': work_item_paid_uzs,
+            'work_item_paid_usd': work_item_paid_usd,
+            'other_expense_uzs': other_expense_uzs,
+            'other_expense_usd': other_expense_usd,
             'total_work_items': total_work_items,
             'completed_work_items': completed_work_items,
             'total_paid_uzs': total_expense_uzs,

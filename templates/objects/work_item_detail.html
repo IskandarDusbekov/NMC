@@ -5,6 +5,10 @@
     <section class="mobile-page-intro detail-page-intro rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
+                <a href="{% url 'objects:detail' work_item.object_id %}?tab=work-items" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">
+                    <span aria-hidden="true">&larr;</span>
+                    Ortga
+                </a>
                 <h2 class="text-3xl font-bold text-slate-800">{{ work_item.title }}</h2>
                 <p class="mt-2 text-sm text-slate-500">{{ work_item.object.name }} &middot; {{ work_item.assigned_worker.full_name|default:work_item.assigned_worker_group|default:"Ishchi tanlanmagan" }}</p>
                 <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
@@ -54,9 +58,15 @@
                             <p class="text-sm text-slate-500">{{ item.description|default:"Izoh yo`q" }}</p>
                             <p class="mt-2 font-bold text-rose-600">{{ item.amount|money }} {{ item.currency }}</p>
                         </div>
-                        {% if item.receipt_file %}
-                            <a href="{% url 'finance:transaction-receipt' item.pk %}" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Chekni ko`rish</a>
-                        {% endif %}
+                        <div class="flex flex-wrap gap-2">
+                            {% if item.receipt_file %}
+                                <a href="{% url 'finance:transaction-receipt' item.pk %}" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Chekni ko`rish</a>
+                            {% endif %}
+                            {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' or item.created_by_id == request.user.id %}
+                                <a href="{% url 'finance:transaction-update' item.pk %}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700">Tahrirlash</a>
+                                <a href="{% url 'finance:transaction-delete' item.pk %}" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700">O`chirish</a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% empty %}

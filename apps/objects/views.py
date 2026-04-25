@@ -16,7 +16,7 @@ from apps.logs.services import AuditLogService
 from .forms import ConstructionObjectCreateForm, ConstructionObjectUpdateForm, ObjectExpenseForm, ObjectWorkItemPaymentForm, WorkItemForm
 from .models import ConstructionObject, WorkItem
 from .selectors import construction_object_queryset, work_item_queryset
-from .services import ObjectAnalyticsService, ObjectFinanceService
+from .services import ZERO, ObjectAnalyticsService, ObjectFinanceService
 
 
 def _apply_validation_error(form, error: ValidationError):
@@ -360,8 +360,13 @@ class WorkItemDetailView(PageMetadataMixin, RoleRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         paid_for_agreed_currency = self.object.paid_amount_uzs if self.object.currency == 'UZS' else self.object.paid_amount_usd
-        context['remaining_amount'] = self.object.agreed_amount - paid_for_agreed_currency
+        context['remaining_amount'] = ZERO if self.object.agreed_amount == ZERO else self.object.agreed_amount - paid_for_agreed_currency
         context['payment_transactions'] = self.object.transactions.active().select_related('category', 'worker')[:12]
+        context['breadcrumbs'] = [
+            {'label': 'Dashboard', 'url': '/dashboard/'},
+            {'label': 'Ish turlari', 'url': reverse('objects:work-item-list')},
+            {'label': self.object.title, 'url': ''},
+        ]
         return context
 
 

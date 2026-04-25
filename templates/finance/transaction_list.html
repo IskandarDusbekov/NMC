@@ -102,13 +102,13 @@
                 data-toggle-panel="finance-filter-panel"
                 data-open-label="Filterlarni yashirish"
                 data-closed-label="Filterlarni ochish"
-                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700"
+                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 lg:hidden"
             >
                 {% if request.GET %}Filterlarni yashirish{% else %}Filterlarni ochish{% endif %}
             </button>
         </div>
 
-        <div id="finance-filter-panel" class="{% if request.GET %}mt-5{% else %}mt-5 hidden{% endif %}">
+        <div id="finance-filter-panel" class="{% if request.GET %}mt-5{% else %}mt-5 hidden lg:block{% endif %}">
             <form method="get" class="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
                 {% include "includes/form_field.html" with field=filter_form.date_from %}
                 {% include "includes/form_field.html" with field=filter_form.date_to %}
