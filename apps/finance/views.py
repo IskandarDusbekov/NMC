@@ -1,3 +1,4 @@
+import json
 import logging
 import mimetypes
 from pathlib import Path
@@ -425,10 +426,30 @@ class ManagerExpenseCreateView(PageMetadataMixin, RoleRequiredMixin, View):
     page_subtitle = 'Xarajat manager walletdan ayriladi va ferma balansiga qayta ta`sir qilmaydi'
 
     def _build_context(self, request, form):
+        from .models import ExpenseItem, TransactionCategory as TxCat
+        categories = TxCat.objects.filter(is_active=True, type='EXPENSE').order_by('name')
+        items = ExpenseItem.objects.filter(is_active=True).select_related('category').order_by('name')
+        search_data = []
+        for cat in categories:
+            search_data.append({
+                'type': 'category',
+                'label': cat.name,
+                'detail': '',
+                'category_id': cat.pk,
+            })
+        for item in items:
+            search_data.append({
+                'type': 'item',
+                'label': item.name,
+                'detail': item.category.name,
+                'category_id': item.category_id,
+            })
+
         context = {
             'form': form,
             'page_title': self.page_title,
             'page_subtitle': self.page_subtitle,
+            'expense_search_json': json.dumps(search_data, ensure_ascii=False),
             'breadcrumbs': [
                 {'label': 'Dashboard', 'url': '/dashboard/'},
                 {'label': 'Moliya', 'url': reverse_lazy('finance:transaction-list')},

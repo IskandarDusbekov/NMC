@@ -16,6 +16,38 @@
         </div>
     </div>
 
+    <!-- ══ TEZKOR QIDIRUV ══ -->
+    <div class="relative mb-4" id="expense-search-wrapper">
+        <div class="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+            <p class="mb-2 text-xs font-bold uppercase tracking-widest text-blue-500">Tezkor to`ldirish</p>
+            <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
+                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <input type="text" id="expense-search-input" autocomplete="off"
+                       placeholder="Qidiring: qum, tsement, transportchi, oziq-ovqat..."
+                       class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-slate-300">
+            </div>
+            <!-- Tanlangan -->
+            <div id="expense-search-selected" class="mt-2 hidden">
+                <div class="flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white">
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span id="expense-search-selected-label"></span>
+                    <button type="button" id="expense-search-clear" class="ml-auto text-blue-200 hover:text-white">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Dropdown -->
+        <div id="expense-search-dropdown"
+             class="absolute z-50 mt-1 hidden w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+            <div id="expense-search-results" class="max-h-72 overflow-y-auto divide-y divide-slate-50"></div>
+        </div>
+    </div>
+
     <form method="post" class="space-y-4" id="expense-form">
         {% csrf_token %}
 
@@ -83,10 +115,132 @@
 </section>
 
 <script>
-document.getElementById('expense-form').addEventListener('submit', function() {
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Saqlanmoqda...';
-});
+(function () {
+    /* ── Ma'lumotlar ── */
+    var SEARCH_DATA = {{ expense_search_json|safe }};
+
+    /* ── Elementlar ── */
+    var wrapper     = document.getElementById('expense-search-wrapper');
+    var input       = document.getElementById('expense-search-input');
+    var dropdown    = document.getElementById('expense-search-dropdown');
+    var results     = document.getElementById('expense-search-results');
+    var selectedBox = document.getElementById('expense-search-selected');
+    var selectedLbl = document.getElementById('expense-search-selected-label');
+    var clearBtn    = document.getElementById('expense-search-clear');
+    var catSelect   = document.getElementById('id_category');
+    var descInput   = document.getElementById('id_description');
+
+    /* ── Qidirish ── */
+    function search(q) {
+        q = (q || '').trim().toLowerCase();
+        if (!q) { hideDropdown(); return; }
+
+        var matches = SEARCH_DATA.filter(function (d) {
+            return d.label.toLowerCase().indexOf(q) !== -1 ||
+                   d.detail.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 12);
+
+        if (!matches.length) {
+            results.innerHTML =
+                '<div class="flex items-center gap-2 px-4 py-3 text-sm text-slate-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' +
+                '"' + escHtml(q) + '" topilmadi</div>';
+        } else {
+            results.innerHTML = matches.map(function (d) {
+                var isItem = d.type === 'item';
+                var icon   = isItem
+                    ? '<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-base">📦</div>'
+                    : '<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-base">🗂</div>';
+                var badge  = isItem
+                    ? '<span class="ml-auto shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">' + escHtml(d.detail) + '</span>'
+                    : '<span class="ml-auto shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Kategoriya</span>';
+                return '<button type="button" ' +
+                    'class="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-blue-50/60 active:bg-blue-100" ' +
+                    'data-cat="' + d.category_id + '" ' +
+                    'data-label="' + escHtml(d.label) + '" ' +
+                    'data-detail="' + escHtml(d.detail) + '" ' +
+                    'data-is-item="' + (isItem ? '1' : '0') + '">' +
+                    icon +
+                    '<div class="min-w-0 flex-1">' +
+                    '<p class="truncate text-sm font-semibold text-slate-900">' + escHtml(d.label) + '</p>' +
+                    (d.detail ? '<p class="text-xs text-slate-400">' + escHtml(d.detail) + '</p>' : '') +
+                    '</div>' +
+                    badge +
+                    '</button>';
+            }).join('');
+        }
+        dropdown.classList.remove('hidden');
+    }
+
+    /* ── Tanlash ── */
+    results.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-cat]');
+        if (!btn) return;
+
+        var catId   = btn.dataset.cat;
+        var label   = btn.dataset.label;
+        var detail  = btn.dataset.detail;
+        var isItem  = btn.dataset.isItem === '1';
+
+        /* Category select'ni to`ldirish */
+        if (catSelect) {
+            catSelect.value = catId;
+            catSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        /* Izoh bo`sh bo`lsa, mahsulot/kategoriya nomini yoz */
+        if (descInput && !descInput.value.trim()) {
+            descInput.value = label;
+        }
+
+        /* Tanlangan ko`rsatish */
+        var displayLabel = isItem ? label + ' — ' + detail : label;
+        selectedLbl.textContent = displayLabel;
+        selectedBox.classList.remove('hidden');
+        input.classList.add('hidden');
+
+        hideDropdown();
+    });
+
+    /* ── Tozalash ── */
+    clearBtn.addEventListener('click', function () {
+        selectedBox.classList.add('hidden');
+        input.classList.remove('hidden');
+        input.value = '';
+        input.focus();
+    });
+
+    /* ── Voqealar ── */
+    input.addEventListener('input', function () { search(this.value); });
+    input.addEventListener('focus', function () { if (this.value) search(this.value); });
+
+    /* ── Dropdown yopish ── */
+    document.addEventListener('click', function (e) {
+        if (!wrapper.contains(e.target)) hideDropdown();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') hideDropdown();
+    });
+
+    function hideDropdown() { dropdown.classList.add('hidden'); }
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    /* ── Submit guard ── */
+    document.getElementById('expense-form').addEventListener('submit', function () {
+        var btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML =
+            '<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>' +
+            ' Saqlanmoqda...';
+    });
+})();
 </script>
 {% endblock %}
