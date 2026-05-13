@@ -4,261 +4,386 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#2563eb">
-    <meta name="description" content="NMC Construction — Telegram orqali kirish">
-    <title>Kirish | NMC Construction</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text y='.9em' font-size='62' x='50%' dominant-baseline='middle' text-anchor='middle' font-family='Inter,sans-serif' font-weight='800' fill='white'>N</text></svg>">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="description" content="Nurafshon Mega Construction MChJ — Qurilish va ta'mirlash ishlari">
+    <title>Nurafshon Mega Construction MChJ</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e40af'/><text y='.9em' font-size='52' x='50%' dominant-baseline='middle' text-anchor='middle' font-family='Inter,sans-serif' font-weight='800' fill='white'>N</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <style>
-        .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .card-hover { transition: box-shadow .2s, transform .2s; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(37,99,235,.1); }
+        * { font-family: 'Inter', sans-serif; }
+        .hero-bg {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #1e3a5f 100%);
+        }
+        .hero-img {
+            background-image: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&q=80&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .section-img-1 {
+            background-image: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .section-img-2 {
+            background-image: url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .card-hover { transition: transform .25s, box-shadow .25s; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(30,64,175,.15); }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp .7s ease both; }
+        .fade-up-2 { animation: fadeUp .7s .15s ease both; }
+        .fade-up-3 { animation: fadeUp .7s .3s ease both; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50" style="font-family: Inter, sans-serif;">
+<body class="bg-slate-50 text-slate-800">
 
-    <div class="grid min-h-screen lg:grid-cols-[1.15fr_0.85fr]">
-
-        <!-- CHAP PANEL (faqat katta ekranda) -->
-        <section class="hidden lg:flex lg:flex-col lg:justify-between bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-12 text-white relative overflow-hidden">
-            <!-- Dekorativ aylana -->
-            <div class="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-white/5"></div>
-            <div class="absolute -bottom-20 -left-10 h-96 w-96 rounded-full bg-white/5"></div>
-
-            <div class="relative">
-                <div class="inline-flex items-center gap-3 rounded-2xl bg-white/15 px-5 py-3 backdrop-blur">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-xl font-bold">N</span>
-                    <div>
-                        <p class="text-base font-bold">NMC Construction</p>
-                        <p class="text-xs text-blue-100">Qurilish boshqaruv tizimi</p>
-                    </div>
-                </div>
-                <h1 class="mt-12 max-w-xl text-4xl font-extrabold leading-tight">
-                    Xavfsiz kirish — Telegram orqali
-                </h1>
-                <p class="mt-4 max-w-lg text-base text-blue-100 leading-7">
-                    Parol yodlab o'tirish shart emas. Telegram bot yoki Mini App orqali bir martalik havola olib, tizimga kiring.
-                </p>
-                <div class="mt-8 space-y-3">
-                    <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm">🔐</span>
-                        <p class="text-sm text-blue-50">Bir martalik token — qayta ishlatilmaydi</p>
-                    </div>
-                    <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm">⚡</span>
-                        <p class="text-sm text-blue-50">5 daqiqa ichida avtomatik yaroqsiz bo'ladi</p>
-                    </div>
-                    <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm">📋</span>
-                        <p class="text-sm text-blue-50">Barcha kirish amallari audit logga yoziladi</p>
-                    </div>
-                </div>
+<!-- ══════════ NAVIGATION ══════════ -->
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-blue-900/95 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+        <div class="flex items-center gap-3">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-base font-black text-white">N</div>
+            <div>
+                <p class="text-sm font-bold text-white leading-tight">Nurafshon Mega Construction</p>
+                <p class="text-[0.62rem] text-blue-300 leading-tight">Mas'uliyati cheklangan jamiyati</p>
             </div>
-
-            <div class="relative grid grid-cols-2 gap-4">
-                <div class="rounded-3xl bg-white/10 p-5 backdrop-blur">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-blue-200">Auth</p>
-                    <p class="mt-2 text-2xl font-bold">Telegram-only</p>
-                    <p class="mt-1 text-xs text-blue-200">Parol kerak emas</p>
-                </div>
-                <div class="rounded-3xl bg-white/10 p-5 backdrop-blur">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-blue-200">Xavfsizlik</p>
-                    <p class="mt-2 text-2xl font-bold">IP Monitor</p>
-                    <p class="mt-1 text-xs text-blue-200">Yangi IP aniqlanadi</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- O'NG PANEL — kirish -->
-        <section class="flex min-h-screen flex-col items-center justify-center px-5 py-10">
-
-            <!-- Mobile logo -->
-            <div class="mb-6 flex items-center gap-3 lg:hidden">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white shadow">N</span>
-                <div>
-                    <p class="text-base font-bold text-slate-900">NMC Construction</p>
-                    <p class="text-xs text-slate-500">Boshqaruv tizimi</p>
-                </div>
-            </div>
-
-            <div class="w-full max-w-md">
-
-                <!-- Flash xabarlar -->
-                {% if messages %}
-                <div class="mb-5 space-y-2">
-                    {% for msg in messages %}
-                    <div class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-medium
-                        {% if msg.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
-                        {% elif msg.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800
-                        {% elif msg.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800
-                        {% else %}border-sky-200 bg-sky-50 text-sky-800{% endif %}">
-                        <span class="mt-0.5 shrink-0">
-                            {% if msg.tags == 'success' %}✅{% elif msg.tags == 'error' %}❌{% elif msg.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
-                        </span>
-                        {{ msg }}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- Asosiy karta -->
-                <div class="rounded-[28px] border border-slate-200 bg-white p-7 shadow-soft">
-                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Telegram kirish</p>
-                    <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Tizimga kiring</h2>
-                    <p class="mt-2 text-sm text-slate-500 leading-6">
-                        Username yoki parol kerak emas. Telegram bot orqali bir martalik havola yoki Mini App ishlatiladi.
-                    </p>
-
-                    <div class="mt-6 space-y-3">
-
-                        <!-- 1. Telegram Bot -->
-                        <div class="card-hover rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-start gap-3">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 text-lg">🤖</span>
-                                <div class="min-w-0">
-                                    <p class="text-sm font-bold text-slate-900">Telegram Bot</p>
-                                    <p class="mt-1 text-xs text-slate-500 leading-5">
-                                        Botda <code class="rounded bg-slate-200 px-1.5 py-0.5 font-mono text-xs">/start</code> bosing → telefon raqam yuboring → bir martalik link oling
-                                    </p>
-                                </div>
-                            </div>
-                            {% if telegram_bot_username %}
-                                <a href="https://t.me/{{ telegram_bot_username }}" target="_blank" rel="noopener"
-                                   class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/></svg>
-                                    Botni ochish — @{{ telegram_bot_username }}
-                                </a>
-                            {% else %}
-                                <p class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
-                                    ⚠️ TELEGRAM_BOT_USERNAME sozlanmagan
-                                </p>
-                            {% endif %}
-                        </div>
-
-                        <!-- 2. Mini App -->
-                        <div class="card-hover rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-start gap-3">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 text-lg">📱</span>
-                                <div class="min-w-0">
-                                    <p class="text-sm font-bold text-slate-900">Telegram Mini App</p>
-                                    <p class="mt-1 text-xs text-slate-500 leading-5">
-                                        Telegram ichidan ochilsa — avtomatik tizimga kiritadi
-                                    </p>
-                                </div>
-                            </div>
-                            <button id="mini-app-btn" type="button"
-                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors disabled:opacity-60">
-                                <svg id="mini-app-icon" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                                <svg id="mini-app-spinner" class="spin hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                                <span id="mini-app-label">Mini App orqali kirish</span>
-                            </button>
-                            <p id="mini-app-status" class="mt-2 hidden rounded-xl px-3 py-2 text-xs font-medium"></p>
-                        </div>
-
-                        <!-- 3. WebApp havola (agar sozlangan bo'lsa) -->
-                        {% if telegram_webapp_url %}
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <div class="flex items-center gap-3">
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-600 text-lg">🌐</span>
-                                    <p class="text-sm font-bold text-slate-900">Web App havola</p>
-                                </div>
-                                <a href="{{ telegram_webapp_url }}" target="_blank" rel="noopener"
-                                   class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                                    Ochish →
-                                </a>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                    </div>
-
-                    <!-- Xavfsizlik eslatmasi -->
-                    <div class="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-                        <p class="text-xs font-bold text-blue-800 mb-2">🔒 Xavfsizlik kafolatlari:</p>
-                        <ul class="space-y-1 text-xs text-blue-700">
-                            <li>• Token bir marta ishlatiladi va 5 daqiqada yaroqsiz bo'ladi</li>
-                            <li>• Mini App HMAC bilan server tomonda tekshiriladi</li>
-                            <li>• Har bir kirish audit logga yoziladi</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <p class="mt-5 text-center text-xs text-slate-400">
-                    NMC Construction © {{ "now"|date:"Y" }} · Barcha huquqlar himoyalangan
-                </p>
-            </div>
-        </section>
+        </div>
+        <div class="hidden items-center gap-6 text-sm font-medium text-blue-200 sm:flex">
+            <a href="#about" class="hover:text-white transition-colors">Biz haqimizda</a>
+            <a href="#services" class="hover:text-white transition-colors">Xizmatlar</a>
+            <a href="#projects" class="hover:text-white transition-colors">Loyihalar</a>
+            <a href="#contacts" class="hover:text-white transition-colors">Aloqa</a>
+        </div>
+        <a href="#contacts" class="rounded-xl bg-white px-4 py-2 text-sm font-bold text-blue-900 hover:bg-blue-50 transition-colors">
+            Bog'lanish
+        </a>
     </div>
+</nav>
 
-    <script>
-        const btn = document.getElementById('mini-app-btn');
-        const icon = document.getElementById('mini-app-icon');
-        const spinner = document.getElementById('mini-app-spinner');
-        const label = document.getElementById('mini-app-label');
-        const statusEl = document.getElementById('mini-app-status');
-        const nextUrl = "{{ next_url|escapejs }}";
+<!-- ══════════ HERO ══════════ -->
+<section class="relative min-h-screen pt-16">
+    <div class="hero-img absolute inset-0 pt-16">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-950/90 via-blue-900/75 to-blue-900/40"></div>
+    </div>
+    <div class="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-5 py-20">
+        <div class="max-w-2xl">
+            <div class="fade-up inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-blue-200 backdrop-blur">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                Toshkent viloyati · Nurafshon shahri
+            </div>
+            <h1 class="fade-up-2 mt-5 text-4xl font-black leading-tight text-white sm:text-5xl md:text-6xl">
+                Nurafshon<br>
+                <span class="text-blue-300">Mega</span><br>
+                Construction
+            </h1>
+            <p class="fade-up-3 mt-5 max-w-lg text-base leading-7 text-blue-100 sm:text-lg">
+                Qurilish va ta'mirlash ishlari bo'yicha ishonchli hamkor. Sifat, muddatga rioya va
+                zamonaviy texnologiyalar — biz bilan har bir loyiha muvaffaqiyatga erishadi.
+            </p>
+            <div class="fade-up-3 mt-8 flex flex-wrap gap-3">
+                <a href="tel:+998935894221"
+                    class="flex items-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-sm font-bold text-blue-900 shadow-lg hover:bg-blue-50 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.73.73a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    +998 93 589 42 21
+                </a>
+                <a href="#services"
+                    class="flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur hover:bg-white/20 transition-colors">
+                    Xizmatlarni ko'rish
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/40">
+        <p class="text-[0.6rem] font-semibold uppercase tracking-widest">Pastga</p>
+        <svg class="h-4 w-4 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+    </div>
+</section>
 
-        function setLoading(loading) {
-            btn.disabled = loading;
-            icon.classList.toggle('hidden', loading);
-            spinner.classList.toggle('hidden', !loading);
-            label.textContent = loading ? 'Tekshirilmoqda...' : 'Mini App orqali kirish';
+<!-- ══════════ STATS ══════════ -->
+<section class="bg-blue-900 py-10">
+    <div class="mx-auto max-w-6xl px-5">
+        <div class="grid grid-cols-2 gap-5 sm:grid-cols-4">
+            <div class="text-center">
+                <p class="text-3xl font-black text-white sm:text-4xl">15+</p>
+                <p class="mt-1 text-sm text-blue-300">Yillik tajriba</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-black text-white sm:text-4xl">200+</p>
+                <p class="mt-1 text-sm text-blue-300">Tugatilgan loyiha</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-black text-white sm:text-4xl">50+</p>
+                <p class="mt-1 text-sm text-blue-300">Mutaxassis xodim</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-black text-white sm:text-4xl">100%</p>
+                <p class="mt-1 text-sm text-blue-300">Mijoz mamnuniyati</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ ABOUT ══════════ -->
+<section id="about" class="py-20">
+    <div class="mx-auto max-w-6xl px-5">
+        <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Biz haqimizda</p>
+                <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">
+                    Ishonchli qurilish kompaniyasi
+                </h2>
+                <p class="mt-5 text-base leading-7 text-slate-600">
+                    <strong class="text-slate-800">Nurafshon Mega Construction MChJ</strong> — Toshkent viloyatida
+                    faoliyat yurituvchi yetakchi qurilish kompaniyalaridan biri. Biz turar-joy, tijorat va sanoat
+                    ob'ektlari qurilishi hamda ta'mirlash ishlarida keng tajribaga egamiz.
+                </p>
+                <p class="mt-4 text-base leading-7 text-slate-600">
+                    Zamonaviy qurilish texnologiyalari, sifatli materiallar va malakali mutaxassislar jamoasi
+                    bilan har qanday murakkablikdagi loyihalarni muvaffaqiyatli amalga oshiramiz.
+                </p>
+                <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                    <div class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 text-xl">🏗️</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Sifat kafolati</p>
+                            <p class="mt-1 text-xs text-slate-500">Barcha ishlar standartlarga muvofiq bajariladi</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 text-xl">⏱️</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Muddatga rioya</p>
+                            <p class="mt-1 text-xs text-slate-500">Kelishilgan muddatda topshiriladi</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 text-xl">💡</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Zamonaviy texnologiya</p>
+                            <p class="mt-1 text-xs text-slate-500">Eng yangi usullar va materiallar</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 text-xl">🤝</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Ishonchli hamkorlik</p>
+                            <p class="mt-1 text-xs text-slate-500">Shaffof shartnoma va hisob-kitob</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="section-img-1 h-96 overflow-hidden rounded-3xl shadow-2xl lg:h-[480px]">
+                    <div class="absolute inset-0 bg-blue-900/20 rounded-3xl"></div>
+                </div>
+                <div class="absolute -bottom-5 -left-5 rounded-2xl bg-blue-600 px-5 py-4 shadow-xl">
+                    <p class="text-xs font-semibold text-blue-200">Tashkil etilgan yil</p>
+                    <p class="text-3xl font-black text-white">2009</p>
+                </div>
+                <div class="absolute -top-5 -right-5 rounded-2xl bg-white px-5 py-4 shadow-xl">
+                    <p class="text-xs font-semibold text-slate-500">Faol loyihalar</p>
+                    <p class="text-3xl font-black text-blue-600">12</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ SERVICES ══════════ -->
+<section id="services" class="bg-slate-900 py-20 text-white">
+    <div class="mx-auto max-w-6xl px-5">
+        <div class="text-center">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">Xizmatlarimiz</p>
+            <h2 class="mt-3 text-3xl font-black sm:text-4xl">Biz nima qilamiz</h2>
+            <p class="mt-4 text-base text-slate-400">Qurilishning har qadamida yoningizda</p>
+        </div>
+        <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="card-hover rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/20 text-2xl">🏢</div>
+                <h3 class="mt-4 text-lg font-bold">Turar-joy qurilishi</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-400">Ko'p qavatli uylar, shaxsiy uylar va kvartiralar qurilishi. Loyihalashdan topshirishgacha.</p>
+            </div>
+            <div class="card-hover rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-2xl">🏪</div>
+                <h3 class="mt-4 text-lg font-bold">Tijorat binolari</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-400">Ofis binoları, savdo markazlari, ombor va sanoat ob'ektlari qurilishi.</p>
+            </div>
+            <div class="card-hover rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl">🔧</div>
+                <h3 class="mt-4 text-lg font-bold">Ta'mirlash ishlari</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-400">Ichki va tashqi ta'mirlash, fasad ishlari, yiqitib qayta qurish va rekonstruksiya.</p>
+            </div>
+            <div class="card-hover rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/20 text-2xl">⚡</div>
+                <h3 class="mt-4 text-lg font-bold">Muhandislik tizimlari</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-400">Elektr, suv ta'minoti, kanalizatsiya, konditsioner va issiqlik tizimlarini o'rnatish.</p>
+            </div>
+            <div class="card-hover rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-2xl">🏛️</div>
+                <h3 class="mt-4 text-lg font-bold">Loyihalash va dizayn</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-400">Arxitektura va interior dizayn loyihalari. 3D vizualizatsiya va chizmalar tayyorlash.</p>
+            </div>
+            <div class="card-hover rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-500/20 text-2xl">🌿</div>
+                <h3 class="mt-4 text-lg font-bold">Obodonlashtirish</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-400">Hovli obodonlashtirish, yo'l qoplamasi, yo'laklar va ko'kalamzorlashtirish ishlari.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ PROJECTS (photo section) ══════════ -->
+<section id="projects" class="py-20">
+    <div class="mx-auto max-w-6xl px-5">
+        <div class="text-center">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Loyihalarimiz</p>
+            <h2 class="mt-3 text-3xl font-black text-slate-900 sm:text-4xl">Bajarilgan ishlar</h2>
+        </div>
+        <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="group relative overflow-hidden rounded-3xl shadow-lg">
+                <img src="https://images.unsplash.com/photo-1590169560731-c25b2a636a3a?w=600&q=80&auto=format&fit=crop"
+                    alt="Qurilish loyihasi" class="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-5">
+                    <p class="font-bold text-white">Ko'p qavatli turar-joy</p>
+                    <p class="text-xs text-slate-300">Nurafshon shahri, 2023</p>
+                </div>
+            </div>
+            <div class="group relative overflow-hidden rounded-3xl shadow-lg">
+                <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80&auto=format&fit=crop"
+                    alt="Qurilish loyihasi" class="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-5">
+                    <p class="font-bold text-white">Tijorat markazi</p>
+                    <p class="text-xs text-slate-300">Toshkent viloyati, 2024</p>
+                </div>
+            </div>
+            <div class="group relative overflow-hidden rounded-3xl shadow-lg sm:col-span-2 lg:col-span-1">
+                <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=600&q=80&auto=format&fit=crop"
+                    alt="Qurilish loyihasi" class="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-5">
+                    <p class="font-bold text-white">Zamonaviy bino</p>
+                    <p class="text-xs text-slate-300">Nurafshon shahri, 2024</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ CONTACTS ══════════ -->
+<section id="contacts" class="bg-blue-900 py-20 text-white">
+    <div class="mx-auto max-w-6xl px-5">
+        <div class="grid gap-12 lg:grid-cols-2 lg:items-start">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">Aloqa</p>
+                <h2 class="mt-3 text-3xl font-black sm:text-4xl">Biz bilan bog'laning</h2>
+                <p class="mt-4 text-base text-blue-200">
+                    Loyiha, narxlar yoki hamkorlik bo'yicha savollaringiz bo'lsa, qo'ng'iroq qiling yoki manzilimizga tashrif buyuring.
+                </p>
+                <div class="mt-8 space-y-5">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg">📍</div>
+                        <div>
+                            <p class="font-bold text-white">Manzil</p>
+                            <p class="mt-1 text-sm text-blue-200">Toshkent viloyati, Nurafshon shahri,<br>Yuksalish ko'chasi, 37-18</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg">📞</div>
+                        <div>
+                            <p class="font-bold text-white">Telefon</p>
+                            <a href="tel:+998935894221" class="mt-1 text-sm text-blue-200 hover:text-white transition-colors">+998 93 589 42 21</a>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg">🏦</div>
+                        <div>
+                            <p class="font-bold text-white">Bank rekvizitlari</p>
+                            <div class="mt-1 text-sm text-blue-200 space-y-0.5">
+                                <p>x/r: 2020 8000 9008 6459 0001</p>
+                                <p>Toshkent sh. Ipoteka Bank Mirobod f-l</p>
+                                <p>MFO: 00420</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-lg">🗂️</div>
+                        <div>
+                            <p class="font-bold text-white">Yuridik ma'lumotlar</p>
+                            <div class="mt-1 text-sm text-blue-200 space-y-0.5">
+                                <p>INN: 305 418 313</p>
+                                <p>OKONX: 41200</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact card -->
+            <div class="rounded-3xl bg-white/10 p-7 backdrop-blur border border-white/20">
+                <h3 class="text-xl font-bold text-white">Murojaat qoldiring</h3>
+                <p class="mt-2 text-sm text-blue-200">Biz 24 soat ichida javob beramiz</p>
+                <div class="mt-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1.5">Ismingiz</label>
+                        <input type="text" placeholder="To'liq ismingiz"
+                            class="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-blue-300/60 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1.5">Telefon raqam</label>
+                        <input type="tel" placeholder="+998 __ ___ __ __"
+                            class="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-blue-300/60 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1.5">Xabar</label>
+                        <textarea rows="4" placeholder="Loyiha yoki savol haqida qisqacha yozing..."
+                            class="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm text-white placeholder-blue-300/60 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-colors resize-none"></textarea>
+                    </div>
+                    <a href="tel:+998935894221"
+                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-bold text-blue-900 hover:bg-blue-50 transition-colors">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.73.73a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        Qo'ng'iroq qilish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="bg-slate-950 py-8 text-center">
+    <div class="mx-auto max-w-6xl px-5">
+        <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-black text-white">N</div>
+                <p class="text-sm font-bold text-white">Nurafshon Mega Construction MChJ</p>
+            </div>
+            <p class="text-xs text-slate-500">
+                © {% now "Y" %} Nurafshon Mega Construction. Barcha huquqlar himoyalangan.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<!-- Smooth scroll -->
+<script>
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+    });
+});
+</script>
 
-        function showStatus(text, type) {
-            statusEl.textContent = text;
-            statusEl.className = 'mt-2 rounded-xl px-3 py-2 text-xs font-medium ' + (
-                type === 'error' ? 'bg-rose-50 text-rose-700' :
-                type === 'success' ? 'bg-emerald-50 text-emerald-700' :
-                'bg-slate-100 text-slate-600'
-            );
-            statusEl.classList.remove('hidden');
-        }
-
-        async function loginWithMiniApp(auto = false) {
-            if (!window.Telegram || !window.Telegram.WebApp) {
-                if (auto) return;
-                showStatus('Mini App muhiti topilmadi. Telegram ichidan ochib ko`ring.', 'error');
-                return;
-            }
-            const webApp = window.Telegram.WebApp;
-            webApp.ready();
-            webApp.expand();
-            if (!webApp.initData) {
-                if (auto) return;
-                showStatus('Telegram initData topilmadi. Mini App tugmasidan qayta ochib ko`ring.', 'error');
-                return;
-            }
-            setLoading(true);
-            try {
-                const response = await fetch("{% url 'accounts:telegram-verify' %}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ init_data: webApp.initData, next: nextUrl })
-                });
-                const data = await response.json();
-                if (!response.ok || !data.ok) {
-                    showStatus(data.error || 'Mini App auth xatosi. Qayta urining.', 'error');
-                    setLoading(false);
-                    return;
-                }
-                showStatus('✅ Kirish tasdiqlandi. Yo`naltirilmoqda...', 'success');
-                setTimeout(() => { window.location.href = data.redirect_url; }, 500);
-            } catch {
-                showStatus('Aloqa xatosi. Internet ulanishini tekshiring.', 'error');
-                setLoading(false);
-            }
-        }
-
-        btn.addEventListener('click', () => loginWithMiniApp(false));
-        document.addEventListener('DOMContentLoaded', () => loginWithMiniApp(true));
-    </script>
 </body>
 </html>

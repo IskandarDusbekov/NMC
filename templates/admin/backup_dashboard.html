@@ -1,0 +1,126 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Backup boshqaruvi — {{ site_title|default:"Admin" }}{% endblock %}
+
+{% block content_title %}<h1>💾 Backup boshqaruvi</h1>{% endblock %}
+
+{% block content %}
+<style>
+.backup-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:16px; }
+.backup-card h3 { margin:0 0 8px; font-size:15px; color:#1e293b; }
+.backup-card p { margin:0 0 12px; font-size:13px; color:#64748b; }
+.btn-blue { background:#2563eb; color:#fff; border:none; border-radius:8px; padding:8px 18px; font-weight:600; font-size:13px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn-blue:hover { background:#1d4ed8; color:#fff; }
+.btn-red { background:#dc2626; color:#fff; border:none; border-radius:8px; padding:6px 14px; font-weight:600; font-size:12px; cursor:pointer; }
+.btn-red:hover { background:#b91c1c; }
+.btn-outline { background:#f8fafc; color:#334155; border:1px solid #e2e8f0; border-radius:8px; padding:6px 14px; font-weight:600; font-size:12px; cursor:pointer; text-decoration:none; }
+.btn-outline:hover { background:#f1f5f9; }
+.warn-box { background:#fef3c7; border:1px solid #f59e0b; border-radius:10px; padding:14px 18px; margin-bottom:16px; font-size:13px; color:#78350f; }
+.backup-table { width:100%; border-collapse:collapse; }
+.backup-table th { background:#f8fafc; padding:10px 12px; text-align:left; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid #e2e8f0; }
+.backup-table td { padding:10px 12px; font-size:13px; color:#334155; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+.backup-table tr:hover td { background:#f8fafc; }
+.badge-new { background:#dcfce7; color:#166534; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:700; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+</style>
+
+{% if messages %}
+<ul class="messagelist">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div class="grid-2">
+
+    <!-- CREATE BACKUP -->
+    <div class="backup-card">
+        <h3>📦 Yangi backup yaratish</h3>
+        <p>Hozirgi barcha ma'lumotlarni JSON faylga saqlaydi. Fayl serverda <code>backups/</code> papkasida saqlanadi.</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_backup">
+            <button type="submit" class="btn-blue">⬇ Backup yaratish</button>
+        </form>
+        <div style="margin-top:10px;">
+            <a href="{% url 'admin-backup-json' %}" class="btn-outline">⚡ Tezkor yuklab olish</a>
+        </div>
+    </div>
+
+    <!-- RESTORE BACKUP -->
+    <div class="backup-card">
+        <h3>📤 Backup yuklash (Restore)</h3>
+        <div class="warn-box">
+            ⚠️ <strong>Diqqat:</strong> Restore qilish mavjud ma'lumotlarni qayta yozishi mumkin.
+            Faqat ishonchli backup faylini yüklovchi bo'lsangiz foydalaning.
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="restore">
+            <div style="margin-bottom:10px;">
+                <label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">JSON fayl tanlang</label>
+                <input type="file" name="backup_file" accept=".json" required
+                    style="display:block;width:100%;font-size:13px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;">
+            </div>
+            <button type="submit" class="btn-blue" style="background:#dc2626;" onclick="return confirm('Haqiqatan ham ma\\'lumotlarni tiklashni xohlaysizmi?')">
+                📤 Tiklash (Restore)
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- BACKUP FILES LIST -->
+<div class="backup-card">
+    <h3>🗂 Mavjud backup fayllar ({{ backups|length }} ta)</h3>
+    {% if backups %}
+    <div style="overflow-x:auto;">
+        <table class="backup-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Fayl nomi</th>
+                    <th>Hajm</th>
+                    <th>Vaqt</th>
+                    <th>Amal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in backups %}
+                <tr>
+                    <td style="color:#94a3b8;">{{ forloop.counter }}</td>
+                    <td>
+                        <span style="font-family:monospace;font-size:12px;">{{ b.name }}</span>
+                        {% if forloop.first %}<span class="badge-new">So'nggi</span>{% endif %}
+                    </td>
+                    <td>{{ b.size_kb }} KB</td>
+                    <td style="white-space:nowrap;">{{ b.modified|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="download">
+                                <input type="hidden" name="filename" value="{{ b.name }}">
+                                <button type="submit" class="btn-outline">⬇ Yuklab olish</button>
+                            </form>
+                            <form method="post" style="display:inline;" onsubmit="return confirm('{{ b.name }} ni o\\'chirishni xohlaysizmi?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_backup">
+                                <input type="hidden" name="filename" value="{{ b.name }}">
+                                <button type="submit" class="btn-red">🗑</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:#94a3b8;font-style:italic;">Hali backup yaratilmagan. Yuqoridan yangi backup yarating.</p>
+    {% endif %}
+</div>
+{% endblock %}

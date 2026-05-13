@@ -5,11 +5,11 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import include, path
 
-from apps.core.admin_views import download_json_backup
+from apps.core.admin_views import download_json_backup, backup_dashboard
 
-admin.site.site_header = getattr(settings, 'ADMIN_SITE_HEADER', 'NurafshonMega Ferma admin panel')
-admin.site.site_title = getattr(settings, 'ADMIN_SITE_TITLE', 'Ferma admin')
-admin.site.index_title = getattr(settings, 'ADMIN_INDEX_TITLE', 'Sozlamalar va ma`lumotlar boshqaruvi')
+admin.site.site_header = getattr(settings, 'ADMIN_SITE_HEADER', '⚙️ NMC Boshqaruv Paneli')
+admin.site.site_title = getattr(settings, 'ADMIN_SITE_TITLE', 'NMC Admin')
+admin.site.index_title = getattr(settings, 'ADMIN_INDEX_TITLE', 'Ma\'lumotlar va sozlamalar boshqaruvi')
 
 
 def hidden_admin_disabled(_request, *_args, **_kwargs):
@@ -21,6 +21,7 @@ admin_url = getattr(settings, 'ADMIN_URL_PATH', 'secure-console/')
 urlpatterns = [
     path('', lambda request: redirect('dashboard:index')),
     path(f'{admin_url}backup-json/', admin.site.admin_view(download_json_backup), name='admin-backup-json'),
+    path(f'{admin_url}backup/', admin.site.admin_view(backup_dashboard), name='admin-backup'),
     path(admin_url, admin.site.urls),
     path('admin/', hidden_admin_disabled),
     path('admin/<path:_extra>/', hidden_admin_disabled),

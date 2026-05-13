@@ -17,7 +17,7 @@ def global_layout(request):
             balances = ManagerBalanceService.summary_for_account(request.user.manager_account)
         else:
             balances = company_balances
-        exchange_rate = ExchangeRateService.latest_rate()
+        exchange_rate = ExchangeRateService.latest_rate(auto_update=True)
     except (OperationalError, ProgrammingError, ImportError, ValidationError):
         balances = {'UZS': 0, 'USD': 0}
         company_balances = {'UZS': 0, 'USD': 0}
