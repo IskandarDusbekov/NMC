@@ -1,20 +1,69 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <section class="mx-auto max-w-3xl rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
-        <h2 class="text-2xl font-bold text-slate-800">Managerga pul o`tkazish</h2>
-        <form method="post" class="mt-6 grid gap-5 md:grid-cols-2">
+<section class="mx-auto max-w-xl">
+
+    <div class="mb-5 flex items-center gap-3">
+        <a href="{% url 'finance:manager-account-list' %}" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-emerald-600">Transfer</p>
+            <h2 class="text-xl font-extrabold text-slate-900">Managerga pul o`tkazish</h2>
+        </div>
+    </div>
+
+    <!-- Eslatma -->
+    <div class="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <span class="mt-0.5 shrink-0 text-amber-500">⚠️</span>
+        <p class="text-xs font-medium text-amber-800">
+            Transfer qilingan pul darhol manager hisobiga o`tadi. Bu amalni bekor qilib bo`lmaydi.
+        </p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form method="post" class="space-y-4" id="transfer-form">
             {% csrf_token %}
-            {% include "includes/form_field.html" with field=form.to_manager %}
-            {% include "includes/form_field.html" with field=form.amount %}
-            {% include "includes/form_field.html" with field=form.currency %}
-            {% include "includes/form_field.html" with field=form.date %}
-            <div class="md:col-span-2">{% include "includes/form_field.html" with field=form.description %}</div>
-            {% for error in form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
-            <div class="md:col-span-2 flex gap-3">
-                <button type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Transfer qilish</button>
-                <a href="{% url 'finance:manager-account-list' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</a>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    {% include "includes/form_field.html" with field=form.to_manager %}
+                </div>
+                {% include "includes/form_field.html" with field=form.amount %}
+                {% include "includes/form_field.html" with field=form.currency %}
+                {% include "includes/form_field.html" with field=form.date %}
+                <div class="sm:col-span-2">
+                    {% include "includes/form_field.html" with field=form.description %}
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+                {% for error in form.non_field_errors %}
+                    <p class="text-sm font-medium text-rose-700">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="flex flex-col gap-2 sm:flex-row">
+                <button type="submit" id="submit-btn"
+                    class="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition-colors">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Transfer qilish
+                </button>
+                <a href="{% url 'finance:manager-account-list' %}"
+                   class="flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50">
+                    Bekor qilish
+                </a>
             </div>
         </form>
-    </section>
+    </div>
+</section>
+
+<script>
+document.getElementById('transfer-form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'O`tkazilmoqda...';
+});
+</script>
 {% endblock %}

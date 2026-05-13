@@ -1,4 +1,14 @@
-<div class="rounded-[28px] border border-dashed border-slate-300 bg-white px-6 py-10 text-center shadow-sm">
-    <h3 class="text-lg font-bold text-slate-900">{{ title }}</h3>
-    <p class="mt-2 text-sm text-slate-500">{{ text }}</p>
+<div class="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+        {{ icon|default:"📭" }}
+    </div>
+    <h3 class="text-sm font-bold text-slate-800">{{ title }}</h3>
+    {% if text %}
+    <p class="mt-1.5 text-xs text-slate-500 max-w-xs mx-auto leading-5">{{ text }}</p>
+    {% endif %}
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}" class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+        {{ action_label }}
+    </a>
+    {% endif %}
 </div>

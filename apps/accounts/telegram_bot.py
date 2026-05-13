@@ -291,30 +291,6 @@ class TelegramBotFlowService:
         return {'remove_keyboard': True}
 
     @staticmethod
-    def _main_keyboard():
-        return {
-            'keyboard': [
-                [{'text': '🔗 Saytga kirish'}],
-                [{'text': '💱 Bugungi kurs'}, {'text': '💰 Ferma hisobi'}],
-                [{'text': '📱 Mini App'}, {'text': 'ℹ️ Yordam'}],
-            ],
-            'resize_keyboard': True,
-            'one_time_keyboard': False,
-        }
-
-    @staticmethod
-    def _main_keyboard():
-        return {
-            'keyboard': [
-                [{'text': '🔗 Saytga kirish'}],
-                [{'text': '💱 Bugungi kurs'}, {'text': '💰 Ferma hisobi'}],
-                [{'text': '📱 Mini App'}, {'text': 'ℹ️ Yordam'}],
-            ],
-            'resize_keyboard': True,
-            'one_time_keyboard': False,
-        }
-
-    @staticmethod
     def _main_keyboard(user=None):
         balance_button = 'Mening hisobim' if getattr(user, 'role', '') == User.Role.MANAGER else 'Ferma hisobi'
         return {
@@ -369,7 +345,12 @@ class TelegramBotFlowService:
         )
         client.send_message(
             chat_id=chat_id,
-            text='Assalomu alaykum.\n\nTizimga kirish uchun telefon raqamingizni Telegram contact sifatida yuboring.',
+            text=(
+                'Assalomu alaykum! 👋\n\n'
+                'NMC Construction boshqaruv tizimiga xush kelibsiz.\n\n'
+                '📱 Tizimga kirish uchun telefon raqamingizni yuboring.\n'
+                '👇 Pastdagi tugmani bosing:'
+            ),
             reply_markup=cls._contact_keyboard(),
         )
 
@@ -387,15 +368,15 @@ class TelegramBotFlowService:
         client.send_message(
             chat_id=chat_id,
             text=(
-                f'{user.full_name}, kirish havolasi tayyor.\n'
-                'Havola bir martalik va qisqa muddat amal qiladi.\n'
-                'Yangi link kerak bo`lsa /token yuboring.'
+                f'✅ {user.full_name}, kirish havolasi tayyor!\n\n'
+                '⚡ Havola bir martalik va 5 daqiqa ichida yaroqsiz bo`ladi.\n'
+                '🔄 Yangi link kerak bo`lsa /token yuboring.'
             ),
             reply_markup=cls._menu_markup(access_url),
         )
         client.send_message(
             chat_id=chat_id,
-            text='Menyu tayyor. Quyidagi tugmalardan foydalanishingiz mumkin.',
+            text='📋 Quyidagi tugmalardan foydalanishingiz mumkin:',
             reply_markup=cls._main_keyboard(user),
         )
         AuditLogService.log(
@@ -412,9 +393,13 @@ class TelegramBotFlowService:
         client.send_message(
             chat_id=chat_id,
             text=(
-                'Kirish uchun /start yuboring.\n'
-                'Avval telefon raqam, keyin username va parol tekshiriladi.\n'
-                f'Menyu tugmalari: Saytga kirish, Bugungi kurs, {balance_button}.'
+                'ℹ️ *NMC Bot — Yordam*\n\n'
+                '🔗 *Saytga kirish* — bir martalik kirish havolasi\n'
+                '💱 *Bugungi kurs* — USD/UZS valyuta kursi\n'
+                f'💰 *{balance_button}* — joriy balans holati\n'
+                '📱 *Mini App* — to`g`ridan-to`g`ri ochish\n\n'
+                'Yangi link olish: /token\n'
+                'Boshlash: /start'
             ),
             reply_markup=cls._main_keyboard(user),
         )
@@ -444,10 +429,10 @@ class TelegramBotFlowService:
         client.send_message(
             chat_id=chat_id,
             text=(
-                'Bugungi USD kursi:\n'
-                f'1 USD = {cls._money(rate.usd_to_uzs)} UZS\n'
-                f'Yangilab olindi: {cls._format_datetime(rate.created_at)}\n'
-                f'CBU sanasi: {cls._format_datetime(rate.effective_at)}'
+                '💱 *Valyuta kursi*\n\n'
+                f'🇺🇸 1 USD = {cls._money(rate.usd_to_uzs)} UZS 🇺🇿\n\n'
+                f'🕐 Yangilangan: {cls._format_datetime(rate.created_at)}\n'
+                f'📅 CBU sanasi: {cls._format_datetime(rate.effective_at)}'
             ),
             reply_markup=cls._main_keyboard(user),
         )
@@ -467,9 +452,9 @@ class TelegramBotFlowService:
         client.send_message(
             chat_id=chat_id,
             text=(
-                f'{title}:\n'
-                f'UZS: {cls._money(balances[CurrencyChoices.UZS])}\n'
-                f'USD: {cls._money(balances[CurrencyChoices.USD])}'
+                f'💰 *{title}*\n\n'
+                f'🇺🇿 UZS: {cls._money(balances[CurrencyChoices.UZS])} so`m\n'
+                f'🇺🇸 USD: {cls._money(balances[CurrencyChoices.USD])} dollar'
             ),
             reply_markup=cls._main_keyboard(user),
         )
@@ -553,7 +538,7 @@ class TelegramBotFlowService:
         )
         client.send_message(
             chat_id=actor['chat_id'],
-            text='Telefon raqam topildi. Endi Django username kiriting.',
+            text='✅ Telefon raqam topildi!\n\nEndi tizim username ingizni kiriting:',
             reply_markup=cls._remove_keyboard(),
         )
 
@@ -562,7 +547,7 @@ class TelegramBotFlowService:
         actor = cls._actor(message)
         user = session.user
         if not user or not user.is_active:
-            client.send_message(chat_id=actor['chat_id'], text='Foydalanuvchi topilmadi yoki faol emas.')
+            client.send_message(chat_id=actor['chat_id'], text='❌ Foydalanuvchi topilmadi yoki faolsizlantirilgan.\n\nAdmin bilan bog`laning.')
             return
         if not user.check_password(password):
             TelegramLoginSessionService.mark_waiting_password(
@@ -575,7 +560,7 @@ class TelegramBotFlowService:
             )
             client.send_message(
                 chat_id=actor['chat_id'],
-                text='Parol noto`g`ri. Qaytadan parol yuboring yoki /start bilan boshidan boshlang.',
+                text='❌ Parol noto`g`ri.\n\nQaytadan kiriting yoki /start bilan boshidan boshlang:',
                 reply_markup=cls._remove_keyboard(),
             )
             return
@@ -610,7 +595,7 @@ class TelegramBotFlowService:
         )
         client.send_message(
             chat_id=actor['chat_id'],
-            text='Akkaunt tasdiqlandi. Endi kirish havolasini yuboraman.',
+            text='✅ Akkaunt muvaffaqiyatli biriktirildi!\n\nKirish havolasini yuboraman...',
             reply_markup=cls._main_keyboard(user),
         )
         cls._send_access_menu(
@@ -668,7 +653,7 @@ class TelegramBotFlowService:
                 )
                 client.send_message(
                     chat_id=actor['chat_id'],
-                    text='Username mos kelmadi. Django admin paneldagi username bilan bir xil kiriting.',
+                    text='❌ Username mos kelmadi.\n\nAdmin paneldagi username bilan bir xil kiriting:',
                     reply_markup=cls._remove_keyboard(),
                 )
                 return
@@ -681,7 +666,7 @@ class TelegramBotFlowService:
             )
             client.send_message(
                 chat_id=actor['chat_id'],
-                text='Username qabul qilindi. Endi parolingizni yuboring.',
+                text='✅ Username qabul qilindi.\n\n🔐 Endi parolingizni yuboring:',
                 reply_markup=cls._remove_keyboard(),
             )
             return

@@ -23,18 +23,21 @@ def validate_receipt_file(file):
 
 class StyledFormMixin:
     input_class = (
-        'mt-2 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 '
-        'text-sm text-slate-900 shadow-sm outline-none transition '
-        'placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100'
+        'mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 '
+        'text-sm text-slate-900 shadow-sm outline-none transition-all '
+        'placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 '
+        'hover:border-slate-300'
     )
-    checkbox_class = 'h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500'
+    checkbox_class = 'h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500'
     select_class = (
-        'mt-2 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 '
-        'text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100'
+        'mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 '
+        'text-sm text-slate-900 shadow-sm transition-all cursor-pointer '
+        'focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-slate-300'
     )
     textarea_class = (
-        'mt-2 block min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 '
-        'text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100'
+        'mt-1.5 block min-h-24 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 '
+        'text-sm text-slate-900 shadow-sm transition-all resize-y '
+        'focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-slate-300'
     )
 
     def __init__(self, *args, **kwargs):

@@ -1,12 +1,35 @@
 {% load core_tags %}
 <aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-white px-5 py-6 shadow-xl transition-transform duration-300 lg:translate-x-0">
-    <div class="mb-8 flex items-center gap-3 border-b border-slate-100 pb-5">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-lg">N</div>
-        <div>
-            <p class="text-xl font-bold text-slate-800">NurafshonMega Construction</p>
+    <div class="mb-6 flex items-center gap-3 border-b border-slate-100 pb-5">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-lg">N</div>
+        <div class="min-w-0">
+            <p class="truncate text-base font-bold text-slate-800">NMC Construction</p>
             <p class="text-xs text-slate-500">Boshqaruv tizimi</p>
         </div>
     </div>
+
+    {% if request.user.is_authenticated %}
+    <div class="mb-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-3">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-sm font-bold text-white shadow">
+                {{ request.user.full_name|default:request.user.username|slice:":1"|upper }}
+            </div>
+            <div class="min-w-0">
+                <p class="truncate text-sm font-bold text-slate-900">{{ request.user.full_name|default:request.user.username }}</p>
+                <p class="text-xs font-semibold text-blue-600">
+                    {% if request.user.role == 'ADMIN' %}⚙️ Admin
+                    {% elif request.user.role == 'DIRECTOR' %}👔 Director
+                    {% elif request.user.role == 'MANAGER' %}💼 Manager
+                    {% elif request.user.role == 'OBSERVER' %}👁️ Kuzatuvchi
+                    {% else %}{{ request.user.role }}{% endif %}
+                </p>
+            </div>
+        </div>
+        {% if request.user.telegram_username %}
+        <p class="mt-2 text-xs text-slate-500 truncate">@{{ request.user.telegram_username }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
 
 
 
