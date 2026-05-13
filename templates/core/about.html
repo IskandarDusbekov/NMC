@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2563eb">
+    <title>NMC — Ferma haqida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>body{font-family:Inter,sans-serif;}</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white">
+
+    <!-- Header -->
+    <div class="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-slate-900/80 px-4 py-3 backdrop-blur">
+        <div class="flex items-center gap-3">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-base font-black">N</div>
+            <div>
+                <p class="text-sm font-bold leading-tight">NMC</p>
+                <p class="text-[0.6rem] font-semibold uppercase tracking-widest text-blue-400">Construction</p>
+            </div>
+        </div>
+        <a href="javascript:history.back()"
+           class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white/70">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="mx-auto max-w-lg px-4 py-8 space-y-5">
+
+        <!-- Company hero card -->
+        <div class="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur">
+            <div class="h-2 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500"></div>
+            <div class="p-6 text-center">
+                <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-4xl font-black shadow-2xl shadow-blue-500/40">
+                    N
+                </div>
+                <h1 class="text-xl font-extrabold">Nurafshon Mega Construction</h1>
+                <p class="mt-1 text-sm font-semibold text-blue-300">MChJ</p>
+                <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-400">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                    Faol tashkilot
+                </div>
+            </div>
+        </div>
+
+        <!-- Info cards -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+                <p class="text-2xl font-black text-blue-400">2019</p>
+                <p class="mt-1 text-xs font-semibold text-white/60">Tashkil etilgan yil</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+                <p class="text-2xl font-black text-violet-400">5+</p>
+                <p class="mt-1 text-xs font-semibold text-white/60">Yillik tajriba</p>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-4">
+
+            <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600/30 text-lg">📍</div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-blue-400">Manzil</p>
+                    <p class="mt-1 text-sm text-white/90">Toshkent viloyati, Nurafshon shahri,<br>Yuksalish ko'chasi, 37-18</p>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/10"></div>
+
+            <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600/30 text-lg">📱</div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-400">Telefon</p>
+                    <a href="https://t.me/+998935894221"
+                       class="mt-1 block text-sm text-white/90 hover:text-white">+998 93 589 42 21</a>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/10"></div>
+
+            <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-600/30 text-lg">🏗️</div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-violet-400">Soha</p>
+                    <p class="mt-1 text-sm text-white/90">Qurilish va ta'mirlash ishlari</p>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/10"></div>
+
+            <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/30 text-lg">🌐</div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-amber-400">Region</p>
+                    <p class="mt-1 text-sm text-white/90">Toshkent viloyati va atrofidagi hududlar</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact button -->
+        <a href="https://t.me/+998935894221" target="_blank"
+           class="flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-600 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-colors">
+            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/>
+            </svg>
+            Telegram orqali xabar yuborish
+        </a>
+
+        <!-- App link -->
+        <a href="{% url 'dashboard:index' %}"
+           class="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 py-3.5 text-sm font-semibold text-white/80 hover:bg-white/10 transition-colors">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 13.5 12 6l8 7.5M6.5 12v7h11v-7"/>
+            </svg>
+            Boshqaruv tizimiga o'tish
+        </a>
+
+        <p class="text-center text-[0.65rem] text-white/30">
+            © 2019–{% now "Y" %} Nurafshon Mega Construction MChJ
+        </p>
+    </div>
+
+</body>
+</html>

@@ -32,6 +32,19 @@
             </div>
         </div>
 
+        <!-- Desktop search -->
+        <form method="get" action="{% url 'global-search' %}" class="hidden flex-1 max-w-sm lg:flex mx-4">
+            <div class="relative w-full">
+                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Qidirish..."
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-50">
+            </div>
+        </form>
+
         <!-- Right: balances + user menu (desktop only) -->
         <div class="hidden items-center gap-2 lg:flex">
 
@@ -94,8 +107,17 @@
             </details>
         </div>
 
-        <!-- Right: mobile — only avatar -->
+        <!-- Right: mobile — search icon + avatar -->
         <div class="flex items-center gap-2 lg:hidden">
+
+            <!-- Mobile search toggle -->
+            <button type="button" id="mobile-search-toggle"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+            </button>
+
             <details class="group relative">
                 <summary class="flex cursor-pointer list-none items-center">
                     <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-sm font-bold text-white">
@@ -135,4 +157,33 @@
         </div>
 
     </div>
+
+    <!-- Mobile search box (hidden by default) -->
+    <div id="mobile-search-box" class="hidden border-t border-slate-100 px-3 py-2.5 lg:hidden">
+        <form method="get" action="{% url 'global-search' %}">
+            <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <input type="search" name="q" value="{{ request.GET.q }}" autofocus
+                       placeholder="Obyekt, ishchi, tranzaksiya..."
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-50">
+            </div>
+        </form>
+    </div>
 </header>
+
+<script>
+(function(){
+    var btn = document.getElementById('mobile-search-toggle');
+    var box = document.getElementById('mobile-search-box');
+    if(btn && box){
+        btn.addEventListener('click', function(){
+            var hidden = box.classList.toggle('hidden');
+            if(!hidden){ box.querySelector('input').focus(); }
+        });
+    }
+})();
+</script>

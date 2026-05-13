@@ -79,3 +79,8 @@ class GlobalSearchView(RoleRequiredMixin, View):
 
 def home_redirect(request):
     return redirect('dashboard:index')
+
+
+def about_view(request):
+    """Ferma haqida — standalone mini app sahifasi."""
+    return render(request, 'core/about.html')
