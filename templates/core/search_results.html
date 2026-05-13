@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block content %}
+    <!-- Header -->
+    <section class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Qidiruv</p>
+            <h2 class="mt-1 text-2xl font-extrabold text-slate-900">
+                {% if query %}
+                    "{{ query }}" — {{ total }} natija
+                {% else %}
+                    Global qidiruv
+                {% endif %}
+            </h2>
+        </div>
+    </section>
+
+    <!-- Search box -->
+    <section class="mt-4">
+        <form method="get" action="{% url 'global-search' %}" class="flex gap-3">
+            <div class="relative flex-1">
+                <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <input type="search" name="q" value="{{ query }}" autofocus
+                       placeholder="Obyekt nomi, ishchi, tranzaksiya..."
+                       class="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50">
+            </div>
+            <button type="submit"
+                    class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white">Qidirish</button>
+        </form>
+    </section>
+
+    {% if not query %}
+        <div class="mt-12 text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-3xl">🔍</div>
+            <p class="mt-4 text-slate-500">Qidiruv so'zini kiriting</p>
+            <p class="mt-1 text-sm text-slate-400">Obyektlar, ishchilar, tranzaksiyalar va ish turlaridan qidiradi</p>
+        </div>
+    {% elif total == 0 %}
+        <div class="mt-12 text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-50 text-3xl">😕</div>
+            <p class="mt-4 font-semibold text-slate-700">"{{ query }}" bo'yicha hech narsa topilmadi</p>
+            <p class="mt-1 text-sm text-slate-400">Boshqa so'z bilan urinib ko'ring</p>
+        </div>
+    {% else %}
+
+    <div class="mt-6 space-y-6">
+
+        <!-- Objects -->
+        {% if results.objects %}
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3">
+                    <span class="text-lg">🏗</span>
+                    <h3 class="font-bold text-slate-900">Obyektlar</h3>
+                    <span class="ml-auto rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-bold text-teal-700">{{ results.objects|length }}</span>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    {% for obj in results.objects %}
+                        <a href="{% url 'objects:detail' obj.pk %}"
+                           class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-sm font-black text-teal-700">
+                                {{ obj.name|slice:":1"|upper }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-slate-900">{{ obj.name }}</p>
+                                {% if obj.address %}<p class="text-xs text-slate-400">📍 {{ obj.address }}</p>{% endif %}
+                            </div>
+                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold
+                                {% if obj.status == 'active' %}bg-emerald-50 text-emerald-700
+                                {% elif obj.status == 'paused' %}bg-amber-50 text-amber-700
+                                {% else %}bg-slate-100 text-slate-500{% endif %}">
+                                {{ obj.get_status_display }}
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Workers -->
+        {% if results.workers %}
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3">
+                    <span class="text-lg">👷</span>
+                    <h3 class="font-bold text-slate-900">Ishchilar</h3>
+                    <span class="ml-auto rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700">{{ results.workers|length }}</span>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    {% for w in results.workers %}
+                        <a href="{% url 'workforce:worker-detail' w.pk %}"
+                           class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-sm font-black text-violet-700">
+                                {{ w.full_name|slice:":1"|upper }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-slate-900">{{ w.full_name }}</p>
+                                <p class="text-xs text-slate-400">{{ w.get_worker_type_display }}</p>
+                            </div>
+                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold
+                                {% if w.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                                {% if w.is_active %}Faol{% else %}Nofaol{% endif %}
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Work Items -->
+        {% if results.work_items %}
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3">
+                    <span class="text-lg">📋</span>
+                    <h3 class="font-bold text-slate-900">Ish turlari</h3>
+                    <span class="ml-auto rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">{{ results.work_items|length }}</span>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    {% for wi in results.work_items %}
+                        <a href="{% url 'objects:work-item-detail' wi.pk %}"
+                           class="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-slate-900">{{ wi.title }}</p>
+                                <p class="text-xs text-slate-400">{{ wi.object.name }}</p>
+                            </div>
+                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold
+                                {% if wi.status == 'completed' %}bg-emerald-50 text-emerald-700
+                                {% elif wi.status == 'in_progress' %}bg-blue-50 text-blue-700
+                                {% else %}bg-slate-100 text-slate-500{% endif %}">
+                                {{ wi.get_status_display }}
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Transactions -->
+        {% if results.transactions %}
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3">
+                    <span class="text-lg">💰</span>
+                    <h3 class="font-bold text-slate-900">Tranzaksiyalar</h3>
+                    <span class="ml-auto rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">{{ results.transactions|length }}</span>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    {% for t in results.transactions %}
+                        <div class="flex items-center gap-4 px-5 py-3.5">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
+                                {% if t.sign < 0 %}bg-rose-50 text-rose-600{% else %}bg-emerald-50 text-emerald-600{% endif %}">
+                                {% if t.sign < 0 %}↓{% else %}↑{% endif %}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-slate-900">{{ t.item_name|default:t.description|default:"Xarajat"|truncatechars:50 }}</p>
+                                <p class="text-xs text-slate-400">{{ t.date|date:"d.m.Y" }} · {{ t.category.name|default:"Ichki transfer" }}</p>
+                            </div>
+                            <span class="shrink-0 font-black {% if t.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                                {% if t.sign < 0 %}−{% else %}+{% endif %}{{ t.amount|money }} {{ t.currency }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Salary Payments -->
+        {% if results.salary_payments %}
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3">
+                    <span class="text-lg">💵</span>
+                    <h3 class="font-bold text-slate-900">Ish haqi to'lovlari</h3>
+                    <span class="ml-auto rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">{{ results.salary_payments|length }}</span>
+                </div>
+                <div class="divide-y divide-slate-50">
+                    {% for sp in results.salary_payments %}
+                        <div class="flex items-center gap-4 px-5 py-3.5">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-sm font-black text-amber-700">
+                                {{ sp.worker.full_name|slice:":1"|upper }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-slate-900">{{ sp.worker.full_name }}</p>
+                                <p class="text-xs text-slate-400">{{ sp.date|date:"d.m.Y" }} · {{ sp.object.name|default:"Umumiy" }}</p>
+                            </div>
+                            <span class="shrink-0 font-black text-emerald-600">+{{ sp.amount|money }} {{ sp.currency }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+    {% endif %}
+{% endblock %}

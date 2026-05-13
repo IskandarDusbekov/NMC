@@ -152,6 +152,11 @@ MESSAGE_TAGS = {
     message_constants.ERROR: 'error',
 }
 
+# ── Telegram bot notifications ────────────────────────────────────────────
+TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN', '')
+# Vergul bilan ajratilgan director/admin chat IDlar: "123456789,987654321"
+TELEGRAM_NOTIFY_CHAT_IDS = env_list('TELEGRAM_NOTIFY_CHAT_IDS', [])
+
 ADMIN_SITE_HEADER = 'NurafshonMega Ferma admin panel'
 ADMIN_SITE_TITLE = 'Ferma boshqaruv'
 ADMIN_INDEX_TITLE = 'Sozlamalar va ma`lumotlar boshqaruvi'

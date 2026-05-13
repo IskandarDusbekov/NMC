@@ -8,7 +8,8 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from .models import CurrencyChoices, ManagerAccount, ManagerTransfer, Transaction, TransactionTypeChoices, WalletTypeChoices
+from django.db.models import Case, When, Value, IntegerField
+from .models import CurrencyChoices, ManagerAccount, ManagerTransfer, Transaction, TransactionEntryTypeChoices, TransactionTypeChoices, WalletTypeChoices
 
 
 ZERO = Decimal('0.00')
@@ -206,6 +207,70 @@ def object_spending_summary(limit=6, user=None):
         item['UZS_percent'] = _percent(item['UZS'], max_uzs)
         item['USD_percent'] = _percent(item['USD'], max_usd)
     return summary
+
+
+def manager_detailed_summary():
+    """
+    Har bir manager uchun:
+      - total_received: TRANSFER_TO_MANAGER (manager wallet, income sign)
+      - total_spent: MANAGER_EXPENSE xarajatlar
+      - total_returned: MANAGER_RETURN (manager wallet, chiqim sign)
+      - current_balance: received - spent - returned
+    Ikki valyuta (UZS, USD) alohida.
+    """
+    accounts = ManagerAccount.objects.filter(is_active=True).select_related('user').order_by('user__full_name')
+    rows = []
+    for account in accounts:
+        qs = Transaction.objects.active().filter(
+            manager_account=account,
+            wallet_type=WalletTypeChoices.MANAGER,
+        )
+        received_uzs = qs.filter(
+            entry_type=TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
+            currency=CurrencyChoices.UZS,
+        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
+
+        received_usd = qs.filter(
+            entry_type=TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
+            currency=CurrencyChoices.USD,
+        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
+
+        spent_uzs = qs.filter(
+            entry_type=TransactionEntryTypeChoices.MANAGER_EXPENSE,
+            currency=CurrencyChoices.UZS,
+        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
+
+        spent_usd = qs.filter(
+            entry_type=TransactionEntryTypeChoices.MANAGER_EXPENSE,
+            currency=CurrencyChoices.USD,
+        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
+
+        returned_uzs = qs.filter(
+            entry_type=TransactionEntryTypeChoices.MANAGER_RETURN,
+            currency=CurrencyChoices.UZS,
+        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
+
+        returned_usd = qs.filter(
+            entry_type=TransactionEntryTypeChoices.MANAGER_RETURN,
+            currency=CurrencyChoices.USD,
+        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
+
+        balance_uzs = received_uzs - spent_uzs - returned_uzs
+        balance_usd = received_usd - spent_usd - returned_usd
+
+        rows.append({
+            'account': account,
+            'received_uzs': received_uzs,
+            'received_usd': received_usd,
+            'spent_uzs': spent_uzs,
+            'spent_usd': spent_usd,
+            'returned_uzs': returned_uzs,
+            'returned_usd': returned_usd,
+            'balance_uzs': balance_uzs,
+            'balance_usd': balance_usd,
+            'in_debt': balance_uzs < 0 or balance_usd < 0,
+        })
+    return rows
 
 
 def monthly_expense_series(months=6, user=None):

@@ -1,5 +1,8 @@
+import logging
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import OperationalError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -17,6 +20,8 @@ from .forms import ConstructionObjectCreateForm, ConstructionObjectUpdateForm, O
 from .models import ConstructionObject, WorkItem
 from .selectors import construction_object_queryset, work_item_queryset
 from .services import ZERO, ObjectAnalyticsService, ObjectFinanceService
+
+logger = logging.getLogger(__name__)
 
 
 def _apply_validation_error(form, error: ValidationError):
@@ -102,6 +107,12 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                     )
                 except ValidationError as error:
                     _apply_validation_error(work_item_payment_form, error)
+                except OperationalError:
+                    logger.exception('Work item payment save failed due to database/storage operational error.')
+                    work_item_payment_form.add_error(None, 'Server hozir band yoki baza vaqtincha qulflangan. 10-20 soniyadan keyin qayta urinib ko`ring.')
+                except Exception:
+                    logger.exception('Unexpected error while saving work item payment.')
+                    work_item_payment_form.add_error(None, 'Saqlashda kutilmagan xatolik yuz berdi. Fayl yuklangan bo`lsa media papka ruxsatlari va server logini tekshiring.')
                 else:
                     SubmissionGuardService.remember(
                         request,
@@ -148,6 +159,12 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
                     )
                 except ValidationError as error:
                     _apply_validation_error(object_expense_form, error)
+                except OperationalError:
+                    logger.exception('Object expense save failed due to database/storage operational error.')
+                    object_expense_form.add_error(None, 'Server hozir band yoki baza vaqtincha qulflangan. 10-20 soniyadan keyin qayta urinib ko`ring.')
+                except Exception:
+                    logger.exception('Unexpected error while saving object expense.')
+                    object_expense_form.add_error(None, 'Xarajatni saqlashda kutilmagan xatolik yuz berdi. Agar chek yuklangan bo`lsa media papka ruxsatlari va error logni tekshiring.')
                 else:
                     SubmissionGuardService.remember(
                         request,

@@ -47,6 +47,32 @@ def page_url(context, page_number):
     return f'?{query.urlencode()}'
 
 
+@register.filter
+def uzs_equivalent(uzs_amount, usd_and_rate):
+    """
+    Returns UZS equivalent total: uzs_amount + usd_amount * rate.
+
+    Usage: {{ uzs_amount|uzs_equivalent:usd_amount }} — requires rate in context.
+    Or use the simple_tag version below.
+    """
+    try:
+        return Decimal(uzs_amount or 0) + Decimal(usd_and_rate or 0)
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(0)
+
+
+@register.simple_tag
+def calc_uzs_equivalent(uzs_amount, usd_amount, rate):
+    """
+    Calculates total UZS equivalent: uzs_amount + usd_amount * rate.
+    Usage: {% calc_uzs_equivalent uzs_val usd_val rate_val as equiv %}
+    """
+    try:
+        return Decimal(uzs_amount or 0) + Decimal(usd_amount or 0) * Decimal(rate or 0)
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(0)
+
+
 @register.simple_tag
 def pagination_window(page_obj, side_count=2):
     current = page_obj.number

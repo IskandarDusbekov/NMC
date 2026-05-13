@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.urls import include, path
 
 from apps.core.admin_views import download_json_backup, backup_dashboard
+from apps.core.views import GlobalSearchView
 
 admin.site.site_header = getattr(settings, 'ADMIN_SITE_HEADER', '⚙️ NMC Boshqaruv Paneli')
 admin.site.site_title = getattr(settings, 'ADMIN_SITE_TITLE', 'NMC Admin')
@@ -25,6 +26,7 @@ urlpatterns = [
     path(admin_url, admin.site.urls),
     path('admin/', hidden_admin_disabled),
     path('admin/<path:_extra>/', hidden_admin_disabled),
+    path('search/', GlobalSearchView.as_view(), name='global-search'),
     path('accounts/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('', include(('apps.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('', include(('apps.objects.urls', 'objects'), namespace='objects')),

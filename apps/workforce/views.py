@@ -11,6 +11,7 @@ from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
+from apps.core.exports import build_excel, excel_response
 from apps.core.forms import ConfirmDeleteForm
 from apps.core.mixins import PageMetadataMixin, RoleRequiredMixin
 from apps.core.services import SubmissionGuardService
@@ -239,3 +240,48 @@ class SalaryPaymentReceiptView(RoleRequiredMixin, View):
             filename=filename,
             content_type=content_type,
         )
+
+
+class WorkerExportView(RoleRequiredMixin, View):
+    """Ishchilar ro'yxatini Excel formatida yuklab olish."""
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
+
+    def get(self, request):
+        workers = worker_queryset()
+        headers = ['#', 'Ism', 'Turi', 'Oylik maosh', 'Valyuta', 'Holat', 'Izoh']
+        rows = []
+        for i, w in enumerate(workers, 1):
+            rows.append([
+                i,
+                w.full_name,
+                w.get_worker_type_display(),
+                float(w.monthly_salary) if w.monthly_salary else '-',
+                w.salary_currency or '-',
+                'Faol' if w.is_active else 'Nofaol',
+                w.notes or '-',
+            ])
+        buf = build_excel('Ishchilar ro\'yxati', headers, rows)
+        return excel_response(buf, 'ishchilar.xlsx')
+
+
+class SalaryPaymentExportView(RoleRequiredMixin, View):
+    """Ish haqi to'lovlarini Excel formatida yuklab olish."""
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
+
+    def get(self, request):
+        payments = recent_salary_payments(limit=1000, user=request.user)
+        headers = ['#', 'Sana', 'Ishchi', 'Manba', 'Obyekt', 'Summa', 'Valyuta', 'Izoh']
+        rows = []
+        for i, p in enumerate(payments, 1):
+            rows.append([
+                i,
+                p.date.strftime('%d.%m.%Y'),
+                p.worker.full_name,
+                p.get_source_wallet_display(),
+                p.object.name if p.object else 'Umumiy',
+                float(p.amount),
+                p.currency,
+                p.description or '-',
+            ])
+        buf = build_excel('Ish haqi to\'lovlari', headers, rows)
+        return excel_response(buf, 'ish-haqi.xlsx')

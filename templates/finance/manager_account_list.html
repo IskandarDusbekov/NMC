@@ -2,92 +2,305 @@
 {% load core_tags %}
 
 {% block content %}
-    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {% if is_manager_view %}
-            {% include "includes/stats_card.html" with title="Mening UZS balansim" value=personal_balances|dict_get:"UZS"|money|add:" UZS" hint="Shaxsiy operatsion wallet" %}
-            {% include "includes/stats_card.html" with title="Mening USD balansim" value=personal_balances|dict_get:"USD"|money|add:" USD" hint="Valyuta alohida yuritiladi" %}
-        {% else %}
-            {% include "includes/stats_card.html" with title="Ferma UZS" value=company_balances|dict_get:"UZS"|money|add:" UZS" hint="Markaziy hisob" %}
-            {% include "includes/stats_card.html" with title="Ferma USD" value=company_balances|dict_get:"USD"|money|add:" USD" hint="Markaziy hisob" %}
-            {% include "includes/stats_card.html" with title="Managerlar qo`lida UZS" value=manager_holdings|dict_get:"UZS"|money|add:" UZS" hint="Operatsion mablag`" %}
-            {% include "includes/stats_card.html" with title="Managerlar qo`lida USD" value=manager_holdings|dict_get:"USD"|money|add:" USD" hint="Operatsion mablag`" %}
-        {% endif %}
-    </section>
 
-    <section class="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-        <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800">{% if is_manager_view %}Mening walletim{% else %}Manager walletlar{% endif %}</h2>
-                    <p class="text-sm text-slate-500">{% if is_manager_view %}Menga ajratilgan operatsion mablag`lar{% else %}Har bir managerga ajratilgan operatsion mablag`lar{% endif %}</p>
-                </div>
-                <div class="flex gap-3">
-                    {% if not is_manager_view %}
-                        <a href="{% url 'finance:manager-transfer-create' %}" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Transfer</a>
-                    {% endif %}
-                    <a href="{% url 'finance:manager-return-create' %}" class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Return</a>
-                </div>
-            </div>
-            <div class="mt-6 space-y-4">
-                {% for row in account_rows %}
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-5">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <p class="text-base font-bold text-slate-800">{{ row.account.user.full_name }}</p>
-                                <p class="text-sm text-slate-500">{{ row.account.user.phone|default:"Telefon kiritilmagan" }}</p>
+{# ════════ PAGE HEADER ════════ #}
+<section class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <p class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-violet-600">Moliya</p>
+        <h1 class="mt-0.5 text-xl font-extrabold text-slate-900 sm:text-2xl">
+            {% if is_manager_view %}Mening walletim{% else %}Manager walletlar{% endif %}
+        </h1>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        {% if not is_manager_view %}
+            <a href="{% url 'finance:manager-transfer-create' %}"
+               class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                → Transfer
+            </a>
+        {% endif %}
+        <a href="{% url 'finance:manager-return-create' %}"
+           class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+            ← Qaytarish
+        </a>
+    </div>
+</section>
+
+{# ════════ SUMMARY STAT CARDS ════════ #}
+<section class="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
+    {% if is_manager_view %}
+        <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-600">UZS Balans</p>
+            <p class="mt-2 text-lg font-extrabold text-blue-950">{{ personal_balances|dict_get:"UZS"|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-blue-400">UZS</p>
+        </div>
+        <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-emerald-600">USD Balans</p>
+            <p class="mt-2 text-lg font-extrabold text-emerald-950">{{ personal_balances|dict_get:"USD"|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-emerald-400">USD</p>
+        </div>
+    {% else %}
+        <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-600">Ferma UZS</p>
+            <p class="mt-2 text-base font-extrabold text-blue-950 sm:text-lg">{{ company_balances|dict_get:"UZS"|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-blue-400">UZS</p>
+        </div>
+        <div class="rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-cyan-600">Ferma USD</p>
+            <p class="mt-2 text-base font-extrabold text-cyan-950 sm:text-lg">{{ company_balances|dict_get:"USD"|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-cyan-400">USD</p>
+        </div>
+        <div class="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-violet-600">Managerlarda UZS</p>
+            <p class="mt-2 text-base font-extrabold text-violet-950 sm:text-lg">{{ manager_holdings|dict_get:"UZS"|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-violet-400">UZS</p>
+        </div>
+        <div class="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-indigo-600">Managerlarda USD</p>
+            <p class="mt-2 text-base font-extrabold text-indigo-950 sm:text-lg">{{ manager_holdings|dict_get:"USD"|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-indigo-400">USD</p>
+        </div>
+    {% endif %}
+</section>
+
+{# ════════ DETAILED DEBT BREAKDOWN (Admin/Director only) ════════ #}
+{% if not is_manager_view and detailed_rows %}
+<section class="mb-6">
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5">
+            <span class="text-lg">📊</span>
+            <h2 class="font-bold text-slate-900">Manager qarzdorlik hisobi</h2>
+            <span class="ml-auto rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700">{{ detailed_rows|length }} manager</span>
+        </div>
+
+        {# Desktop table #}
+        <div class="hidden overflow-x-auto sm:block">
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-slate-950 text-white">
+                    <tr>
+                        <th class="px-5 py-3.5 font-semibold">Manager</th>
+                        <th class="px-4 py-3.5 text-right font-semibold text-emerald-300">Olgan (UZS)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold text-rose-300">Sarflagan (UZS)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold text-amber-300">Qaytargan (UZS)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold">Qoldi (UZS)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold text-emerald-300">Olgan (USD)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold text-rose-300">Sarflagan (USD)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold text-amber-300">Qaytargan (USD)</th>
+                        <th class="px-4 py-3.5 text-right font-semibold">Qoldi (USD)</th>
+                        <th class="px-4 py-3.5 font-semibold">Holat</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for row in detailed_rows %}
+                    <tr class="hover:bg-slate-50/60 {% if row.in_debt %}bg-rose-50/30{% endif %}">
+                        <td class="px-5 py-3.5">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-xs font-black text-violet-700">
+                                    {{ row.account.user.full_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-900">{{ row.account.user.full_name }}</p>
+                                    <p class="text-xs text-slate-400">{{ row.account.user.phone|default:"—" }}</p>
+                                </div>
                             </div>
-                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">{{ row.account.is_active|yesno:"Active,Inactive" }}</span>
+                        </td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-emerald-700">{{ row.received_uzs|money }}</td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-rose-700">{{ row.spent_uzs|money }}</td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-amber-700">{{ row.returned_uzs|money }}</td>
+                        <td class="px-4 py-3.5 text-right font-extrabold {% if row.balance_uzs < 0 %}text-rose-600{% else %}text-slate-900{% endif %}">
+                            {{ row.balance_uzs|money }}
+                        </td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-emerald-700">{{ row.received_usd|money }}</td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-rose-700">{{ row.spent_usd|money }}</td>
+                        <td class="px-4 py-3.5 text-right font-semibold text-amber-700">{{ row.returned_usd|money }}</td>
+                        <td class="px-4 py-3.5 text-right font-extrabold {% if row.balance_usd < 0 %}text-rose-600{% else %}text-slate-900{% endif %}">
+                            {{ row.balance_usd|money }}
+                        </td>
+                        <td class="px-4 py-3.5">
+                            {% if row.in_debt %}
+                                <span class="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-700">⚠ Qarz</span>
+                            {% else %}
+                                <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">✓ Yaxshi</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Mobile cards #}
+        <div class="divide-y divide-slate-100 sm:hidden">
+            {% for row in detailed_rows %}
+            <div class="px-4 py-4 {% if row.in_debt %}bg-rose-50/40{% endif %}">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-sm font-black text-violet-700">
+                            {{ row.account.user.full_name|slice:":1"|upper }}
                         </div>
-                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                            <div class="rounded-xl bg-white px-4 py-3">
-                                <p class="text-xs uppercase tracking-[0.15em] text-slate-400">UZS</p>
-                                <p class="mt-1 text-xl font-bold text-slate-900">{{ row.balances|dict_get:"UZS"|money }}</p>
-                            </div>
-                            <div class="rounded-xl bg-white px-4 py-3">
-                                <p class="text-xs uppercase tracking-[0.15em] text-slate-400">USD</p>
-                                <p class="mt-1 text-xl font-bold text-slate-900">{{ row.balances|dict_get:"USD"|money }}</p>
-                            </div>
+                        <div>
+                            <p class="font-bold text-slate-900">{{ row.account.user.full_name }}</p>
+                            <p class="text-xs text-slate-400">{{ row.account.user.phone|default:"—" }}</p>
                         </div>
                     </div>
+                    {% if row.in_debt %}
+                        <span class="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-700">⚠ Qarz</span>
+                    {% else %}
+                        <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">✓ Yaxshi</span>
+                    {% endif %}
+                </div>
+                {# UZS section #}
+                <p class="mb-1.5 text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">UZS</p>
+                <div class="grid grid-cols-4 gap-1.5 mb-3">
+                    <div class="rounded-xl bg-emerald-50 p-2 text-center">
+                        <p class="text-[0.55rem] text-emerald-600 font-bold uppercase">Olgan</p>
+                        <p class="mt-0.5 text-xs font-extrabold text-emerald-900">{{ row.received_uzs|money }}</p>
+                    </div>
+                    <div class="rounded-xl bg-rose-50 p-2 text-center">
+                        <p class="text-[0.55rem] text-rose-600 font-bold uppercase">Sarfl.</p>
+                        <p class="mt-0.5 text-xs font-extrabold text-rose-900">{{ row.spent_uzs|money }}</p>
+                    </div>
+                    <div class="rounded-xl bg-amber-50 p-2 text-center">
+                        <p class="text-[0.55rem] text-amber-600 font-bold uppercase">Qayt.</p>
+                        <p class="mt-0.5 text-xs font-extrabold text-amber-900">{{ row.returned_uzs|money }}</p>
+                    </div>
+                    <div class="rounded-xl {% if row.balance_uzs < 0 %}bg-rose-100{% else %}bg-slate-100{% endif %} p-2 text-center">
+                        <p class="text-[0.55rem] font-bold uppercase {% if row.balance_uzs < 0 %}text-rose-600{% else %}text-slate-500{% endif %}">Qoldi</p>
+                        <p class="mt-0.5 text-xs font-extrabold {% if row.balance_uzs < 0 %}text-rose-700{% else %}text-slate-900{% endif %}">{{ row.balance_uzs|money }}</p>
+                    </div>
+                </div>
+                {# USD section #}
+                <p class="mb-1.5 text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">USD</p>
+                <div class="grid grid-cols-4 gap-1.5">
+                    <div class="rounded-xl bg-emerald-50 p-2 text-center">
+                        <p class="text-[0.55rem] text-emerald-600 font-bold uppercase">Olgan</p>
+                        <p class="mt-0.5 text-xs font-extrabold text-emerald-900">{{ row.received_usd|money }}</p>
+                    </div>
+                    <div class="rounded-xl bg-rose-50 p-2 text-center">
+                        <p class="text-[0.55rem] text-rose-600 font-bold uppercase">Sarfl.</p>
+                        <p class="mt-0.5 text-xs font-extrabold text-rose-900">{{ row.spent_usd|money }}</p>
+                    </div>
+                    <div class="rounded-xl bg-amber-50 p-2 text-center">
+                        <p class="text-[0.55rem] text-amber-600 font-bold uppercase">Qayt.</p>
+                        <p class="mt-0.5 text-xs font-extrabold text-amber-900">{{ row.returned_usd|money }}</p>
+                    </div>
+                    <div class="rounded-xl {% if row.balance_usd < 0 %}bg-rose-100{% else %}bg-slate-100{% endif %} p-2 text-center">
+                        <p class="text-[0.55rem] font-bold uppercase {% if row.balance_usd < 0 %}text-rose-600{% else %}text-slate-500{% endif %}">Qoldi</p>
+                        <p class="mt-0.5 text-xs font-extrabold {% if row.balance_usd < 0 %}text-rose-700{% else %}text-slate-900{% endif %}">{{ row.balance_usd|money }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <div class="px-4 py-8 text-center text-sm text-slate-400">Manager topilmadi</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ════════ WALLET CARDS + RECENT TRANSFERS ════════ #}
+<section class="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5">
+            <span class="text-lg">💼</span>
+            <h2 class="font-bold text-slate-900">{% if is_manager_view %}Mening walletim{% else %}Manager walletlar{% endif %}</h2>
+        </div>
+        <div class="divide-y divide-slate-50">
+            {% for row in account_rows %}
+            <div class="px-5 py-4">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-sm font-black text-violet-700">
+                            {{ row.account.user.full_name|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900">{{ row.account.user.full_name }}</p>
+                            <p class="text-xs text-slate-400">{{ row.account.user.phone|default:"Telefon yo'q" }}</p>
+                        </div>
+                    </div>
+                    <span class="rounded-full text-xs font-bold px-2.5 py-1
+                        {% if row.account.is_active %}bg-emerald-100 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                        {% if row.account.is_active %}Faol{% else %}Nofaol{% endif %}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-xl bg-blue-50 px-4 py-3">
+                        <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-500">UZS</p>
+                        <p class="mt-1 text-base font-extrabold text-blue-950">{{ row.balances|dict_get:"UZS"|money }}</p>
+                    </div>
+                    <div class="rounded-xl bg-emerald-50 px-4 py-3">
+                        <p class="text-[0.6rem] font-bold uppercase tracking-wider text-emerald-500">USD</p>
+                        <p class="mt-1 text-base font-extrabold text-emerald-950">{{ row.balances|dict_get:"USD"|money }}</p>
+                    </div>
+                </div>
+                {% if ui_exchange_rate %}
+                <div class="mt-2 rounded-xl bg-slate-50 px-4 py-2 flex items-center justify-between">
+                    <p class="text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">≈ UZS ekvivalent</p>
+                    {% calc_uzs_equivalent row.balances|dict_get:"UZS" row.balances|dict_get:"USD" ui_exchange_rate.usd_to_uzs as equiv %}
+                    <p class="text-sm font-extrabold text-slate-700">{{ equiv|money }} UZS</p>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+                <div class="px-5 py-10">
+                    {% include "includes/empty_state.html" with title="Manager account yo'q" text="MANAGER role dagi user yaratganda wallet avtomatik ochiladi." %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5">
+                <span class="text-lg">🔄</span>
+                <h2 class="font-bold text-slate-900">{% if is_manager_view %}Menga bog'liq transferlar{% else %}Oxirgi transferlar{% endif %}</h2>
+            </div>
+            <div class="divide-y divide-slate-50">
+                {% for transfer in recent_transfers %}
+                <div class="flex items-center gap-3 px-5 py-3.5">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 text-sm font-black">
+                        {{ transfer.to_manager.user.full_name|slice:":1"|upper }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-slate-900 text-sm">{{ transfer.to_manager.user.full_name }}</p>
+                        <p class="text-xs text-slate-400">{{ transfer.get_transfer_kind_display }} · {{ transfer.date|date:"d.m.Y" }}</p>
+                    </div>
+                    <span class="shrink-0 font-extrabold text-blue-600 text-sm">{{ transfer.amount|money }} {{ transfer.currency }}</span>
+                </div>
                 {% empty %}
-                    {% include "includes/empty_state.html" with title="Manager account yo`q" text="MANAGER role dagi user yaratganda wallet avtomatik ochiladi." %}
+                    <div class="px-5 py-8">
+                        {% include "includes/empty_state.html" with title="Transfer yo'q" text="Ferma va manager o'rtasidagi o'tkazmalar shu yerda ko'rinadi." %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                <h2 class="text-lg font-bold text-slate-800">{% if is_manager_view %}Menga bog`liq transferlar{% else %}Oxirgi transferlar{% endif %}</h2>
-                <div class="mt-5 space-y-3">
-                    {% for transfer in recent_transfers %}
-                        <div class="rounded-xl border border-slate-100 px-4 py-3">
-                            <p class="font-semibold text-slate-800">{{ transfer.to_manager.user.full_name }}</p>
-                            <p class="text-sm text-slate-500">{{ transfer.get_transfer_kind_display }} &middot; {{ transfer.date }}</p>
-                            <p class="mt-2 font-bold text-blue-600">{{ transfer.amount|money }} {{ transfer.currency }}</p>
-                        </div>
-                    {% empty %}
-                        {% include "includes/empty_state.html" with title="Transfer yo`q" text="Ferma va manager o`rtasidagi o`tkazmalar shu yerda ko`rinadi." %}
-                    {% endfor %}
-                </div>
+        {% if not is_manager_view %}
+        <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5">
+                <span class="text-lg">📉</span>
+                <h2 class="font-bold text-slate-900">Top xarajatchilar</h2>
             </div>
-
-            {% if not is_manager_view %}
-                <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                    <h2 class="text-lg font-bold text-slate-800">Top manager spending</h2>
-                    <div class="mt-5 space-y-3">
-                        {% for row in top_manager_spending %}
-                            <div class="rounded-xl border border-slate-100 px-4 py-3">
-                                <div class="flex items-center justify-between gap-3">
-                                    <p class="font-semibold text-slate-800">{{ row.manager_account__user__full_name }}</p>
-                                    <span class="font-bold text-rose-600">{{ row.total|money }} {{ row.currency }}</span>
-                                </div>
-                            </div>
-                        {% empty %}
-                            {% include "includes/empty_state.html" with title="Xarajatlar yo`q" text="Managerlar xarajat qilgach ro`yxat to`ladi." %}
-                        {% endfor %}
+            <div class="divide-y divide-slate-50">
+                {% for row in top_manager_spending %}
+                <div class="flex items-center gap-3 px-5 py-3.5">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 text-sm font-black">
+                        {{ row.manager_account__user__full_name|slice:":1"|upper }}
                     </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-slate-900 text-sm">{{ row.manager_account__user__full_name }}</p>
+                        <p class="text-xs text-slate-400">{{ row.currency }}</p>
+                    </div>
+                    <span class="shrink-0 font-extrabold text-rose-600 text-sm">{{ row.total|money }}</span>
                 </div>
-            {% endif %}
+                {% empty %}
+                    <div class="px-5 py-8">
+                        {% include "includes/empty_state.html" with title="Xarajatlar yo'q" text="Managerlar xarajat qilgach ro'yxat to'ladi." %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    </section>
+        {% endif %}
+    </div>
+</section>
+
 {% endblock %}

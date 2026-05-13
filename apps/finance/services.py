@@ -12,6 +12,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.logs.services import AuditLogService
+from apps.core.telegram import TelegramNotificationService
 
 from .models import (
     CurrencyChoices,
@@ -506,6 +507,13 @@ class TransferService:
             description=f'{manager_account} ga {amount} {currency} -> {target_amount} {target_currency} o`tkazildi.',
             ip_address=AuditLogService.get_ip_address(request) if request else None,
         )
+        TelegramNotificationService.notify_transfer(
+            amount=amount,
+            currency=currency,
+            to_manager_name=getattr(getattr(manager_account, 'user', None), 'full_name', '') or str(manager_account),
+            description=description or '',
+            kind_label='Managerga pul berildi',
+        )
         return transfer
 
     @classmethod
@@ -585,7 +593,7 @@ class ManagerExpenseService:
     @classmethod
     def create_expense(cls, *, manager_account, category, amount, currency, description, date, user, request=None, **extra):
         TransactionService._ensure_manager_permissions(user, manager_account)
-        return TransactionService.create_transaction(
+        transaction = TransactionService.create_transaction(
             user=user,
             request=request,
             type=TransactionTypeChoices.EXPENSE,
@@ -599,6 +607,18 @@ class ManagerExpenseService:
             date=date,
             **extra,
         )
+        # Telegram notification (fon threadda, request ni sekinlashtirmaydi)
+        obj = extra.get('object')
+        TelegramNotificationService.notify_expense(
+            amount=amount,
+            currency=currency,
+            category_name=getattr(category, 'name', '') if category else '',
+            manager_name=getattr(getattr(manager_account, 'user', None), 'full_name', '') or '',
+            object_name=getattr(obj, 'name', '') if obj else '',
+            description=description or '',
+            entry_type_label='Manager xarajati',
+        )
+        return transaction
 
 
 class CompanyQuickActionService:

@@ -1,15 +1,18 @@
+import logging
 import mimetypes
 from pathlib import Path
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
+from django.db import OperationalError
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import FormView, ListView, TemplateView, UpdateView
 
+from apps.core.exports import build_excel, excel_response
 from apps.core.forms import ConfirmDeleteForm
 from apps.core.mixins import DirectorRequiredMixin, PageMetadataMixin, RoleRequiredMixin
 from apps.core.services import SubmissionGuardService
@@ -33,6 +36,7 @@ from .selectors import (
     filtered_category_totals,
     filtered_totals,
     manager_accounts,
+    manager_detailed_summary,
     monthly_expense_series,
     recent_transfers,
     top_manager_spending,
@@ -47,6 +51,8 @@ from .services import (
     TransactionService,
     TransferService,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _apply_validation_error(form, error: ValidationError):
@@ -287,16 +293,19 @@ class ManagerAccountListView(PageMetadataMixin, RoleRequiredMixin, TemplateView)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        is_manager_view = getattr(self.request.user, 'role', '') == 'MANAGER' and not getattr(self.request.user, 'is_superuser', False)
+        # Yangi detailed summary (received/spent/returned/balance)
+        all_detailed = manager_detailed_summary()
+        if is_manager_view:
+            my_account = getattr(self.request.user, 'manager_account', None)
+            context['detailed_rows'] = [r for r in all_detailed if r['account'] == my_account]
+        else:
+            context['detailed_rows'] = all_detailed
+        # Legacy rows for backward compat
         rows = []
         for account in manager_accounts(self.request.user):
-            rows.append(
-                {
-                    'account': account,
-                    'balances': ManagerBalanceService.summary_for_account(account),
-                }
-            )
+            rows.append({'account': account, 'balances': ManagerBalanceService.summary_for_account(account)})
         context['account_rows'] = rows
-        is_manager_view = getattr(self.request.user, 'role', '') == 'MANAGER' and not getattr(self.request.user, 'is_superuser', False)
         context['is_manager_view'] = is_manager_view
         context['personal_balances'] = rows[0]['balances'] if is_manager_view and rows else None
         context['company_balances'] = CompanyBalanceService.summary() if not is_manager_view else None
@@ -460,10 +469,58 @@ class ManagerExpenseCreateView(PageMetadataMixin, RoleRequiredMixin, View):
             except ValidationError as error:
                 _apply_validation_error(form, error)
                 return render(request, self.template_name, self._build_context(request, form))
+            except OperationalError:
+                logger.exception('Manager expense save failed due to database/storage operational error.')
+                form.add_error(None, 'Server hozir band yoki baza vaqtincha qulflangan. 10-20 soniyadan keyin qayta urinib ko`ring.')
+                return render(request, self.template_name, self._build_context(request, form))
+            except Exception:
+                logger.exception('Unexpected error while saving manager expense.')
+                form.add_error(None, 'Saqlashda kutilmagan xatolik yuz berdi. Agar chek yuklangan bo`lsa media papka ruxsatlari va server logini tekshiring.')
+                return render(request, self.template_name, self._build_context(request, form))
             SubmissionGuardService.remember(request, action='finance.manager_expense', payload=payload)
             messages.success(request, 'Manager expense yaratildi.')
             return redirect('finance:transaction-list')
         return render(request, self.template_name, self._build_context(request, form))
+
+
+class TransactionExportView(RoleRequiredMixin, View):
+    """Tranzaksiyalarni Excel formatida yuklab olish."""
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
+
+    def get(self, request):
+        from .forms import TransactionFilterForm
+        filter_form = TransactionFilterForm(request.GET or None, user=request.user)
+        if filter_form.is_valid():
+            qs = transaction_list(filter_form.cleaned_data, user=request.user)
+        else:
+            qs = transaction_list(user=request.user)
+
+        qs = qs.select_related('category', 'object', 'manager_account__user', 'created_by')
+        headers = ['#', 'Sana', 'Entry turi', 'Wallet', 'Kategoriya', 'Obyekt', 'Nima', 'Miqdor', 'Valyuta', 'Izoh']
+        rows = []
+        for i, t in enumerate(qs, 1):
+            wallet = ''
+            if t.wallet_type == 'MANAGER':
+                wallet = getattr(getattr(t.manager_account, 'user', None), 'full_name', 'Manager') or 'Manager'
+            elif t.wallet_type == 'OBJECT':
+                wallet = 'Obyekt'
+            else:
+                wallet = 'Ferma'
+            sign = '+' if t.sign >= 0 else '-'
+            rows.append([
+                i,
+                t.date.strftime('%d.%m.%Y'),
+                t.get_entry_type_display(),
+                wallet,
+                t.category.name if t.category else 'Ichki transfer',
+                t.object.name if t.object else '-',
+                t.item_name or t.description or '-',
+                f'{sign}{float(t.amount):,.2f}',
+                t.currency,
+                t.description or '-',
+            ])
+        buf = build_excel('Moliya tranzaksiyalari', headers, rows)
+        return excel_response(buf, 'tranzaksiyalar.xlsx')
 
 
 class CategoryManagementView(PageMetadataMixin, DirectorRequiredMixin, View):
