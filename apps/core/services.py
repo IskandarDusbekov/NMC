@@ -33,15 +33,22 @@ class NavigationService:
     @staticmethod
     def base_items() -> list[NavigationItem]:
         return [
+            # Barcha rollar
             NavigationItem('Dashboard', 'dashboard:index', '/dashboard/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'dashboard'),
             NavigationItem('Obyektlar', 'objects:list', '/objects/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'building'),
             NavigationItem('Ish turlari', 'objects:work-item-list', '/work-items/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), False, 'tasks'),
-            NavigationItem('Ferma moliyasi', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'wallet'),
+            # Moliya: Manager faqat o'z ledgerini ko'radi
+            NavigationItem('Moliya ledger', 'finance:transaction-list', '/finance/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'wallet'),
+            # Faqat Admin/Director
             NavigationItem('Manager hisoblari', 'finance:manager-account-list', '/finance/manager-accounts/', ('ADMIN', 'DIRECTOR'), False, 'manager'),
+            # Ishchilar: hamma ko'radi, Manager ham
             NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'users'),
-            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'salary'),
+            # Ish haqi: Manager o'zi to'laydi
+            NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), False, 'salary'),
+            # Hisobotlar va loglar: Admin/Director/Observer
             NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'reports'),
             NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'logs'),
+            # Faqat Admin
             NavigationItem('Sozlamalar', 'admin:index', f"/{getattr(settings, 'ADMIN_URL_PATH', 'secure-console/')}", ('ADMIN',), False, 'settings'),
         ]
 
@@ -55,8 +62,11 @@ class NavigationService:
         for item in cls.base_items():
             if user_role in item.roles:
                 label = item.label
-                if item.url_name == 'finance:transaction-list' and user_role == 'MANAGER':
-                    label = 'Mening moliyam'
+                if user_role == 'MANAGER':
+                    if item.url_name == 'finance:transaction-list':
+                        label = 'Mening moliyam'
+                    elif item.url_name == 'workforce:salary-payment-list':
+                        label = 'Ish haqi to`lovlari'
                 items.append(
                     {
                         'label': label,

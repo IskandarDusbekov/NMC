@@ -4,93 +4,228 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Telegram Kirish | NMC</title>
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="NMC Construction — Telegram orqali kirish">
+    <title>Kirish | NMC Construction</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text y='.9em' font-size='62' x='50%' dominant-baseline='middle' text-anchor='middle' font-family='Inter,sans-serif' font-weight='800' fill='white'>N</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .card-hover { transition: box-shadow .2s, transform .2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(37,99,235,.1); }
+    </style>
 </head>
 <body class="min-h-screen bg-slate-50" style="font-family: Inter, sans-serif;">
-    <div class="grid min-h-screen lg:grid-cols-[1.12fr_0.88fr]">
-        <section class="hidden lg:flex lg:flex-col lg:justify-between bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-10 text-white">
-            <div>
-                <div class="inline-flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-lg font-bold">N</span>
+
+    <div class="grid min-h-screen lg:grid-cols-[1.15fr_0.85fr]">
+
+        <!-- CHAP PANEL (faqat katta ekranda) -->
+        <section class="hidden lg:flex lg:flex-col lg:justify-between bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-12 text-white relative overflow-hidden">
+            <!-- Dekorativ aylana -->
+            <div class="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-white/5"></div>
+            <div class="absolute -bottom-20 -left-10 h-96 w-96 rounded-full bg-white/5"></div>
+
+            <div class="relative">
+                <div class="inline-flex items-center gap-3 rounded-2xl bg-white/15 px-5 py-3 backdrop-blur">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/25 text-xl font-bold">N</span>
                     <div>
-                        <p class="text-lg font-bold">NMC Construction</p>
-                        <p class="text-sm text-blue-100">Telegram-first management system</p>
+                        <p class="text-base font-bold">NMC Construction</p>
+                        <p class="text-xs text-blue-100">Qurilish boshqaruv tizimi</p>
                     </div>
                 </div>
-                <h1 class="mt-10 max-w-2xl text-5xl font-extrabold leading-tight">Tizimga kirish endi faqat Telegram bot va Mini App orqali ishlaydi.</h1>
-                <p class="mt-5 max-w-xl text-lg text-blue-100">Bir martalik access token, Telegram hash verify va audit log bilan xavfsiz kirish oqimi tayyorlandi.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="rounded-3xl bg-white/10 p-6 backdrop-blur">
-                    <p class="text-sm text-blue-100">Auth</p>
-                    <p class="mt-2 text-2xl font-bold">Telegram-only</p>
+                <h1 class="mt-12 max-w-xl text-4xl font-extrabold leading-tight">
+                    Xavfsiz kirish — Telegram orqali
+                </h1>
+                <p class="mt-4 max-w-lg text-base text-blue-100 leading-7">
+                    Parol yodlab o'tirish shart emas. Telegram bot yoki Mini App orqali bir martalik havola olib, tizimga kiring.
+                </p>
+                <div class="mt-8 space-y-3">
+                    <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm">🔐</span>
+                        <p class="text-sm text-blue-50">Bir martalik token — qayta ishlatilmaydi</p>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm">⚡</span>
+                        <p class="text-sm text-blue-50">5 daqiqa ichida avtomatik yaroqsiz bo'ladi</p>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm">📋</span>
+                        <p class="text-sm text-blue-50">Barcha kirish amallari audit logga yoziladi</p>
+                    </div>
                 </div>
-                <div class="rounded-3xl bg-white/10 p-6 backdrop-blur">
-                    <p class="text-sm text-blue-100">Wallet</p>
-                    <p class="mt-2 text-2xl font-bold">Company + Manager</p>
+            </div>
+
+            <div class="relative grid grid-cols-2 gap-4">
+                <div class="rounded-3xl bg-white/10 p-5 backdrop-blur">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-blue-200">Auth</p>
+                    <p class="mt-2 text-2xl font-bold">Telegram-only</p>
+                    <p class="mt-1 text-xs text-blue-200">Parol kerak emas</p>
+                </div>
+                <div class="rounded-3xl bg-white/10 p-5 backdrop-blur">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-blue-200">Xavfsizlik</p>
+                    <p class="mt-2 text-2xl font-bold">IP Monitor</p>
+                    <p class="mt-1 text-xs text-blue-200">Yangi IP aniqlanadi</p>
                 </div>
             </div>
         </section>
-        <section class="flex items-center justify-center px-5 py-10">
-            <div class="w-full max-w-xl rounded-[32px] border border-white/70 bg-white p-8 shadow-soft">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Telegram Entry</p>
-                <h2 class="mt-3 text-3xl font-extrabold text-slate-900">Bot orqali kirish</h2>
-                <p class="mt-3 text-sm leading-6 text-slate-500">Username yoki password form yo`q. Foydalanuvchi Telegram botdan olgan bir martalik link yoki Telegram Mini App orqali tizimga kiradi.</p>
 
-                <div class="mt-8 space-y-4">
-                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                        <p class="text-sm font-semibold text-slate-900">1. Telegram bot</p>
-                        <p class="mt-2 text-sm text-slate-500">Bot ichida <code>/start</code> bosing, contact yuboring va bir martalik link oling.</p>
-                        {% if telegram_bot_username %}
-                            <a href="https://t.me/{{ telegram_bot_username }}" class="mt-4 inline-flex items-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">Telegram botni ochish</a>
-                        {% else %}
-                            <p class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">`TELEGRAM_BOT_USERNAME` hali sozlanmagan.</p>
-                        {% endif %}
+        <!-- O'NG PANEL — kirish -->
+        <section class="flex min-h-screen flex-col items-center justify-center px-5 py-10">
+
+            <!-- Mobile logo -->
+            <div class="mb-6 flex items-center gap-3 lg:hidden">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white shadow">N</span>
+                <div>
+                    <p class="text-base font-bold text-slate-900">NMC Construction</p>
+                    <p class="text-xs text-slate-500">Boshqaruv tizimi</p>
+                </div>
+            </div>
+
+            <div class="w-full max-w-md">
+
+                <!-- Flash xabarlar -->
+                {% if messages %}
+                <div class="mb-5 space-y-2">
+                    {% for msg in messages %}
+                    <div class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-medium
+                        {% if msg.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
+                        {% elif msg.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800
+                        {% elif msg.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800
+                        {% else %}border-sky-200 bg-sky-50 text-sky-800{% endif %}">
+                        <span class="mt-0.5 shrink-0">
+                            {% if msg.tags == 'success' %}✅{% elif msg.tags == 'error' %}❌{% elif msg.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                        </span>
+                        {{ msg }}
                     </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
-                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                        <p class="text-sm font-semibold text-slate-900">2. Telegram Mini App</p>
-                        <p class="mt-2 text-sm text-slate-500">Mini App ichida ochilganda tizim avtomatik tekshiradi va dashboardga kiritadi.</p>
-                        <button id="mini-app-login" type="button" class="mt-4 inline-flex items-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">Mini App orqali davom etish</button>
-                        <p id="mini-app-status" class="mt-3 text-sm text-slate-500"></p>
-                    </div>
+                <!-- Asosiy karta -->
+                <div class="rounded-[28px] border border-slate-200 bg-white p-7 shadow-soft">
+                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Telegram kirish</p>
+                    <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Tizimga kiring</h2>
+                    <p class="mt-2 text-sm text-slate-500 leading-6">
+                        Username yoki parol kerak emas. Telegram bot orqali bir martalik havola yoki Mini App ishlatiladi.
+                    </p>
 
-                    {% if telegram_webapp_url %}
-                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                            <p class="text-sm font-semibold text-slate-900">3. WebApp havola</p>
-                            <a href="{{ telegram_webapp_url }}" class="mt-3 inline-flex items-center rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-white">Mini App URL ni ochish</a>
+                    <div class="mt-6 space-y-3">
+
+                        <!-- 1. Telegram Bot -->
+                        <div class="card-hover rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 text-lg">🤖</span>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-slate-900">Telegram Bot</p>
+                                    <p class="mt-1 text-xs text-slate-500 leading-5">
+                                        Botda <code class="rounded bg-slate-200 px-1.5 py-0.5 font-mono text-xs">/start</code> bosing → telefon raqam yuboring → bir martalik link oling
+                                    </p>
+                                </div>
+                            </div>
+                            {% if telegram_bot_username %}
+                                <a href="https://t.me/{{ telegram_bot_username }}" target="_blank" rel="noopener"
+                                   class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/></svg>
+                                    Botni ochish — @{{ telegram_bot_username }}
+                                </a>
+                            {% else %}
+                                <p class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                                    ⚠️ TELEGRAM_BOT_USERNAME sozlanmagan
+                                </p>
+                            {% endif %}
                         </div>
-                    {% endif %}
+
+                        <!-- 2. Mini App -->
+                        <div class="card-hover rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 text-lg">📱</span>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-slate-900">Telegram Mini App</p>
+                                    <p class="mt-1 text-xs text-slate-500 leading-5">
+                                        Telegram ichidan ochilsa — avtomatik tizimga kiritadi
+                                    </p>
+                                </div>
+                            </div>
+                            <button id="mini-app-btn" type="button"
+                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors disabled:opacity-60">
+                                <svg id="mini-app-icon" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                                <svg id="mini-app-spinner" class="spin hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                                <span id="mini-app-label">Mini App orqali kirish</span>
+                            </button>
+                            <p id="mini-app-status" class="mt-2 hidden rounded-xl px-3 py-2 text-xs font-medium"></p>
+                        </div>
+
+                        <!-- 3. WebApp havola (agar sozlangan bo'lsa) -->
+                        {% if telegram_webapp_url %}
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-600 text-lg">🌐</span>
+                                    <p class="text-sm font-bold text-slate-900">Web App havola</p>
+                                </div>
+                                <a href="{{ telegram_webapp_url }}" target="_blank" rel="noopener"
+                                   class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                    Ochish →
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Xavfsizlik eslatmasi -->
+                    <div class="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                        <p class="text-xs font-bold text-blue-800 mb-2">🔒 Xavfsizlik kafolatlari:</p>
+                        <ul class="space-y-1 text-xs text-blue-700">
+                            <li>• Token bir marta ishlatiladi va 5 daqiqada yaroqsiz bo'ladi</li>
+                            <li>• Mini App HMAC bilan server tomonda tekshiriladi</li>
+                            <li>• Har bir kirish audit logga yoziladi</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <div class="mt-8 rounded-3xl border border-blue-100 bg-blue-50 p-5">
-                    <p class="text-sm font-semibold text-blue-900">Xavfsizlik</p>
-                    <ul class="mt-3 space-y-2 text-sm text-blue-800">
-                        <li>Bir martalik token qayta ishlatilmaydi.</li>
-                        <li>Tokenlar 1-5 minut ichida expire bo`ladi.</li>
-                        <li>Mini App hash server tomonda verify qilinadi.</li>
-                        <li>Har bir auth action audit logga yoziladi.</li>
-                    </ul>
-                </div>
+                <p class="mt-5 text-center text-xs text-slate-400">
+                    NMC Construction © {{ "now"|date:"Y" }} · Barcha huquqlar himoyalangan
+                </p>
             </div>
         </section>
     </div>
 
     <script>
-        const button = document.getElementById('mini-app-login');
-        const statusLabel = document.getElementById('mini-app-status');
+        const btn = document.getElementById('mini-app-btn');
+        const icon = document.getElementById('mini-app-icon');
+        const spinner = document.getElementById('mini-app-spinner');
+        const label = document.getElementById('mini-app-label');
+        const statusEl = document.getElementById('mini-app-status');
         const nextUrl = "{{ next_url|escapejs }}";
+
+        function setLoading(loading) {
+            btn.disabled = loading;
+            icon.classList.toggle('hidden', loading);
+            spinner.classList.toggle('hidden', !loading);
+            label.textContent = loading ? 'Tekshirilmoqda...' : 'Mini App orqali kirish';
+        }
+
+        function showStatus(text, type) {
+            statusEl.textContent = text;
+            statusEl.className = 'mt-2 rounded-xl px-3 py-2 text-xs font-medium ' + (
+                type === 'error' ? 'bg-rose-50 text-rose-700' :
+                type === 'success' ? 'bg-emerald-50 text-emerald-700' :
+                'bg-slate-100 text-slate-600'
+            );
+            statusEl.classList.remove('hidden');
+        }
 
         async function loginWithMiniApp(auto = false) {
             if (!window.Telegram || !window.Telegram.WebApp) {
                 if (auto) return;
-                statusLabel.textContent = "Mini App muhiti topilmadi. Telegram ichidan ochib ko'ring.";
+                showStatus('Mini App muhiti topilmadi. Telegram ichidan ochib ko`ring.', 'error');
                 return;
             }
             const webApp = window.Telegram.WebApp;
@@ -98,35 +233,31 @@
             webApp.expand();
             if (!webApp.initData) {
                 if (auto) return;
-                statusLabel.textContent = "Telegram initData topilmadi. Mini App tugmasidan qayta ochib ko'ring.";
+                showStatus('Telegram initData topilmadi. Mini App tugmasidan qayta ochib ko`ring.', 'error');
                 return;
             }
-            statusLabel.textContent = "Tekshirilmoqda...";
-            button.disabled = true;
+            setLoading(true);
             try {
                 const response = await fetch("{% url 'accounts:telegram-verify' %}", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        init_data: webApp.initData,
-                        next: nextUrl
-                    })
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ init_data: webApp.initData, next: nextUrl })
                 });
-                const payload = await response.json();
-                if (!response.ok || !payload.ok) {
-                    statusLabel.textContent = payload.error || "Mini App auth xatosi.";
-                    button.disabled = false;
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    showStatus(data.error || 'Mini App auth xatosi. Qayta urining.', 'error');
+                    setLoading(false);
                     return;
                 }
-                statusLabel.textContent = "Kirish tasdiqlandi. Yo'naltirilmoqda...";
-                window.location.href = payload.redirect_url;
-            } catch (error) {
-                statusLabel.textContent = "Mini App auth vaqtida aloqa xatosi. Qayta urinib ko'ring.";
-                button.disabled = false;
+                showStatus('✅ Kirish tasdiqlandi. Yo`naltirilmoqda...', 'success');
+                setTimeout(() => { window.location.href = data.redirect_url; }, 500);
+            } catch {
+                showStatus('Aloqa xatosi. Internet ulanishini tekshiring.', 'error');
+                setLoading(false);
             }
         }
 
-        button.addEventListener('click', () => loginWithMiniApp(false));
+        btn.addEventListener('click', () => loginWithMiniApp(false));
         document.addEventListener('DOMContentLoaded', () => loginWithMiniApp(true));
     </script>
 </body>

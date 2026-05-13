@@ -32,3 +32,13 @@ class AdminRequiredMixin(RoleRequiredMixin):
 
 class DirectorRequiredMixin(RoleRequiredMixin):
     allowed_roles = ('ADMIN', 'DIRECTOR')
+
+
+class ManagerRequiredMixin(RoleRequiredMixin):
+    """Faqat Manager va yuqori rollar."""
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER')
+
+
+class ObserverRequiredMixin(RoleRequiredMixin):
+    """Barcha autentifikatsiyalangan rollar (Observer ham kiradi)."""
+    allowed_roles = ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER')
