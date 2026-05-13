@@ -211,64 +211,65 @@ def object_spending_summary(limit=6, user=None):
 
 def manager_detailed_summary():
     """
-    Har bir manager uchun:
-      - total_received: TRANSFER_TO_MANAGER (manager wallet, income sign)
-      - total_spent: MANAGER_EXPENSE xarajatlar
-      - total_returned: MANAGER_RETURN (manager wallet, chiqim sign)
-      - current_balance: received - spent - returned
-    Ikki valyuta (UZS, USD) alohida.
+    Har bir manager uchun balans xulosasi.
+    Optimizatsiya: N managerlar uchun 6N so'rov o'rniga faqat 2 so'rov.
     """
-    accounts = ManagerAccount.objects.filter(is_active=True).select_related('user').order_by('user__full_name')
+    accounts = list(
+        ManagerAccount.objects.filter(is_active=True).select_related('user').order_by('user__full_name')
+    )
+    if not accounts:
+        return []
+
+    # Barcha managerlar uchun bitta aggregat so'rov
+    RELEVANT_ENTRY_TYPES = (
+        TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
+        TransactionEntryTypeChoices.MANAGER_EXPENSE,
+        TransactionEntryTypeChoices.MANAGER_RETURN,
+    )
+    raw = (
+        Transaction.objects.active()
+        .filter(
+            manager_account__in=[a.pk for a in accounts],
+            wallet_type=WalletTypeChoices.MANAGER,
+            entry_type__in=RELEVANT_ENTRY_TYPES,
+        )
+        .values('manager_account_id', 'entry_type', 'currency')
+        .annotate(total=Coalesce(Sum('amount'), ZERO))
+    )
+
+    # {account_id: {currency: {entry_type: total}}}
+    data: dict = {}
+    for row in raw:
+        acc_id = row['manager_account_id']
+        curr = row['currency']
+        etype = row['entry_type']
+        data.setdefault(acc_id, {}).setdefault(curr, {})[etype] = row['total']
+
+    def _get(acc_id, currency, entry_type):
+        return data.get(acc_id, {}).get(currency, {}).get(entry_type, ZERO)
+
     rows = []
     for account in accounts:
-        qs = Transaction.objects.active().filter(
-            manager_account=account,
-            wallet_type=WalletTypeChoices.MANAGER,
-        )
-        received_uzs = qs.filter(
-            entry_type=TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
-            currency=CurrencyChoices.UZS,
-        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
-
-        received_usd = qs.filter(
-            entry_type=TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
-            currency=CurrencyChoices.USD,
-        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
-
-        spent_uzs = qs.filter(
-            entry_type=TransactionEntryTypeChoices.MANAGER_EXPENSE,
-            currency=CurrencyChoices.UZS,
-        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
-
-        spent_usd = qs.filter(
-            entry_type=TransactionEntryTypeChoices.MANAGER_EXPENSE,
-            currency=CurrencyChoices.USD,
-        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
-
-        returned_uzs = qs.filter(
-            entry_type=TransactionEntryTypeChoices.MANAGER_RETURN,
-            currency=CurrencyChoices.UZS,
-        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
-
-        returned_usd = qs.filter(
-            entry_type=TransactionEntryTypeChoices.MANAGER_RETURN,
-            currency=CurrencyChoices.USD,
-        ).aggregate(t=Coalesce(Sum('amount'), ZERO))['t']
-
-        balance_uzs = received_uzs - spent_uzs - returned_uzs
-        balance_usd = received_usd - spent_usd - returned_usd
-
+        pk = account.pk
+        received_uzs = _get(pk, CurrencyChoices.UZS, TransactionEntryTypeChoices.TRANSFER_TO_MANAGER)
+        received_usd = _get(pk, CurrencyChoices.USD, TransactionEntryTypeChoices.TRANSFER_TO_MANAGER)
+        spent_uzs    = _get(pk, CurrencyChoices.UZS, TransactionEntryTypeChoices.MANAGER_EXPENSE)
+        spent_usd    = _get(pk, CurrencyChoices.USD, TransactionEntryTypeChoices.MANAGER_EXPENSE)
+        returned_uzs = _get(pk, CurrencyChoices.UZS, TransactionEntryTypeChoices.MANAGER_RETURN)
+        returned_usd = _get(pk, CurrencyChoices.USD, TransactionEntryTypeChoices.MANAGER_RETURN)
+        balance_uzs  = received_uzs - spent_uzs - returned_uzs
+        balance_usd  = received_usd - spent_usd - returned_usd
         rows.append({
-            'account': account,
+            'account':      account,
             'received_uzs': received_uzs,
             'received_usd': received_usd,
-            'spent_uzs': spent_uzs,
-            'spent_usd': spent_usd,
+            'spent_uzs':    spent_uzs,
+            'spent_usd':    spent_usd,
             'returned_uzs': returned_uzs,
             'returned_usd': returned_usd,
-            'balance_uzs': balance_uzs,
-            'balance_usd': balance_usd,
-            'in_debt': balance_uzs < 0 or balance_usd < 0,
+            'balance_uzs':  balance_uzs,
+            'balance_usd':  balance_usd,
+            'in_debt':      balance_uzs < 0 or balance_usd < 0,
         })
     return rows
 

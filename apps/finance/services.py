@@ -8,6 +8,8 @@ from urllib.request import urlopen
 
 from django.core.exceptions import ValidationError
 from django.db import transaction as db_transaction
+from django.db.models import Case, DecimalField, F, Sum, When
+from django.db.models.functions import Coalesce
 from django.conf import settings
 from django.utils import timezone
 
@@ -99,26 +101,63 @@ class ExchangeRateService:
         return cls.update_rate(usd_to_uzs=rate, effective_at=effective_at, user=user)
 
 
+def _signed_sum_by_currency(queryset) -> dict:
+    """
+    Barcha tranzaksiyalar uchun valyuta bo'yicha imzolangan yig'indini
+    bitta SQL so'rovida hisoblaydi.
+
+    Eski yondashuv: Python'da har bir tranzaksiyani aylanib, .sign property
+    bilan qo'shib chiqardi — bu BARCHA qatorlarni xotiraga yuklardi.
+
+    Yangi yondashuv: SQL CASE/WHEN bilan DB'da hisoblaydi.
+    """
+    rows = (
+        queryset
+        .annotate(
+            signed=Case(
+                # Aniq entry_type bo'yicha ijobiy
+                When(entry_type__in=[
+                    TransactionEntryTypeChoices.COMPANY_INCOME,
+                    TransactionEntryTypeChoices.TRANSFER_FROM_OBJECT,
+                ], then=F('amount')),
+                # Manager wallet'ga kelgan pul
+                When(
+                    wallet_type=WalletTypeChoices.MANAGER,
+                    entry_type=TransactionEntryTypeChoices.TRANSFER_TO_MANAGER,
+                    then=F('amount'),
+                ),
+                # Company wallet'dan chiqgan pul
+                When(
+                    wallet_type=WalletTypeChoices.COMPANY,
+                    entry_type=TransactionEntryTypeChoices.MANAGER_RETURN,
+                    then=F('amount'),
+                ),
+                # type bo'yicha fallback
+                When(type=TransactionTypeChoices.INCOME, then=F('amount')),
+                default=F('amount') * -1,
+                output_field=DecimalField(max_digits=18, decimal_places=2),
+            )
+        )
+        .values('currency')
+        .annotate(total=Coalesce(Sum('signed'), ZERO))
+    )
+    result = {CurrencyChoices.UZS: ZERO, CurrencyChoices.USD: ZERO}
+    for row in rows:
+        if row['currency'] in result:
+            result[row['currency']] = row['total']
+    return result
+
+
 class CompanyBalanceService:
-    @staticmethod
-    def _signed_total(queryset, currency: str) -> Decimal:
-        total = ZERO
-        for item in queryset.filter(currency=currency):
-            total += item.amount * Decimal(item.sign)
-        return total
+    @classmethod
+    def summary(cls, queryset=None) -> dict:
+        """Ferma balansi: bitta SQL GROUP BY so'rovida."""
+        queryset = queryset if queryset is not None else Transaction.objects.company_wallet()
+        return _signed_sum_by_currency(queryset)
 
     @classmethod
     def current_balance(cls, currency: str, queryset=None) -> Decimal:
-        queryset = queryset if queryset is not None else Transaction.objects.company_wallet()
-        return cls._signed_total(queryset, currency)
-
-    @classmethod
-    def summary(cls, queryset=None):
-        queryset = queryset if queryset is not None else Transaction.objects.company_wallet()
-        return {
-            CurrencyChoices.UZS: cls.current_balance(CurrencyChoices.UZS, queryset),
-            CurrencyChoices.USD: cls.current_balance(CurrencyChoices.USD, queryset),
-        }
+        return cls.summary(queryset).get(currency, ZERO)
 
 
 class ManagerBalanceService:
@@ -129,33 +168,21 @@ class ManagerBalanceService:
         except ManagerAccount.DoesNotExist as exc:
             raise ValidationError('Manager account topilmadi.') from exc
 
-    @staticmethod
-    def _signed_total(queryset, currency: str) -> Decimal:
-        total = ZERO
-        for item in queryset.filter(currency=currency):
-            total += item.amount * Decimal(item.sign)
-        return total
+    @classmethod
+    def summary_for_account(cls, manager_account) -> dict:
+        """Manager balansi: bitta SQL GROUP BY so'rovida."""
+        queryset = Transaction.objects.manager_wallet().filter(manager_account=manager_account)
+        return _signed_sum_by_currency(queryset)
 
     @classmethod
     def current_balance(cls, manager_account, currency: str, queryset=None) -> Decimal:
-        queryset = queryset if queryset is not None else Transaction.objects.manager_wallet().filter(manager_account=manager_account)
-        return cls._signed_total(queryset, currency)
+        return cls.summary_for_account(manager_account).get(currency, ZERO)
 
     @classmethod
-    def summary_for_account(cls, manager_account):
-        queryset = Transaction.objects.manager_wallet().filter(manager_account=manager_account)
-        return {
-            CurrencyChoices.UZS: cls.current_balance(manager_account, CurrencyChoices.UZS, queryset),
-            CurrencyChoices.USD: cls.current_balance(manager_account, CurrencyChoices.USD, queryset),
-        }
-
-    @classmethod
-    def total_manager_holdings(cls):
+    def total_manager_holdings(cls) -> dict:
+        """Barcha managerlar balansi yig'indisi: bitta SQL GROUP BY so'rovida."""
         queryset = Transaction.objects.manager_wallet()
-        return {
-            CurrencyChoices.UZS: cls._signed_total(queryset, CurrencyChoices.UZS),
-            CurrencyChoices.USD: cls._signed_total(queryset, CurrencyChoices.USD),
-        }
+        return _signed_sum_by_currency(queryset)
 
 
 class TransactionService:
