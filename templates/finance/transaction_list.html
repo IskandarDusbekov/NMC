@@ -2,323 +2,417 @@
 {% load core_tags %}
 
 {% block content %}
-    <section class="mobile-page-intro rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Moliya</p>
-                <h2 class="mt-2 text-3xl font-extrabold text-slate-900">{% if request.user.role == 'MANAGER' %}Mening moliyam{% else %}Ferma moliyasi{% endif %}</h2>
-                <p class="mt-2 max-w-2xl text-sm text-slate-500">
-                    {% if is_manager_view %}
-                        O`z operatsion hisobingiz, sizga berilgan pullar va kiritgan xarajatlaringiz.
-                    {% else %}
-                        Asosiy pul amallari: kirim, chiqim, managerga pul berish, obyektga pul yo`naltirish va obyektdan qaytarib olish.
-                    {% endif %}
-                </p>
-            </div>
-            {% if can_manage_finance %}
-                <div class="flex flex-wrap gap-2">
-                    <a href="{% url 'finance:category-list' %}" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Xarajat turlari</a>
-                    <button type="button" data-modal-open="company-quick-action-modal" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Yangi moliya amali</button>
-                </div>
-            {% elif is_manager_view %}
-                <a href="{% url 'finance:manager-expense-create' %}" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Xarajat qo`shish</a>
-            {% endif %}
-        </div>
-    </section>
 
-    {% if is_manager_view %}
-        <section class="finance-summary-cards mt-6 grid gap-4 md:grid-cols-3">
-            <div class="rounded-3xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
-                <p class="text-sm font-semibold text-blue-700">Mening UZS balansim</p>
-                <p class="mt-3 text-2xl font-extrabold text-blue-950">{{ manager_balances.UZS|money }} UZS</p>
-            </div>
-            <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-                <p class="text-sm font-semibold text-emerald-700">Mening USD balansim</p>
-                <p class="mt-3 text-2xl font-extrabold text-emerald-950">{{ manager_balances.USD|money }} USD</p>
-            </div>
-            <a href="{% url 'finance:manager-expense-create' %}" class="rounded-3xl border border-rose-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <p class="text-sm font-semibold text-rose-700">Tezkor amal</p>
-                <p class="mt-3 text-lg font-extrabold text-slate-950">Xarajat kiritish</p>
-                <p class="mt-2 text-sm text-slate-500">Pul faqat mening walletimdan ayriladi.</p>
+{# ════════ PAGE HEADER ════════ #}
+<section class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <p class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-blue-600">Moliya</p>
+        <h1 class="mt-0.5 text-xl font-extrabold text-slate-900 sm:text-2xl">
+            {% if request.user.role == 'MANAGER' %}Mening moliyam{% else %}Ferma moliyasi{% endif %}
+        </h1>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        {% if can_manage_finance %}
+            <a href="{% url 'finance:category-list' %}"
+                class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                Xarajat turlari
             </a>
-        </section>
-    {% else %}
-        <section class="finance-summary-cards mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-3xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
-                <p class="text-sm font-semibold text-blue-700">Ferma UZS</p>
-                <p class="mt-3 text-2xl font-extrabold text-blue-950">{{ company_balances.UZS|money }} UZS</p>
-            </div>
-            <div class="rounded-3xl border border-cyan-100 bg-cyan-50 p-5 shadow-sm">
-                <p class="text-sm font-semibold text-cyan-700">Ferma USD</p>
-                <p class="mt-3 text-2xl font-extrabold text-cyan-950">{{ company_balances.USD|money }} USD</p>
-            </div>
-            <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
-                <p class="text-sm font-semibold text-emerald-700">Kirim</p>
-                <p class="mt-3 text-lg font-bold text-emerald-950">Pul qo`shish</p>
-            </div>
-            <div class="rounded-3xl border border-rose-100 bg-rose-50 p-5 shadow-sm">
-                <p class="text-sm font-semibold text-rose-700">Chiqim</p>
-                <p class="mt-3 text-lg font-bold text-rose-950">Pul chiqarish</p>
-            </div>
-        </section>
-
-        <section class="finance-quick-actions mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="COMPANY_INCOME" class="rounded-3xl border border-emerald-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">1</span>
-                <h3 class="mt-4 text-lg font-extrabold text-slate-900">Kirim</h3>
-                <p class="mt-2 text-sm text-slate-500">Ferma hisobiga UZS yoki USD pul qo`shish.</p>
+            <button type="button" data-modal-open="company-quick-action-modal"
+                class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                + Moliya amali
             </button>
-            <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="COMPANY_EXPENSE" class="rounded-3xl border border-rose-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">2</span>
-                <h3 class="mt-4 text-lg font-extrabold text-slate-900">Chiqim</h3>
-                <p class="mt-2 text-sm text-slate-500">Ferma umumiy xarajatini kiritish.</p>
-            </button>
-            <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="MANAGER_TRANSFER" class="rounded-3xl border border-blue-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">3</span>
-                <h3 class="mt-4 text-lg font-extrabold text-slate-900">Managerga pul</h3>
-                <p class="mt-2 text-sm text-slate-500">Fermadan manager operatsion hisobiga o`tkazish.</p>
-            </button>
-            <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="OBJECT_FUNDING" class="rounded-3xl border border-amber-100 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">4</span>
-                <h3 class="mt-4 text-lg font-extrabold text-slate-900">Obyektga pul</h3>
-                <p class="mt-2 text-sm text-slate-500">Ferma balansidan obyekt balansiga yo`naltirish.</p>
-            </button>
-            <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="OBJECT_RETURN" class="rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">5</span>
-                <h3 class="mt-4 text-lg font-extrabold text-slate-900">Obyektdan olish</h3>
-                <p class="mt-2 text-sm text-slate-500">Obyekt balansidagi pulni fermaga qaytarish.</p>
-            </button>
-        </section>
-    {% endif %}
-
-    <section class="finance-ledger-section mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Ledger</p>
-                <h3 class="mt-2 text-2xl font-extrabold text-slate-900">Pul harakatlari tarixi</h3>
-            </div>
-            <button
-                type="button"
-                data-toggle-panel="finance-filter-panel"
-                data-open-label="Filterlarni yashirish"
-                data-closed-label="Filterlarni ochish"
-                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 lg:hidden"
-            >
-                {% if request.GET %}Filterlarni yashirish{% else %}Filterlarni ochish{% endif %}
-            </button>
-        </div>
-
-        <div id="finance-filter-panel" class="{% if request.GET %}mt-5{% else %}mt-5 hidden lg:block{% endif %}">
-            <form method="get" class="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
-                {% include "includes/form_field.html" with field=filter_form.date_from %}
-                {% include "includes/form_field.html" with field=filter_form.date_to %}
-                {% include "includes/form_field.html" with field=filter_form.currency %}
-                {% include "includes/form_field.html" with field=filter_form.category %}
-                {% include "includes/form_field.html" with field=filter_form.object %}
-                {% include "includes/form_field.html" with field=filter_form.work_item %}
-                {% if not is_manager_view %}
-                    {% include "includes/form_field.html" with field=filter_form.wallet_type %}
-                    {% include "includes/form_field.html" with field=filter_form.manager_account %}
-                {% endif %}
-                <div class="md:col-span-3 xl:col-span-7 flex flex-wrap gap-3">
-                    <button type="submit" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white">Filtrlash</button>
-                    <a href="{% url 'finance:transaction-list' %}" class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600">Tozalash</a>
-                </div>
-            </form>
-        </div>
-
-        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-                <p class="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Kirim UZS</p>
-                <p class="mt-2 text-lg font-extrabold text-emerald-950">{{ filtered_totals.UZS.INCOME|money }} UZS</p>
-            </div>
-            <div class="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
-                <p class="text-xs font-bold uppercase tracking-[0.14em] text-rose-700">Chiqim UZS</p>
-                <p class="mt-2 text-lg font-extrabold text-rose-950">{{ filtered_totals.UZS.EXPENSE|money }} UZS</p>
-            </div>
-            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-                <p class="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Kirim USD</p>
-                <p class="mt-2 text-lg font-extrabold text-emerald-950">{{ filtered_totals.USD.INCOME|money }} USD</p>
-            </div>
-            <div class="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
-                <p class="text-xs font-bold uppercase tracking-[0.14em] text-rose-700">Chiqim USD</p>
-                <p class="mt-2 text-lg font-extrabold text-rose-950">{{ filtered_totals.USD.EXPENSE|money }} USD</p>
-            </div>
-        </div>
-
-        {% if filtered_category_totals %}
-            <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div class="flex items-center justify-between gap-3">
-                    <span class="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Xarajat turlari bo`yicha jami</span>
-                    <span class="text-[11px] font-semibold text-slate-400">Yonga suring</span>
-                </div>
-                <div class="finance-category-totals mt-3 flex gap-3 overflow-x-auto pb-1">
-                    {% for row in filtered_category_totals %}
-                        <div class="min-w-[11rem] rounded-2xl border border-white bg-white px-4 py-3 shadow-sm">
-                            <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">{{ row.currency }}</p>
-                            <p class="mt-2 line-clamp-2 min-h-[2.5rem] text-sm font-bold text-slate-900">{{ row.category__name }}</p>
-                            <p class="mt-3 text-base font-extrabold text-slate-950">{{ row.total|money }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
+        {% elif is_manager_view %}
+            <a href="{% url 'finance:manager-expense-create' %}"
+                class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                + Xarajat
+            </a>
         {% endif %}
+    </div>
+</section>
 
-        <div class="mt-6 overflow-x-auto">
-            <table class="min-w-full text-left text-sm">
-                <thead class="bg-slate-950 text-white">
-                    <tr>
-                        <th class="px-4 py-4 font-semibold">ID</th>
-                        <th class="px-4 py-4 font-semibold">Sana</th>
-                        <th class="px-4 py-4 font-semibold">Amal</th>
-                        {% if not is_manager_view %}<th class="px-4 py-4 font-semibold">Hisob</th>{% endif %}
-                        <th class="px-4 py-4 font-semibold">Summa</th>
-                        <th class="px-4 py-4 font-semibold">Category</th>
-                        <th class="px-4 py-4 font-semibold">{% if is_manager_view %}Obyekt / Ish turi{% else %}Obyekt / Ish turi / Manager{% endif %}</th>
-                        <th class="px-4 py-4 font-semibold">Detal</th>
-                        <th class="px-4 py-4 font-semibold">Izoh</th>
-                        {% if can_manage_finance %}<th class="px-4 py-4 font-semibold">Boshqaruv</th>{% endif %}
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    {% for item in transactions %}
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-4 py-4 text-slate-500">#{{ item.pk }}</td>
-                            <td class="px-4 py-4 text-slate-600">{{ item.date|date:"d.m.Y" }}</td>
-                            <td class="px-4 py-4">
-                                {% if item.entry_type == 'COMPANY_INCOME' %}
-                                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Kirim</span>
-                                {% elif item.entry_type == 'COMPANY_EXPENSE' %}
-                                    <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">Chiqim</span>
-                                {% elif item.entry_type == 'TRANSFER_TO_MANAGER' %}
-                                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Managerga pul</span>
-                                {% elif item.entry_type == 'TRANSFER_TO_OBJECT' %}
-                                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">Obyektga pul</span>
-                                {% elif item.entry_type == 'TRANSFER_FROM_OBJECT' %}
-                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">Obyektdan olish</span>
-                                {% else %}
-                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{{ item.get_entry_type_display }}</span>
-                                {% endif %}
-                            </td>
-                            {% if not is_manager_view %}<td class="px-4 py-4 text-slate-600">{{ item.get_wallet_type_display }}</td>{% endif %}
-                            <td class="px-4 py-4 font-extrabold {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
-                                {% if item.sign < 0 %}-{% else %}+{% endif %}{{ item.amount|money }} {{ item.currency }}
-                                {% if item.exchange_rate %}
-                                    <div class="mt-1 text-xs font-semibold text-slate-400">
-                                        Kurs: {{ item.exchange_rate|money }} | Qarshi summa:
-                                        {% if item.target_amount %}{{ item.target_amount|money }} {{ item.target_currency }}{% else %}-{% endif %}
-                                    </div>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-4 text-slate-600">{{ item.category.name|default:"Ichki transfer" }}</td>
-                            <td class="px-4 py-4 text-slate-600">
-                                <div>{{ item.object.name|default:"-" }}</div>
-                                {% if item.work_item %}<div class="text-xs font-semibold text-blue-500">{{ item.work_item.title }}</div>{% endif %}
-                                {% if item.manager_account and not is_manager_view %}<div class="text-xs text-slate-400">{{ item.manager_account.user.full_name }}</div>{% endif %}
-                            </td>
-                            <td class="px-4 py-4 text-slate-600">
-                                <div class="font-semibold text-slate-800">{{ item.item_name|default:"-" }}</div>
-                                {% if item.quantity or item.unit or item.unit_price %}
-                                    <div class="mt-1 text-xs text-slate-400">
-                                        {% if item.quantity %}{{ item.quantity|floatformat:-3 }}{% endif %}
-                                        {% if item.unit %} {{ item.unit }}{% endif %}
-                                        {% if item.unit_price %} x {{ item.unit_price|money }}{% endif %}
-                                    </div>
-                                {% endif %}
-                                {% if item.source == 'TELEGRAM' %}
-                                    <span class="mt-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">Telegram</span>
-                                {% elif item.receipt_file %}
-                                    <a href="{% url 'finance:transaction-receipt' item.pk %}" class="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Chek</a>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-4 text-slate-500">
-                                {% if item.description %}
-                                    <div class="max-w-[220px]">
-                                        <span>{{ item.description|truncatechars:18 }}</span>
-                                        {% if item.description|length > 18 %}
-                                            <button
-                                                type="button"
-                                                data-description-modal-open
-                                                data-description-title="Transaction #{{ item.pk }}"
-                                                data-description-text="{{ item.description|escape }}"
-                                                class="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600"
-                                            >
-                                                To`liq ko`rish
-                                            </button>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            {% if can_manage_finance %}
-                                <td class="px-4 py-4">
-                                    <div class="flex flex-wrap gap-2">
-                                        {% if item.type != 'TRANSFER' %}
-                                            <a href="{% url 'finance:transaction-update' item.pk %}" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">Edit</a>
-                                        {% endif %}
-                                        <a href="{% url 'finance:transaction-delete' item.pk %}" class="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600">Delete</a>
-                                    </div>
-                                </td>
-                            {% endif %}
-                        </tr>
-                    {% empty %}
-                        <tr><td colspan="{% if is_manager_view %}8{% else %}10{% endif %}" class="px-4 py-10">{% include "includes/empty_state.html" with title="Transaction topilmadi" text="Yangi moliya amali qo`shing yoki filterlarni tozalang." %}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+{# ════════ BALANCE CARDS ════════ #}
+{% if is_manager_view %}
+    <section class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-600">UZS Balans</p>
+            <p class="mt-2 text-lg font-extrabold text-blue-950 sm:text-xl">{{ manager_balances.UZS|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-blue-400">UZS</p>
         </div>
-        {% include "includes/pagination.html" %}
+        <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-emerald-600">USD Balans</p>
+            <p class="mt-2 text-lg font-extrabold text-emerald-950 sm:text-xl">{{ manager_balances.USD|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-emerald-400">USD</p>
+        </div>
+        <a href="{% url 'finance:manager-expense-create' %}"
+            class="col-span-2 flex items-center justify-between rounded-2xl border border-rose-100 bg-white p-4 shadow-sm hover:bg-rose-50 sm:col-span-1">
+            <div>
+                <p class="text-[0.6rem] font-bold uppercase tracking-wider text-rose-600">Tezkor</p>
+                <p class="mt-1 font-extrabold text-slate-900">Xarajat kiritish →</p>
+            </div>
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600 text-xl">💸</span>
+        </a>
+    </section>
+{% else %}
+    {# Director/Admin balance row #}
+    <section class="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-600">Ferma UZS</p>
+            <p class="mt-2 text-base font-extrabold text-blue-950 sm:text-lg">{{ company_balances.UZS|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-blue-400">UZS</p>
+        </div>
+        <div class="rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-cyan-600">Ferma USD</p>
+            <p class="mt-2 text-base font-extrabold text-cyan-950 sm:text-lg">{{ company_balances.USD|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-cyan-400">USD</p>
+        </div>
+        <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-emerald-600">Kirim UZS</p>
+            <p class="mt-2 text-base font-extrabold text-emerald-950 sm:text-lg">{{ filtered_totals.UZS.INCOME|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-emerald-400">Filtr bo'yicha</p>
+        </div>
+        <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-rose-600">Chiqim UZS</p>
+            <p class="mt-2 text-base font-extrabold text-rose-950 sm:text-lg">{{ filtered_totals.UZS.EXPENSE|money }}</p>
+            <p class="mt-0.5 text-[0.6rem] text-rose-400">Filtr bo'yicha</p>
+        </div>
     </section>
 
-    <div id="description-preview-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
-        <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Izoh</p>
-                    <h3 id="description-preview-title" class="mt-2 text-lg font-extrabold text-slate-900">Transaction</h3>
-                </div>
-                <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
-            </div>
-            <div class="mt-4 rounded-2xl bg-slate-50 p-4">
-                <p id="description-preview-text" class="whitespace-pre-line text-sm leading-6 text-slate-700">-</p>
-            </div>
-        </div>
+    {# Quick action grid (Admin/Director only, mobile scroll) #}
+    <section class="mb-5 -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+        {% for preset, label, color, icon, num in quick_presets|default:"" %}{% endfor %}
+        <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="COMPANY_INCOME"
+            class="flex min-w-[7.5rem] shrink-0 flex-col items-start rounded-2xl border border-emerald-100 bg-white p-4 text-left shadow-sm hover:-translate-y-0.5 hover:shadow-md transition sm:min-w-0">
+            <span class="text-xl">💰</span>
+            <p class="mt-2 text-sm font-extrabold text-slate-900">Kirim</p>
+            <p class="mt-0.5 text-[0.65rem] text-slate-500 leading-4">Ferma hisobiga pul qo'shish</p>
+        </button>
+        <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="COMPANY_EXPENSE"
+            class="flex min-w-[7.5rem] shrink-0 flex-col items-start rounded-2xl border border-rose-100 bg-white p-4 text-left shadow-sm hover:-translate-y-0.5 hover:shadow-md transition sm:min-w-0">
+            <span class="text-xl">💸</span>
+            <p class="mt-2 text-sm font-extrabold text-slate-900">Chiqim</p>
+            <p class="mt-0.5 text-[0.65rem] text-slate-500 leading-4">Umumiy xarajat kiritish</p>
+        </button>
+        <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="MANAGER_TRANSFER"
+            class="flex min-w-[7.5rem] shrink-0 flex-col items-start rounded-2xl border border-blue-100 bg-white p-4 text-left shadow-sm hover:-translate-y-0.5 hover:shadow-md transition sm:min-w-0">
+            <span class="text-xl">👤</span>
+            <p class="mt-2 text-sm font-extrabold text-slate-900">Managerg'a</p>
+            <p class="mt-0.5 text-[0.65rem] text-slate-500 leading-4">Operatsion hisob</p>
+        </button>
+        <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="OBJECT_FUNDING"
+            class="flex min-w-[7.5rem] shrink-0 flex-col items-start rounded-2xl border border-amber-100 bg-white p-4 text-left shadow-sm hover:-translate-y-0.5 hover:shadow-md transition sm:min-w-0">
+            <span class="text-xl">🏗️</span>
+            <p class="mt-2 text-sm font-extrabold text-slate-900">Obyektga</p>
+            <p class="mt-0.5 text-[0.65rem] text-slate-500 leading-4">Balansga pul yo'naltirish</p>
+        </button>
+        <button type="button" data-modal-open="company-quick-action-modal" data-quick-action-preset="OBJECT_RETURN"
+            class="flex min-w-[7.5rem] shrink-0 flex-col items-start rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:-translate-y-0.5 hover:shadow-md transition sm:min-w-0">
+            <span class="text-xl">↩️</span>
+            <p class="mt-2 text-sm font-extrabold text-slate-900">Qaytarish</p>
+            <p class="mt-0.5 text-[0.65rem] text-slate-500 leading-4">Obyektdan fermaga</p>
+        </button>
+    </section>
+{% endif %}
+
+{# ════════ LEDGER SECTION ════════ #}
+<section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+    {# Header + filter toggle #}
+    <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+        <h2 class="text-base font-extrabold text-slate-900">Pul harakatlari</h2>
+        <button type="button" data-toggle-panel="finance-filter-panel"
+            data-open-label="▲ Filter"
+            data-closed-label="▼ Filter"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100">
+            {% if request.GET %}▲ Filter{% else %}▼ Filter{% endif %}
+        </button>
     </div>
 
-    {% if can_manage_finance %}
-        <div id="company-quick-action-modal" class="{% if quick_action_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
-            <div class="w-full max-w-4xl rounded-3xl bg-white p-6 shadow-2xl">
-                <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Moliya amali</p>
-                        <h3 class="mt-2 text-xl font-extrabold text-slate-900">Pul harakatini kiriting</h3>
-                        <p class="mt-2 text-sm text-slate-500">Bitta oynada kerakli amalni tanlang va summani saqlang.</p>
-                    </div>
-                    <button type="button" data-modal-close class="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">X</button>
-                </div>
-                <form method="post" class="mt-5 grid gap-4 md:grid-cols-2">
-                    {% csrf_token %}
-                    {% include "includes/form_field.html" with field=quick_action_form.action %}
-                    <div id="company-quick-category-field" class="hidden">{% include "includes/form_field.html" with field=quick_action_form.category %}</div>
-                    <div id="company-quick-manager-field">{% include "includes/form_field.html" with field=quick_action_form.manager_account %}</div>
-                    <div id="company-quick-object-field">{% include "includes/form_field.html" with field=quick_action_form.object %}</div>
-                    {% include "includes/form_field.html" with field=quick_action_form.amount %}
-                    {% include "includes/form_field.html" with field=quick_action_form.currency %}
-                    <div id="company-quick-target-currency-field">{% include "includes/form_field.html" with field=quick_action_form.target_currency %}</div>
-                    <div id="company-quick-exchange-rate-field">{% include "includes/form_field.html" with field=quick_action_form.exchange_rate %}</div>
-                    {% include "includes/form_field.html" with field=quick_action_form.date %}
-                    <div class="md:col-span-2">{% include "includes/form_field.html" with field=quick_action_form.description %}</div>
-                    {% for error in quick_action_form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
-                    <div class="md:col-span-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                        Manager yoki obyektga pul o`tkazilganda Ferma balansi kamayadi. Valyuta aylantirilsa kurs shu transaction bilan saqlanadi.
-                    </div>
-                    <div class="md:col-span-2 flex justify-end gap-3">
-                        <button type="button" data-modal-close class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</button>
-                        <button type="submit" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
-                    </div>
-                </form>
+    {# Filter panel #}
+    <div id="finance-filter-panel" class="{% if request.GET %}border-b border-slate-100 px-4 py-4 sm:px-5{% else %}hidden border-b border-slate-100 px-4 py-4 sm:px-5{% endif %}">
+        <form method="get" class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {% include "includes/form_field.html" with field=filter_form.date_from %}
+            {% include "includes/form_field.html" with field=filter_form.date_to %}
+            {% include "includes/form_field.html" with field=filter_form.currency %}
+            {% include "includes/form_field.html" with field=filter_form.category %}
+            {% include "includes/form_field.html" with field=filter_form.object %}
+            {% include "includes/form_field.html" with field=filter_form.work_item %}
+            {% if not is_manager_view %}
+                {% include "includes/form_field.html" with field=filter_form.wallet_type %}
+                {% include "includes/form_field.html" with field=filter_form.manager_account %}
+            {% endif %}
+            <div class="flex items-end gap-2 sm:col-span-2 md:col-span-3 xl:col-span-4">
+                <button type="submit"
+                    class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800">Filtrlash</button>
+                <a href="{% url 'finance:transaction-list' %}"
+                    class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">Tozalash</a>
             </div>
+        </form>
+    </div>
+
+    {# Filtered totals mini pills #}
+    <div class="flex flex-wrap gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
+        <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+            ↑ {{ filtered_totals.UZS.INCOME|money }} UZS
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700">
+            ↓ {{ filtered_totals.UZS.EXPENSE|money }} UZS
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+            ↑ {{ filtered_totals.USD.INCOME|money }} USD
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700">
+            ↓ {{ filtered_totals.USD.EXPENSE|money }} USD
+        </span>
+    </div>
+
+    {# Category totals horizontal scroll #}
+    {% if filtered_category_totals %}
+    <div class="border-b border-slate-100 px-4 py-3 sm:px-5">
+        <p class="mb-2 text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">Kategoriya bo'yicha jami</p>
+        <div class="finance-category-totals flex gap-2 overflow-x-auto pb-1">
+            {% for row in filtered_category_totals %}
+                <div class="min-w-[9rem] shrink-0 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+                    <p class="text-[0.58rem] font-bold uppercase text-slate-400">{{ row.currency }}</p>
+                    <p class="mt-1 text-xs font-bold text-slate-800 line-clamp-1">{{ row.category__name }}</p>
+                    <p class="mt-1.5 text-sm font-extrabold text-slate-950">{{ row.total|money }}</p>
+                </div>
+            {% endfor %}
         </div>
+    </div>
     {% endif %}
+
+    {# ── DESKTOP TABLE ── #}
+    <div class="hidden overflow-x-auto sm:block">
+        <table class="min-w-full text-left text-sm">
+            <thead class="bg-slate-950 text-white">
+                <tr>
+                    <th class="px-4 py-3.5 font-semibold">Sana</th>
+                    <th class="px-4 py-3.5 font-semibold">Amal</th>
+                    {% if not is_manager_view %}<th class="px-4 py-3.5 font-semibold">Hisob</th>{% endif %}
+                    <th class="px-4 py-3.5 font-semibold">Summa</th>
+                    <th class="px-4 py-3.5 font-semibold">Category</th>
+                    <th class="px-4 py-3.5 font-semibold">Obyekt / Ish turi</th>
+                    <th class="px-4 py-3.5 font-semibold">Detal</th>
+                    <th class="px-4 py-3.5 font-semibold">Izoh</th>
+                    {% if can_manage_finance %}<th class="px-4 py-3.5 font-semibold">Amal</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for item in transactions %}
+                <tr class="hover:bg-blue-50/30">
+                    <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ item.date|date:"d.m.Y" }}</td>
+                    <td class="px-4 py-3">
+                        {% if item.entry_type == 'COMPANY_INCOME' %}
+                            <span class="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">↑ Kirim</span>
+                        {% elif item.entry_type == 'COMPANY_EXPENSE' %}
+                            <span class="rounded-md bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">↓ Chiqim</span>
+                        {% elif item.entry_type == 'TRANSFER_TO_MANAGER' %}
+                            <span class="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">→ Manager</span>
+                        {% elif item.entry_type == 'TRANSFER_TO_OBJECT' %}
+                            <span class="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">→ Obyekt</span>
+                        {% elif item.entry_type == 'TRANSFER_FROM_OBJECT' %}
+                            <span class="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">← Qaytarish</span>
+                        {% else %}
+                            <span class="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">{{ item.get_entry_type_display }}</span>
+                        {% endif %}
+                    </td>
+                    {% if not is_manager_view %}
+                        <td class="px-4 py-3 text-xs text-slate-500">{{ item.get_wallet_type_display }}</td>
+                    {% endif %}
+                    <td class="px-4 py-3 font-extrabold whitespace-nowrap {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                        {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }} {{ item.currency }}
+                        {% if item.exchange_rate %}
+                            <div class="mt-0.5 text-[0.6rem] font-semibold text-slate-400">
+                                kurs {{ item.exchange_rate|money }}{% if item.target_amount %} → {{ item.target_amount|money }} {{ item.target_currency }}{% endif %}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600">{{ item.category.name|default:"—" }}</td>
+                    <td class="px-4 py-3 text-xs text-slate-600">
+                        {% if item.object %}<div class="font-semibold text-slate-800">{{ item.object.name }}</div>{% endif %}
+                        {% if item.work_item %}<div class="text-blue-600">{{ item.work_item.title }}</div>{% endif %}
+                        {% if item.manager_account and not is_manager_view %}<div class="text-slate-400">{{ item.manager_account.user.full_name }}</div>{% endif %}
+                        {% if not item.object and not item.work_item and not item.manager_account %}—{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-700">
+                        <div class="font-medium">{{ item.item_name|default:"" }}</div>
+                        {% if item.quantity or item.unit_price %}
+                            <div class="text-slate-400">
+                                {% if item.quantity %}{{ item.quantity|floatformat:-3 }}{% endif %}
+                                {% if item.unit %} {{ item.unit }}{% endif %}
+                                {% if item.unit_price %} × {{ item.unit_price|money }}{% endif %}
+                            </div>
+                        {% endif %}
+                        {% if item.source == 'TELEGRAM' %}
+                            <span class="mt-1 inline-flex rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600">TG</span>
+                        {% elif item.receipt_file %}
+                            <a href="{% url 'finance:transaction-receipt' item.pk %}"
+                                class="mt-1 inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Chek</a>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-500 max-w-[180px]">
+                        {% if item.description %}
+                            <span>{{ item.description|truncatechars:30 }}</span>
+                            {% if item.description|length > 30 %}
+                                <button type="button" data-description-modal-open
+                                    data-description-title="Transaction #{{ item.pk }}"
+                                    data-description-text="{{ item.description|escape }}"
+                                    class="ml-1 text-[10px] font-bold text-blue-500 underline">to'liq</button>
+                            {% endif %}
+                        {% else %}—{% endif %}
+                    </td>
+                    {% if can_manage_finance %}
+                    <td class="px-4 py-3">
+                        <div class="flex gap-1.5">
+                            {% if item.type != 'TRANSFER' %}
+                                <a href="{% url 'finance:transaction-update' item.pk %}"
+                                    class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-bold text-slate-600 hover:bg-slate-100">Edit</a>
+                            {% endif %}
+                            <a href="{% url 'finance:transaction-delete' item.pk %}"
+                                class="rounded-lg border border-rose-200 px-2.5 py-1.5 text-[11px] font-bold text-rose-600 hover:bg-rose-50">Del</a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if is_manager_view %}7{% else %}9{% endif %}" class="px-4 py-10">
+                        {% include "includes/empty_state.html" with icon="💳" title="Transaction topilmadi" text="Yangi moliya amali qo`shing yoki filterlarni tozalang." %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# ── MOBILE CARD LIST ── #}
+    <div class="divide-y divide-slate-100 sm:hidden">
+        {% for item in transactions %}
+        <div class="px-4 py-3.5">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex items-start gap-2.5">
+                    {# Amount badge #}
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black
+                        {% if item.sign < 0 %}bg-rose-100 text-rose-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                        {% if item.sign < 0 %}−{% else %}+{% endif %}
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            {# Entry type badge #}
+                            {% if item.entry_type == 'COMPANY_INCOME' %}
+                                <span class="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Kirim</span>
+                            {% elif item.entry_type == 'COMPANY_EXPENSE' %}
+                                <span class="rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">Chiqim</span>
+                            {% elif item.entry_type == 'TRANSFER_TO_MANAGER' %}
+                                <span class="rounded-md bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">Manager</span>
+                            {% elif item.entry_type == 'TRANSFER_TO_OBJECT' %}
+                                <span class="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">Obyekt</span>
+                            {% elif item.entry_type == 'TRANSFER_FROM_OBJECT' %}
+                                <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">Qaytarish</span>
+                            {% else %}
+                                <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">{{ item.get_entry_type_display }}</span>
+                            {% endif %}
+                            {% if item.source == 'TELEGRAM' %}
+                                <span class="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600">TG</span>
+                            {% endif %}
+                        </div>
+                        <p class="mt-0.5 text-xs text-slate-500">
+                            {{ item.category.name|default:"Ichki transfer" }}
+                            {% if item.object %} · {{ item.object.name }}{% endif %}
+                        </p>
+                        {% if item.description %}
+                            <p class="mt-0.5 text-xs text-slate-400">{{ item.description|truncatechars:40 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="shrink-0 text-right">
+                    <p class="text-sm font-extrabold {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                        {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }} {{ item.currency }}
+                    </p>
+                    <p class="mt-0.5 text-[0.6rem] text-slate-400">{{ item.date|date:"d.m.Y" }}</p>
+                    {% if item.receipt_file %}
+                        <a href="{% url 'finance:transaction-receipt' item.pk %}"
+                            class="mt-1 inline-flex text-[10px] font-bold text-emerald-600 underline">Chek</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if can_manage_finance and item.type != 'TRANSFER' %}
+            <div class="mt-2 flex gap-2 pl-11">
+                <a href="{% url 'finance:transaction-update' item.pk %}"
+                    class="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-bold text-slate-600">Edit</a>
+                <a href="{% url 'finance:transaction-delete' item.pk %}"
+                    class="rounded-lg border border-rose-200 px-3 py-1.5 text-[11px] font-bold text-rose-600">O'chirish</a>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="px-4 py-10">
+            {% include "includes/empty_state.html" with icon="💳" title="Transaction yo`q" text="Moliya amali qo`shing." %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="border-t border-slate-100 px-4 py-3">
+        {% include "includes/pagination.html" %}
+    </div>
+</section>
+
+{# ── DESCRIPTION MODAL ── #}
+<div id="description-preview-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-4" data-modal>
+    <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Izoh</p>
+                <h3 id="description-preview-title" class="mt-1 text-lg font-extrabold text-slate-900">Transaction</h3>
+            </div>
+            <button type="button" data-modal-close
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600">✕</button>
+        </div>
+        <div class="mt-4 rounded-2xl bg-slate-50 p-4">
+            <p id="description-preview-text" class="whitespace-pre-line text-sm leading-6 text-slate-700">-</p>
+        </div>
+    </div>
+</div>
+
+{# ── QUICK ACTION MODAL (Admin/Director) ── #}
+{% if can_manage_finance %}
+<div id="company-quick-action-modal" class="{% if quick_action_modal_open %}flex{% else %}hidden{% endif %} fixed inset-0 z-50 items-center justify-center bg-slate-950/60 p-3 sm:p-4" data-modal>
+    <div class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
+        <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Moliya amali</p>
+                <h3 class="mt-1 text-lg font-extrabold text-slate-900">Pul harakatini kiriting</h3>
+            </div>
+            <button type="button" data-modal-close
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">✕</button>
+        </div>
+        <form method="post" class="grid gap-4 px-5 py-5 sm:grid-cols-2 sm:px-6">
+            {% csrf_token %}
+            {% include "includes/form_field.html" with field=quick_action_form.action %}
+            <div id="company-quick-category-field" class="hidden">{% include "includes/form_field.html" with field=quick_action_form.category %}</div>
+            <div id="company-quick-manager-field">{% include "includes/form_field.html" with field=quick_action_form.manager_account %}</div>
+            <div id="company-quick-object-field">{% include "includes/form_field.html" with field=quick_action_form.object %}</div>
+            {% include "includes/form_field.html" with field=quick_action_form.amount %}
+            {% include "includes/form_field.html" with field=quick_action_form.currency %}
+            <div id="company-quick-target-currency-field">{% include "includes/form_field.html" with field=quick_action_form.target_currency %}</div>
+            <div id="company-quick-exchange-rate-field">{% include "includes/form_field.html" with field=quick_action_form.exchange_rate %}</div>
+            {% include "includes/form_field.html" with field=quick_action_form.date %}
+            <div class="sm:col-span-2">{% include "includes/form_field.html" with field=quick_action_form.description %}</div>
+            {% for error in quick_action_form.non_field_errors %}
+                <p class="sm:col-span-2 text-sm text-rose-600">⚠️ {{ error }}</p>
+            {% endfor %}
+            <div class="sm:col-span-2 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                Manager yoki obyektga pul o'tkazilganda Ferma balansi kamayadi. Valyuta aylantirilsa kurs saqlanadi.
+            </div>
+            <div class="flex justify-end gap-2 sm:col-span-2">
+                <button type="button" data-modal-close
+                    class="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Bekor</button>
+                <button type="submit"
+                    class="rounded-2xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
