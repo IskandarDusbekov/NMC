@@ -1,58 +1,164 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <section class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">Audit loglar</h2>
-                <p class="text-sm text-slate-500">Login, transfer, transaction va boshqa muhim amallar tarixi</p>
-            </div>
+<section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Tizim</p>
+            <h2 class="mt-1 text-xl font-extrabold text-slate-900 sm:text-2xl">Audit loglar</h2>
+            <p class="mt-1 text-sm text-slate-500">Login, transfer, transaction va boshqa muhim amallar tarixi</p>
         </div>
-        <form method="get" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {% include "includes/form_field.html" with field=filter_form.action %}
-            {% include "includes/form_field.html" with field=filter_form.model_name %}
-            <div class="flex items-end gap-3">
-                <button type="submit" class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Filtrlash</button>
-                <a href="{% url 'logs:index' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Tozalash</a>
-            </div>
-        </form>
-    </section>
+    </div>
+    <form method="get" class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {% include "includes/form_field.html" with field=filter_form.action %}
+        {% include "includes/form_field.html" with field=filter_form.model_name %}
+        <div class="flex items-end gap-2 sm:col-span-2 xl:col-span-2">
+            <button type="submit"
+                class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
+                Filtrlash
+            </button>
+            <a href="{% url 'logs:index' %}"
+                class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                Tozalash
+            </a>
+        </div>
+    </form>
+</section>
 
-    <section class="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-left text-sm">
-                <thead class="border-b border-slate-100 text-slate-500">
-                    <tr>
-                        <th class="px-2 py-3 font-semibold">Vaqt</th>
-                        <th class="px-2 py-3 font-semibold">Action</th>
-                        <th class="px-2 py-3 font-semibold">Model</th>
-                        <th class="px-2 py-3 font-semibold">User</th>
-                        <th class="px-2 py-3 font-semibold">Izoh</th>
-                        <th class="px-2 py-3 font-semibold">IP</th>
+<section class="mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <!-- Desktop table (hidden on mobile) -->
+    <div class="hidden overflow-x-auto sm:block">
+        <table class="min-w-full text-left text-sm">
+            <thead class="border-b border-slate-200 bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Vaqt</th>
+                    <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Amal</th>
+                    <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Model</th>
+                    <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Foydalanuvchi</th>
+                    <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Izoh</th>
+                    <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">IP</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for item in logs %}
+                    <tr class="hover:bg-slate-50/60">
+                        <td class="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{{ item.created_at|date:"d.m.Y" }}<br><span class="font-semibold text-slate-700">{{ item.created_at|date:"H:i" }}</span></td>
+                        <td class="px-4 py-3">
+                            {% with a=item.action %}
+                            {% if a == 'security_ip_blocked' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">🚫 IP Bloklandi</span>
+                            {% elif a == 'security_admin_login_failed' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-bold text-red-600">⚠️ Admin Login Xato</span>
+                            {% elif a == 'miniapp_auth_failed' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-600">⚠️ MiniApp Xato</span>
+                            {% elif a == 'token_login_failed' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-600">⚠️ Token Xato</span>
+                            {% elif a == 'auth_failure' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-600">⚠️ Auth Xato</span>
+                            {% elif a == 'security_admin_login_success' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">✅ Admin Kirdi</span>
+                            {% elif a == 'telegram_token_login' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">🔑 Token Login</span>
+                            {% elif a == 'telegram_mini_app_login' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">📱 MiniApp Login</span>
+                            {% elif a == 'security_new_ip_login' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">🆕 Yangi IP</span>
+                            {% elif a == 'logout' %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">↩ Chiqish</span>
+                            {% elif 'create' in a %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-700">➕ Yaratildi</span>
+                            {% elif 'update' in a %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">✏️ O'zgartirildi</span>
+                            {% elif 'delete' in a %}
+                                <span class="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700">🗑 O'chirildi</span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{{ item.action }}</span>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-slate-600">{{ item.model_name|default:"-" }}</td>
+                        <td class="px-4 py-3">
+                            {% if item.user %}
+                                <p class="text-sm font-semibold text-slate-800">{{ item.user.full_name|default:item.user.username }}</p>
+                                <p class="text-xs text-slate-400">{{ item.user.role }}</p>
+                            {% else %}
+                                <span class="text-xs text-slate-400">Tizim</span>
+                            {% endif %}
+                        </td>
+                        <td class="max-w-xs px-4 py-3 text-xs text-slate-500">{{ item.description|truncatechars:80 }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-xs font-mono text-slate-500">{{ item.ip_address|default:"-" }}</td>
                     </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for item in logs %}
-                        <tr>
-                            <td class="px-2 py-3 text-slate-600">{{ item.created_at|date:"d.m.Y H:i" }}</td>
-                            <td class="px-2 py-3 font-semibold text-slate-800">{{ item.action }}</td>
-                            <td class="px-2 py-3 text-slate-600">{{ item.model_name }}</td>
-                            <td class="px-2 py-3 text-slate-600">
-                                {% if item.user %}
-                                    {{ item.user.full_name|default:item.user.username }}
-                                {% else %}
-                                    Tizim
-                                {% endif %}
-                            </td>
-                            <td class="px-2 py-3 text-slate-600">{{ item.description }}</td>
-                            <td class="px-2 py-3 text-slate-600">{{ item.ip_address|default:"-" }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr><td colspan="6" class="px-2 py-8">{% include "includes/empty_state.html" with title="Loglar yo`q" text="Muhim amallar bajarilgach audit log shu yerga yoziladi." %}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-10">
+                            {% include "includes/empty_state.html" with icon="📋" title="Loglar yo`q" text="Muhim amallar bajarilgach audit log shu yerga yoziladi." %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile cards (visible only on small screens) -->
+    <div class="divide-y divide-slate-100 sm:hidden">
+        {% for item in logs %}
+            <div class="px-4 py-3.5">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        {% with a=item.action %}
+                        {% if a == 'security_ip_blocked' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-0.5 text-[0.65rem] font-bold text-red-700">🚫 IP Bloklandi</span>
+                        {% elif a == 'security_admin_login_failed' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-red-50 px-2 py-0.5 text-[0.65rem] font-bold text-red-600">⚠️ Admin Xato</span>
+                        {% elif a == 'miniapp_auth_failed' or a == 'token_login_failed' or a == 'auth_failure' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-orange-50 px-2 py-0.5 text-[0.65rem] font-bold text-orange-600">⚠️ Auth Xato</span>
+                        {% elif a == 'security_admin_login_success' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-700">✅ Admin Kirdi</span>
+                        {% elif a == 'telegram_token_login' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[0.65rem] font-bold text-blue-700">🔑 Token Login</span>
+                        {% elif a == 'telegram_mini_app_login' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[0.65rem] font-bold text-blue-700">📱 MiniApp</span>
+                        {% elif a == 'security_new_ip_login' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[0.65rem] font-bold text-amber-700">🆕 Yangi IP</span>
+                        {% elif a == 'logout' %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[0.65rem] font-bold text-slate-600">↩ Chiqish</span>
+                        {% elif 'create' in a %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-teal-50 px-2 py-0.5 text-[0.65rem] font-bold text-teal-700">➕ Yaratildi</span>
+                        {% elif 'update' in a %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[0.65rem] font-bold text-indigo-700">✏️ O'zgartirildi</span>
+                        {% elif 'delete' in a %}
+                            <span class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-[0.65rem] font-bold text-rose-700">🗑 O'chirildi</span>
+                        {% else %}
+                            <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[0.65rem] font-semibold text-slate-600">{{ item.action }}</span>
+                        {% endif %}
+                        {% endwith %}
+                        <p class="mt-1.5 text-xs text-slate-500 leading-relaxed">{{ item.description|truncatechars:90 }}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <p class="text-xs font-semibold text-slate-700">{{ item.created_at|date:"H:i" }}</p>
+                        <p class="text-[0.6rem] text-slate-400">{{ item.created_at|date:"d.m.Y" }}</p>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center gap-3">
+                    {% if item.user %}
+                        <span class="text-[0.65rem] font-semibold text-slate-600">👤 {{ item.user.full_name|default:item.user.username }}</span>
+                    {% else %}
+                        <span class="text-[0.65rem] text-slate-400">Tizim</span>
+                    {% endif %}
+                    {% if item.ip_address %}
+                        <span class="font-mono text-[0.6rem] text-slate-400">{{ item.ip_address }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="px-4 py-10">
+                {% include "includes/empty_state.html" with icon="📋" title="Loglar yo`q" text="Muhim amallar bajarilgach shu yerga yoziladi." %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="border-t border-slate-100 p-4">
         {% include "includes/pagination.html" %}
-    </section>
+    </div>
+</section>
 {% endblock %}

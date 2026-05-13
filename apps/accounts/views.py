@@ -43,9 +43,19 @@ class TelegramEntryView(TemplateView):
 @method_decorator(never_cache, name='dispatch')
 class AccessTokenLoginView(View):
     def get(self, request, token):
+        block = SecurityService.active_block_for_request(request)
+        if block:
+            messages.error(request, f'IP manzilingiz vaqtincha bloklangan. {block.blocked_until.strftime("%H:%M")} gacha kuting.')
+            return redirect('accounts:telegram-entry')
         try:
             user = TokenService.consume_token(token)
         except ValidationError as error:
+            SecurityService.register_auth_failure(
+                request,
+                action_key='token_login_failed',
+                reason='Bir martalik token xato',
+                description=f'Token login xato: {error.message}',
+            )
             messages.error(request, error.message)
             return redirect('accounts:telegram-entry')
         login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
@@ -64,6 +74,12 @@ class AccessTokenLoginView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class TelegramMiniAppVerifyView(View):
     def post(self, request):
+        block = SecurityService.active_block_for_request(request)
+        if block:
+            return JsonResponse(
+                {'ok': False, 'error': 'IP manzilingiz vaqtincha bloklangan. Keyinroq urinib ko`ring.'},
+                status=429,
+            )
         try:
             payload = json.loads(request.body.decode('utf-8') or '{}') if request.body else {}
         except json.JSONDecodeError:
@@ -73,6 +89,12 @@ class TelegramMiniAppVerifyView(View):
         try:
             user = TelegramAuthService.authenticate_from_init_data(init_data)
         except ValidationError as error:
+            SecurityService.register_auth_failure(
+                request,
+                action_key='miniapp_auth_failed',
+                reason='Telegram MiniApp initData xato',
+                description=f'MiniApp auth xato: {error.message}',
+            )
             return JsonResponse({'ok': False, 'error': error.message}, status=400)
 
         login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])

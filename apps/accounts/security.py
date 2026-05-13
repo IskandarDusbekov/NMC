@@ -104,6 +104,61 @@ class SecurityService:
         )
 
     @classmethod
+    def register_auth_failure(
+        cls,
+        request,
+        action_key: str = 'auth_failure',
+        reason: str = 'Auth xato urinish',
+        description: str = '',
+    ):
+        """Generic brute-force counter for any auth endpoint (MiniApp, token, etc.)."""
+        ip_address = cls._ip(request)
+        if not ip_address:
+            return None
+
+        now = timezone.now()
+        window_seconds = getattr(settings, 'AUTH_FAILURE_WINDOW_SECONDS', 300)   # 5 min window
+        limit = getattr(settings, 'AUTH_FAILURE_LIMIT', 10)                       # 10 tries
+        block_seconds = getattr(settings, 'BLOCKED_IP_TTL_SECONDS', 3600)
+
+        blocked_ip, _ = BlockedIP.objects.get_or_create(ip_address=ip_address)
+        if not blocked_ip.window_started_at or (
+            now - blocked_ip.window_started_at
+        ).total_seconds() > window_seconds:
+            blocked_ip.failed_attempts = 0
+            blocked_ip.window_started_at = now
+
+        blocked_ip.failed_attempts += 1
+        blocked_ip.last_attempt_at = now
+        blocked_ip.reason = reason
+        should_block = blocked_ip.failed_attempts >= limit
+        if should_block:
+            blocked_ip.blocked_until = now + timedelta(seconds=block_seconds)
+        blocked_ip.save()
+
+        AuditLogService.log_from_request(
+            request,
+            user=None,
+            action=action_key,
+            model_name='Auth',
+            object_id=ip_address,
+            description=description or f'{reason}. Urinishlar: {blocked_ip.failed_attempts}.',
+        )
+        if should_block:
+            AuditLogService.log_from_request(
+                request,
+                user=None,
+                action='security_ip_blocked',
+                model_name='BlockedIP',
+                object_id=ip_address,
+                description=(
+                    f'IP vaqtincha bloklandi. Sabab: {reason}. '
+                    f'Blok muddati: {blocked_ip.blocked_until}.'
+                ),
+            )
+        return blocked_ip
+
+    @classmethod
     def log_new_ip_if_needed(cls, request, user, action='security_new_ip_login'):
         ip_address = cls._ip(request)
         if not ip_address or not user:
