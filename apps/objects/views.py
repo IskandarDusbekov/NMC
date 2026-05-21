@@ -60,7 +60,18 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['analytics'] = ObjectAnalyticsService.analytics_for_object(self.object)
-        context['work_items'] = work_item_queryset().filter(object=self.object)
+        # work_items — list qilamiz, shunda ikki marta query ketmaydi (totals + template)
+        work_items = list(work_item_queryset().filter(object=self.object))
+        context['work_items'] = work_items
+        # Ish turlari umumiy summalari (footer uchun)
+        from decimal import Decimal as _D
+        _Z = _D('0.00')
+        context['work_items_totals'] = {
+            'paid_uzs':   sum((i.paid_amount_uzs for i in work_items), _Z),
+            'paid_usd':   sum((i.paid_amount_usd for i in work_items), _Z),
+            'agreed_uzs': sum((i.agreed_amount for i in work_items if i.currency == 'UZS'), _Z),
+            'agreed_usd': sum((i.agreed_amount for i in work_items if i.currency == 'USD'), _Z),
+        }
         context['expense_summaries'] = ObjectFinanceService.expense_summary_for_object(self.object)
         context['work_item_payment_form'] = context.get('work_item_payment_form') or ObjectWorkItemPaymentForm(construction_object=self.object)
         context['object_expense_form'] = context.get('object_expense_form') or ObjectExpenseForm()

@@ -18,9 +18,14 @@ class WorkItemSelect(forms.Select):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
         if value and hasattr(value, 'instance'):
-            work_item = value.instance
-            option['attrs']['data-worker-id'] = work_item.assigned_worker_id or ''
-            option['attrs']['data-currency'] = work_item.currency
+            wi = value.instance
+            option['attrs']['data-worker-id']     = wi.assigned_worker_id or ''
+            option['attrs']['data-currency']      = wi.currency
+            option['attrs']['data-agreed-amount'] = str(wi.agreed_amount)
+            # paid_amount_uzs / usd keladilar annotation orqali (selectors.work_item_queryset)
+            option['attrs']['data-paid-uzs']      = str(getattr(wi, 'paid_amount_uzs', '0'))
+            option['attrs']['data-paid-usd']      = str(getattr(wi, 'paid_amount_usd', '0'))
+            option['attrs']['data-worker-name']   = wi.assigned_worker.full_name if wi.assigned_worker else (wi.assigned_worker_group or '')
         return option
 
 
@@ -130,7 +135,9 @@ class ObjectWorkItemPaymentForm(StyledFormMixin, forms.Form):
     def __init__(self, *args, construction_object, **kwargs):
         self.construction_object = construction_object
         super().__init__(*args, **kwargs)
-        work_items = construction_object.work_items.select_related('assigned_worker').order_by('title')
+        # Annotated queryset — paid_amount_uzs/usd data-atributlari uchun kerak
+        from .selectors import work_item_queryset
+        work_items = work_item_queryset().filter(object=construction_object).order_by('title')
         workers = Worker.objects.filter(work_items__object=construction_object, is_active=True).distinct().order_by('full_name')
         self.fields['worker'].queryset = workers
         self.fields['work_item'].queryset = work_items
