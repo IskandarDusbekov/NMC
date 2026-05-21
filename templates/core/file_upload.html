@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{# ════════ PAGE HEADER ════════ #}
+<section class="mb-5 flex items-center gap-4">
+    <a href="{% url 'core:file-list' %}"
+       class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+    <div>
+        <p class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-indigo-600">Arxiv</p>
+        <h1 class="mt-0.5 text-xl font-extrabold text-slate-900 sm:text-2xl">Fayl yuklash</h1>
+    </div>
+</section>
+
+{# ════════ ERRORS ════════ #}
+{% if errors %}
+    <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+        <p class="mb-2 text-sm font-bold text-rose-700">Xatolar:</p>
+        <ul class="list-disc list-inside space-y-1">
+            {% for err in errors %}
+                <li class="text-sm text-rose-600">{{ err }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{# ════════ UPLOAD FORM ════════ #}
+<div class="mx-auto max-w-2xl">
+    <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+
+            {# Title #}
+            <div>
+                <label for="id_title" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Sarlavha <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" id="id_title" name="title"
+                       value="{{ post.title|default:'' }}"
+                       placeholder="Masalan: Shartnoma #12, Bino rasmi..."
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100">
+            </div>
+
+            {# Category #}
+            <div>
+                <label for="id_category" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Kategoriya
+                </label>
+                <select id="id_category" name="category"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100">
+                    {% for value, label in categories %}
+                        <option value="{{ value }}" {% if post.category == value %}selected{% elif not post and value == 'other' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Object #}
+            <div>
+                <label for="id_object" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Obyekt <span class="text-slate-400 font-normal text-[0.7rem]">(ixtiyoriy)</span>
+                </label>
+                <select id="id_object" name="object"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100">
+                    <option value="">— Umumiy arxiv —</option>
+                    {% for obj in objects %}
+                        <option value="{{ obj.pk }}" {% if post.object == obj.pk|stringformat:"s" %}selected{% endif %}>{{ obj.name }}</option>
+                    {% endfor %}
+                </select>
+                <p class="mt-1 text-[0.65rem] text-slate-400">Bo'sh qoldirilsa "Umumiy arxiv"ga yuklanadi.</p>
+            </div>
+
+            {# Description #}
+            <div>
+                <label for="id_description" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Izoh <span class="text-slate-400 font-normal text-[0.7rem]">(ixtiyoriy)</span>
+                </label>
+                <textarea id="id_description" name="description" rows="3"
+                          placeholder="Fayl haqida qo'shimcha ma'lumot..."
+                          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 resize-none">{{ post.description|default:'' }}</textarea>
+            </div>
+
+            {# File picker #}
+            <div>
+                <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Fayl <span class="text-rose-500">*</span>
+                </label>
+
+                {# Drop zone #}
+                <label for="id_file"
+                       class="group relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center cursor-pointer transition hover:border-indigo-400 hover:bg-indigo-50">
+                    <svg class="h-10 w-10 text-slate-400 group-hover:text-indigo-500 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700 group-hover:text-indigo-700">Fayl tanlash yoki bu yerga tashlang</p>
+                        <p id="file-name-display" class="mt-1 text-xs text-slate-500">Tanlanmagan</p>
+                    </div>
+                    <p class="text-[0.65rem] text-slate-400">
+                        PDF, Word, Excel, rasm, ZIP, CSV · Maksimal 20 MB
+                    </p>
+                    <input type="file" id="id_file" name="file" required class="sr-only"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip,.rar,.txt,.csv">
+                </label>
+            </div>
+
+            {# Submit #}
+            <button type="submit"
+                    class="w-full rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 active:scale-[0.98] transition">
+                Yuklash
+            </button>
+        </form>
+    </div>
+</div>
+
+{# ════════ File name preview script ════════ #}
+<script>
+(function(){
+    var inp = document.getElementById('id_file');
+    var display = document.getElementById('file-name-display');
+    if (!inp || !display) return;
+    inp.addEventListener('change', function(){
+        display.textContent = this.files.length ? this.files[0].name : 'Tanlanmagan';
+    });
+})();
+</script>
+
+{% endblock %}

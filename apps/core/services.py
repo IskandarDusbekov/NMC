@@ -45,6 +45,8 @@ class NavigationService:
             NavigationItem('Ishchilar', 'workforce:worker-list', '/workers/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), True, 'users'),
             # Ish haqi: Manager o'zi to'laydi
             NavigationItem('Ish haqi', 'workforce:salary-payment-list', '/salary-payments/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), False, 'salary'),
+            # Fayl arxivi: barcha rollar
+            NavigationItem('Fayl arxivi', 'core:file-list', '/files/', ('ADMIN', 'DIRECTOR', 'MANAGER', 'OBSERVER'), False, 'files'),
             # Hisobotlar va loglar: Admin/Director/Observer
             NavigationItem('Hisobotlar', 'reports:index', '/reports/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'reports'),
             NavigationItem('Loglar', 'logs:index', '/logs/', ('ADMIN', 'DIRECTOR', 'OBSERVER'), False, 'logs'),

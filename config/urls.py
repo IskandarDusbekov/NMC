@@ -28,6 +28,7 @@ urlpatterns = [
     path('admin/<path:_extra>/', hidden_admin_disabled),
     path('search/', GlobalSearchView.as_view(), name='global-search'),
     path('about/', about_view, name='about'),
+    path('', include(('apps.core.urls', 'core'), namespace='core')),
     path('accounts/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('', include(('apps.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('', include(('apps.objects.urls', 'objects'), namespace='objects')),
