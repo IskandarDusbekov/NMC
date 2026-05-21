@@ -376,8 +376,9 @@
                     <th class="px-5 py-3">Ish nomi</th>
                     <th class="px-5 py-3">Ishchi / Brigada</th>
                     <th class="px-5 py-3 text-right">Kelishilgan</th>
-                    <th class="px-5 py-3" style="min-width:200px">To'lov holati</th>
-                    <th class="px-5 py-3 text-right">Qolgan</th>
+                    <th class="px-5 py-3" style="min-width:180px">To'lov holati</th>
+                    <th class="px-5 py-3 text-right">Berilgan UZS</th>
+                    <th class="px-5 py-3 text-right">Berilgan USD</th>
                     <th class="px-5 py-3">Boshlangan</th>
                     <th class="px-5 py-3">Amallar</th>
                 </tr>
@@ -446,18 +447,21 @@
                         {% endif %}
                     </td>
 
-                    {# Remaining #}
+                    {# Berilgan UZS #}
                     <td class="px-5 py-3.5 text-right">
-                        {% if item.currency == 'UZS' %}
-                            <p class="font-bold {% if item.agreed_amount > item.paid_amount_uzs %}text-rose-600{% else %}text-emerald-600{% endif %}">
-                                {{ item.agreed_amount|subtract:item.paid_amount_uzs|money }}
-                            </p>
-                            <p class="text-[0.65rem] text-slate-400">UZS qolgan</p>
+                        {% if item.paid_amount_uzs > 0 %}
+                            <p class="font-bold text-emerald-700">{{ item.paid_amount_uzs|money }}</p>
                         {% else %}
-                            <p class="font-bold {% if item.agreed_amount > item.paid_amount_usd %}text-rose-600{% else %}text-emerald-600{% endif %}">
-                                {{ item.agreed_amount|subtract:item.paid_amount_usd|money }}
-                            </p>
-                            <p class="text-[0.65rem] text-slate-400">USD qolgan</p>
+                            <p class="text-slate-300">—</p>
+                        {% endif %}
+                    </td>
+
+                    {# Berilgan USD #}
+                    <td class="px-5 py-3.5 text-right">
+                        {% if item.paid_amount_usd > 0 %}
+                            <p class="font-bold text-cyan-700">{{ item.paid_amount_usd|money }}</p>
+                        {% else %}
+                            <p class="text-slate-300">—</p>
                         {% endif %}
                     </td>
 
@@ -493,7 +497,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="px-5 py-12 text-center">
+                    <td colspan="8" class="px-5 py-12 text-center">
                         <div class="flex flex-col items-center gap-3">
                             <span class="text-4xl">🔨</span>
                             <p class="font-bold text-slate-700">Ish turi yo'q</p>
@@ -525,19 +529,17 @@
                         <p class="text-xs font-semibold text-slate-500">{{ work_items_totals.agreed_usd|money }} <span class="text-slate-400">USD</span></p>
                         {% endif %}
                     </td>
-                    <td class="px-5 py-4" colspan="4">
-                        <p class="mb-1.5 text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">Barcha ish turlariga berilgan jami</p>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3 py-1.5 text-sm font-extrabold text-emerald-800">
-                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                {{ work_items_totals.paid_uzs|money }} UZS
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-cyan-100 px-3 py-1.5 text-sm font-extrabold text-cyan-800">
-                                <span class="h-2 w-2 rounded-full bg-cyan-500"></span>
-                                {{ work_items_totals.paid_usd|money }} USD
-                            </span>
-                        </div>
+                    {# Jami berilgan UZS #}
+                    <td class="px-5 py-4 text-right">
+                        <p class="text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">Jami</p>
+                        <p class="mt-1 text-sm font-extrabold text-emerald-700">{{ work_items_totals.paid_uzs|money }}</p>
                     </td>
+                    {# Jami berilgan USD #}
+                    <td class="px-5 py-4 text-right">
+                        <p class="text-[0.6rem] font-bold uppercase tracking-wider text-slate-400">Jami</p>
+                        <p class="mt-1 text-sm font-extrabold text-cyan-700">{{ work_items_totals.paid_usd|money }}</p>
+                    </td>
+                    <td colspan="2" class="px-5 py-4"></td>
                 </tr>
             </tfoot>
             {% endif %}
