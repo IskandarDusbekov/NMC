@@ -37,6 +37,24 @@ def subtract(value, arg):
         return value
 
 
+@register.filter
+def div_percent(value, divisor):
+    """
+    Returns (value / divisor * 100) clamped to [0, 100] as an integer.
+    Returns 0 if divisor is zero or invalid.
+    Usage: {{ paid_amount|div_percent:agreed_amount }}
+    """
+    try:
+        v = Decimal(value or 0)
+        d = Decimal(divisor or 0)
+        if not d:
+            return 0
+        result = int((v / d * 100).quantize(Decimal('1')))
+        return max(0, min(100, result))
+    except (InvalidOperation, TypeError, ValueError, ZeroDivisionError):
+        return 0
+
+
 @register.simple_tag(takes_context=True)
 def page_url(context, page_number):
     request = context.get('request')

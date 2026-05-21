@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.contrib import messages
@@ -64,6 +65,20 @@ class ConstructionObjectDetailView(PageMetadataMixin, RoleRequiredMixin, DetailV
         context['work_item_payment_form'] = context.get('work_item_payment_form') or ObjectWorkItemPaymentForm(construction_object=self.object)
         context['object_expense_form'] = context.get('object_expense_form') or ObjectExpenseForm()
         context['active_tab'] = context.get('active_tab') or self.request.GET.get('tab', 'work-items')
+
+        # ── Live search JSON for expense modal ──────────────────────────────
+        from apps.finance.models import ExpenseItem, TransactionTypeChoices
+        from apps.objects.forms import WORK_ITEM_PAYMENT_CATEGORY_NAME
+        cats = TransactionCategory.objects.filter(
+            is_active=True, type=TransactionTypeChoices.EXPENSE
+        ).exclude(name=WORK_ITEM_PAYMENT_CATEGORY_NAME).order_by('name')
+        items = ExpenseItem.objects.filter(is_active=True).select_related('category').order_by('name')
+        search_data = []
+        for cat in cats:
+            search_data.append({'type': 'category', 'label': cat.name, 'detail': '', 'category_id': cat.pk, 'item_id': None})
+        for it in items:
+            search_data.append({'type': 'item', 'label': it.name, 'detail': it.category.name, 'category_id': it.category_id, 'item_id': it.pk})
+        context['expense_search_json'] = json.dumps(search_data, ensure_ascii=False)
         context['work_item_payment_modal_open'] = context.get('work_item_payment_modal_open', False)
         context['object_expense_modal_open'] = context.get('object_expense_modal_open', False) or self.request.GET.get('add_expense') == '1'
         context['recent_transactions'] = self.object.transactions.active().select_related('category', 'worker', 'work_item')[:10]
