@@ -7,9 +7,12 @@
                 <h2 class="text-2xl font-bold text-slate-800">{{ page_title }}</h2>
                 <p class="mt-2 text-sm text-slate-500">{{ page_subtitle }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">To`lov qoidasi</p>
-                <p class="mt-2 max-w-xs text-sm text-slate-600">Oylik ishchi uchun summa va valyuta belgilanadi. Brigade uchun bu maydonlar yashiriladi.</p>
+            <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 max-w-xs">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-500">To'lov qoidasi</p>
+                <p class="mt-2 text-sm text-slate-600">
+                    <strong>Oylik ishchi</strong> uchun kelishilgan oylik <em>ixtiyoriy</em> — kiritilmasa hisob-kitob amaliy to'lovlar bo'yicha yuritiladi.<br>
+                    <strong>Brigade</strong> uchun oylik maydonlari yashiriladi.
+                </p>
             </div>
         </div>
 
@@ -23,9 +26,26 @@
             <div class="md:col-span-2">{% include "includes/form_field.html" with field=form.notes %}</div>
             {% for error in form.non_field_errors %}<p class="md:col-span-2 text-sm text-rose-600">{{ error }}</p>{% endfor %}
             <div class="md:col-span-2 flex gap-3">
-                <button type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Saqlash</button>
-                <a href="{% url 'workforce:worker-list' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">Bekor qilish</a>
+                <button type="submit" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">Saqlash</button>
+                <a href="{% url 'workforce:worker-list' %}" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Bekor qilish</a>
             </div>
         </form>
     </section>
+
+    <script>
+    (function () {
+        const typeSelect  = document.querySelector('[data-worker-type-input]');
+        const salaryWrap  = document.getElementById('worker-monthly-salary-field');
+        const currWrap    = document.getElementById('worker-monthly-currency-field');
+        if (!typeSelect) return;
+
+        function toggle() {
+            const isBrigade = typeSelect.value === 'brigade';
+            salaryWrap.style.display = isBrigade ? 'none' : '';
+            currWrap.style.display   = isBrigade ? 'none' : '';
+        }
+        typeSelect.addEventListener('change', toggle);
+        toggle();
+    })();
+    </script>
 {% endblock %}

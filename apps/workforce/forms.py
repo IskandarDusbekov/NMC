@@ -23,13 +23,15 @@ class WorkerForm(StyledFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['full_name'].label = 'Full name'
+        self.fields['full_name'].label = 'Ism familiya'
         self.fields['worker_type'].label = 'Ishchi turi'
-        self.fields['monthly_salary'].label = 'Oylik summa'
-        self.fields['salary_currency'].label = 'Oylik valyutasi'
+        self.fields['monthly_salary'].label = 'Kelishilgan oylik summa'
+        self.fields['salary_currency'].label = 'Valyuta'
         self.fields['notes'].label = 'Izoh'
         self.fields['monthly_salary'].required = False
         self.fields['salary_currency'].required = False
+        self.fields['monthly_salary'].help_text = 'Ixtiyoriy. Kelishilgan oylik miqdori (to\'lash amaliy to\'lovlar bo\'yicha hisoblanadi).'
+        self.fields['salary_currency'].help_text = 'Ixtiyoriy. Faqat summa kiritilganda tanlang.'
         self.fields['worker_type'].widget.attrs['data-worker-type-input'] = 'true'
         self.fields['monthly_salary'].widget.attrs['data-worker-monthly-input'] = 'true'
         self.fields['salary_currency'].widget.attrs['data-worker-monthly-currency'] = 'true'
@@ -39,14 +41,21 @@ class WorkerForm(StyledFormMixin, forms.ModelForm):
         worker_type = cleaned_data.get('worker_type')
         monthly_salary = cleaned_data.get('monthly_salary')
         salary_currency = cleaned_data.get('salary_currency')
+
         if worker_type == Worker.WorkerType.BRIGADE:
+            # Brigade uchun oylik maydonlar har doim tozalanadi
             cleaned_data['monthly_salary'] = None
             cleaned_data['salary_currency'] = ''
         elif worker_type == Worker.WorkerType.MONTHLY:
-            if monthly_salary is None:
-                self.add_error('monthly_salary', 'Oylik ishchi uchun oylik summa majburiy.')
-            if not salary_currency:
-                self.add_error('salary_currency', 'Oylik ishchi uchun valyuta tanlang.')
+            # Oylik ishchi uchun maydonlar ixtiyoriy:
+            # kiritilmasa — None saqlanadi, hisob-kitob amaliy to'lovlar bo'yicha yuritiladi
+            if monthly_salary is not None and not salary_currency:
+                # Summa kiritilgan bo'lsa valyuta ham kerak
+                self.add_error('salary_currency', 'Summa kiritilgan bo\'lsa valyutani ham tanlang.')
+            if salary_currency and monthly_salary is None:
+                # Valyuta tanlangan bo'lsa summa ham kerak
+                self.add_error('monthly_salary', 'Valyuta tanlangan bo\'lsa summani ham kiriting.')
+
         return cleaned_data
 
 

@@ -47,25 +47,29 @@
 
     <!-- Stat Cards -->
     <section class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+        <!-- Kelishilgan oylik -->
         <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
+                        <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                     </svg>
                 </div>
                 <p class="text-sm font-bold text-slate-500">Kelishilgan oylik</p>
             </div>
-            <p class="mt-4 text-2xl font-black text-slate-950">
-                {% if worker.monthly_salary %}
-                    {{ worker.monthly_salary|money }} {{ worker.salary_currency }}
-                {% else %}
-                    <span class="text-slate-300">—</span>
-                {% endif %}
-            </p>
-            <p class="mt-1 text-xs text-slate-400">Shartnomaviy maosh</p>
+            {% if worker.monthly_salary %}
+                <p class="mt-4 text-2xl font-black text-slate-950">{{ worker.monthly_salary|money }} {{ worker.salary_currency }}</p>
+                <p class="mt-1 text-xs text-slate-400">Har oy belgilangan maosh</p>
+            {% else %}
+                <p class="mt-4 text-xl font-black text-slate-400">Kelishuv asosida</p>
+                <p class="mt-1 text-xs text-slate-400">
+                    {% if worker.worker_type == 'monthly' %}Oylik belgilanmagan — amaliy to'lovlar bo'yicha{% else %}Brigade ishchi{% endif %}
+                </p>
+            {% endif %}
         </div>
 
+        <!-- To'langan UZS -->
         <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-5 shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
@@ -73,12 +77,23 @@
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
                 </div>
-                <p class="text-sm font-bold text-emerald-700">To'langan UZS</p>
+                <p class="text-sm font-bold text-emerald-700">To'langan (UZS)</p>
             </div>
             <p class="mt-4 text-2xl font-black text-emerald-950">{{ worker.total_paid_uzs|money }}</p>
-            <p class="mt-1 text-xs text-emerald-600">Jami UZS to'lov</p>
+            {% if worker.monthly_salary and worker.salary_currency == 'UZS' %}
+                {% with debt=worker.monthly_salary|subtract:worker.total_paid_uzs %}
+                    {% if debt > 0 %}
+                        <p class="mt-1 text-xs text-rose-500">Qarzdorlik: {{ debt|money }} UZS</p>
+                    {% else %}
+                        <p class="mt-1 text-xs text-emerald-600">Kelishilgan oylik to'langan ✓</p>
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                <p class="mt-1 text-xs text-emerald-600">Jami UZS to'lovlar</p>
+            {% endif %}
         </div>
 
+        <!-- To'langan USD -->
         <div class="rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-sky-50 p-5 shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600">
@@ -86,11 +101,22 @@
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
                 </div>
-                <p class="text-sm font-bold text-cyan-700">To'langan USD</p>
+                <p class="text-sm font-bold text-cyan-700">To'langan (USD)</p>
             </div>
             <p class="mt-4 text-2xl font-black text-cyan-950">{{ worker.total_paid_usd|money }}</p>
-            <p class="mt-1 text-xs text-cyan-600">Jami USD to'lov</p>
+            {% if worker.monthly_salary and worker.salary_currency == 'USD' %}
+                {% with debt=worker.monthly_salary|subtract:worker.total_paid_usd %}
+                    {% if debt > 0 %}
+                        <p class="mt-1 text-xs text-rose-500">Qarzdorlik: {{ debt|money }} USD</p>
+                    {% else %}
+                        <p class="mt-1 text-xs text-cyan-600">Kelishilgan oylik to'langan ✓</p>
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                <p class="mt-1 text-xs text-cyan-600">Jami USD to'lovlar</p>
+            {% endif %}
         </div>
+
     </section>
 
     <!-- Salary Payment History -->
