@@ -274,6 +274,41 @@ def manager_detailed_summary():
     return rows
 
 
+def month_comparison(user=None):
+    """Bu oy vs o'tgan oy — daromad va xarajat (UZS)."""
+    from django.db.models import Q
+    today = _today()
+    this_start = today.replace(day=1)
+    last_end   = this_start - timedelta(days=1)
+    last_start = last_end.replace(day=1)
+
+    def _totals(date_from, date_to):
+        qs = transaction_list({'date_from': date_from, 'date_to': date_to}, user=user)
+        return qs.aggregate(
+            income  = Coalesce(Sum('amount', filter=Q(type=TransactionTypeChoices.INCOME,  currency='UZS')), ZERO),
+            expense = Coalesce(Sum('amount', filter=Q(type=TransactionTypeChoices.EXPENSE, currency='UZS')), ZERO),
+        )
+
+    this  = _totals(this_start, today)
+    last  = _totals(last_start, last_end)
+
+    def _pct(curr, prev):
+        if not prev:
+            return None
+        return round(float((curr - prev) / prev * 100), 1)
+
+    return {
+        'this_income':   this['income'],
+        'this_expense':  this['expense'],
+        'last_income':   last['income'],
+        'last_expense':  last['expense'],
+        'income_pct':    _pct(this['income'],  last['income']),
+        'expense_pct':   _pct(this['expense'], last['expense']),
+        'this_label':    this_start.strftime('%B'),
+        'last_label':    last_start.strftime('%B'),
+    }
+
+
 def monthly_expense_series(months=6, user=None):
     today = _today()
     start_month = today.replace(day=1)

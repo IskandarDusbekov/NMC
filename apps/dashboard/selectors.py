@@ -1,4 +1,11 @@
-from apps.finance.selectors import category_summary, daily_expense_series, monthly_expense_series, object_spending_summary, recent_transactions
+from apps.finance.selectors import (
+    category_summary,
+    daily_expense_series,
+    month_comparison,
+    monthly_expense_series,
+    object_spending_summary,
+    recent_transactions,
+)
 from apps.workforce.selectors import recent_salary_payments
 
 
@@ -12,8 +19,9 @@ def dashboard_salary_payments(user=None):
 
 def dashboard_charts(user=None):
     return {
-        'category_distribution': category_summary(user=user),
-        'daily_expense_series': daily_expense_series(user=user),
+        'category_distribution':  category_summary(user=user),
+        'daily_expense_series':   daily_expense_series(user=user),
         'monthly_expense_series': monthly_expense_series(user=user),
         'object_spending_summary': object_spending_summary(user=user),
+        'month_comparison':       month_comparison(user=user),
     }

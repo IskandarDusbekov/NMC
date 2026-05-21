@@ -274,7 +274,9 @@ main {
 
     .dashboard-hero,
     .dashboard-visual-section,
-    .dashboard-monthly-section {
+    .dashboard-monthly-section,
+    .dashboard-comparison,
+    .dashboard-charts {
         display: none !important;
     }
 

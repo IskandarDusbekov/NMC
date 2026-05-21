@@ -1,659 +1,803 @@
 {% extends "base.html" %}
 {% load core_tags %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
-    <!-- ═══ DESKTOP HERO (hidden on mobile via CSS) ═══ -->
-    <section class="dashboard-hero overflow-hidden rounded-[1.5rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-4 shadow-sm sm:rounded-[2rem] md:p-7">
-        <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-                <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700 shadow-sm">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    Qurilish boshqaruvi
-                </div>
-                <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl md:text-4xl">Dashboard</h2>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    {% if is_manager_dashboard %}
-                        O'z balansingiz, xarajatlaringiz va obyektlar bo'yicha ish jarayonini bir joyda kuzating.
-                    {% else %}
-                        Ferma, manager, obyekt va ish turlari bo'yicha pul oqimini bir joyda kuzating.
-                    {% endif %}
+
+{# ╔══════════════════════════════════════════════════════════════════════╗ #}
+{# ║  MOBILE PANEL  (≤768 px)                                            ║ #}
+{# ╚══════════════════════════════════════════════════════════════════════╝ #}
+<section class="mobile-dashboard-panel hidden space-y-3">
+
+    {# ── Greeting + balances ── #}
+    <div class="rounded-[1.4rem] overflow-hidden" style="background:linear-gradient(135deg,#1e40af 0%,#2563eb 55%,#0ea5e9 100%);">
+        <div class="px-4 pt-4 pb-3">
+            <p class="text-[0.62rem] font-bold uppercase tracking-widest text-blue-200">
+                {% now "l, j-MMMM Y" %}
+            </p>
+            <h2 class="mt-0.5 text-base font-black text-white">
+                Xush kelibsiz, {{ request.user.full_name|default:request.user.username|truncatechars:18 }} 👋
+            </h2>
+        </div>
+        <div class="mx-3 mb-3 grid grid-cols-2 gap-2">
+            <div class="rounded-2xl bg-white/15 backdrop-blur-sm p-3">
+                <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-100">
+                    {% if is_manager_dashboard %}Mening{% else %}Ferma{% endif %} UZS
                 </p>
+                <p class="mt-1.5 text-sm font-black text-white">{{ balances|dict_get:"UZS"|money }}</p>
             </div>
-            <div class="grid grid-cols-2 gap-3 sm:flex">
-                <a href="{% url 'finance:transaction-list' %}" class="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white shadow-sm">Moliya</a>
-                <a href="{% url 'objects:list' %}" class="rounded-2xl border border-white bg-white/80 px-4 py-3 text-center text-sm font-bold text-slate-700 shadow-sm">Obyektlar</a>
+            <div class="rounded-2xl bg-white/15 backdrop-blur-sm p-3">
+                <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-100">
+                    {% if is_manager_dashboard %}Mening{% else %}Ferma{% endif %} USD
+                </p>
+                <p class="mt-1.5 text-sm font-black text-white">{{ balances|dict_get:"USD"|money }}</p>
             </div>
-        </div>
-    </section>
-
-    <!-- ═══ MOBILE PANEL (shown on mobile via CSS) ═══ -->
-    <section class="mobile-dashboard-panel hidden">
-
-        <!-- User greeting card -->
-        <div class="rounded-[1.35rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-4 shadow-sm">
-            <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-sm font-bold text-white">
-                        {{ request.user.full_name|default:request.user.username|slice:":1"|upper }}
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-slate-950">{{ request.user.full_name|default:request.user.username }}</p>
-                        <p class="text-[0.62rem] font-semibold text-blue-600">
-                            {% if request.user.role == 'MANAGER' %}💼 Manager
-                            {% elif request.user.role == 'DIRECTOR' %}👔 Director
-                            {% elif request.user.role == 'ADMIN' %}⚙️ Admin
-                            {% else %}👁 Kuzatuvchi{% endif %}
-                        </p>
-                    </div>
-                </div>
-                <a href="{% url 'finance:transaction-list' %}" class="shrink-0 rounded-2xl bg-slate-950 px-3 py-2 text-xs font-bold text-white">Moliya</a>
+            {% if not is_manager_dashboard %}
+            <div class="rounded-2xl bg-white/10 p-3">
+                <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-200">Faol obyekt</p>
+                <p class="mt-1.5 text-sm font-black text-white">{{ active_objects }} ta</p>
             </div>
-
-            <!-- Balance grid (2 or 4 cards) -->
-            <div class="mt-4 grid grid-cols-2 gap-2">
-                <div class="rounded-2xl border border-blue-100 bg-white/90 p-3">
-                    <p class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-blue-600">
-                        {% if is_manager_dashboard %}Mening{% else %}Ferma{% endif %} UZS
-                    </p>
-                    <p class="mt-2 text-base font-black text-slate-950">{{ balances|dict_get:"UZS"|money }}</p>
-                    <p class="mt-0.5 text-[0.65rem] font-semibold text-slate-400">UZS balans</p>
-                </div>
-                <div class="rounded-2xl border border-emerald-100 bg-white/90 p-3">
-                    <p class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-emerald-600">
-                        {% if is_manager_dashboard %}Mening{% else %}Ferma{% endif %} USD
-                    </p>
-                    <p class="mt-2 text-base font-black text-slate-950">{{ balances|dict_get:"USD"|money }}</p>
-                    <p class="mt-0.5 text-[0.65rem] font-semibold text-slate-400">USD balans</p>
-                </div>
-                {% if not is_manager_dashboard %}
-                    <div class="rounded-2xl border border-violet-100 bg-white/90 p-3">
-                        <p class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-violet-600">Faol obyektlar</p>
-                        <p class="mt-2 text-base font-black text-slate-950">{{ active_objects }} ta</p>
-                        <p class="mt-0.5 text-[0.65rem] font-semibold text-slate-400">qurilish</p>
-                    </div>
-                    <div class="rounded-2xl border border-amber-100 bg-white/90 p-3">
-                        <p class="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-amber-600">Manager UZS</p>
-                        <p class="mt-2 text-base font-black text-slate-950">{{ manager_holdings|dict_get:"UZS"|money }}</p>
-                        <p class="mt-0.5 text-[0.65rem] font-semibold text-slate-400">qo'lda pul</p>
-                    </div>
-                {% endif %}
+            <div class="rounded-2xl bg-white/10 p-3">
+                <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-200">Ishchilar</p>
+                <p class="mt-1.5 text-sm font-black text-white">{{ worker_count }} ta</p>
             </div>
-        </div>
-
-        <!-- Quick Actions (2×2 or 2×3 grid, no table, compact) -->
-        <div class="mt-4">
-            <div class="mb-3 flex items-center justify-between px-1">
-                <h3 class="text-sm font-black text-slate-950">Tezkor amallar</h3>
-                <a href="{% url 'finance:transaction-list' %}" class="text-xs font-bold text-slate-400">Barchasi →</a>
-            </div>
-            <div class="grid grid-cols-3 gap-2.5">
-                <a href="{% url 'objects:list' %}" class="mobile-service-tile">
-                    <span class="mobile-service-icon bg-teal-50 text-teal-700">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M9 21v-6h6v6"/></svg>
-                    </span>
-                    <span>Obyektlar</span>
-                </a>
-                <a href="{% url 'finance:manager-expense-create' %}" class="mobile-service-tile">
-                    <span class="mobile-service-icon bg-rose-50 text-rose-700">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
-                    </span>
-                    <span>Xarajat</span>
-                </a>
-                <a href="{% url 'finance:manager-transfer-create' %}" class="mobile-service-tile">
-                    <span class="mobile-service-icon bg-indigo-50 text-indigo-700">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </span>
-                    <span>Transfer</span>
-                </a>
-                <a href="{% url 'finance:transaction-list' %}" class="mobile-service-tile">
-                    <span class="mobile-service-icon bg-emerald-50 text-emerald-700">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h.01M11 15h2"/><rect width="18" height="14" x="3" y="5" rx="3"/></svg>
-                    </span>
-                    <span>Moliya</span>
-                </a>
-                <a href="{% url 'workforce:salary-payment-list' %}" class="mobile-service-tile">
-                    <span class="mobile-service-icon bg-amber-50 text-amber-700">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </span>
-                    <span>Ish haqi</span>
-                </a>
-                <a href="{% url 'workforce:worker-list' %}" class="mobile-service-tile">
-                    <span class="mobile-service-icon bg-violet-50 text-violet-700">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <span>Ishchilar</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Recent Transactions (cards, not table) -->
-        <div class="mt-4 rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <h3 class="text-sm font-black text-slate-950">Oxirgi tranzaksiyalar</h3>
-                <a href="{% url 'finance:transaction-list' %}" class="text-xs font-bold text-blue-600">Hammasi →</a>
-            </div>
-            <div class="mt-3 space-y-2">
-                {% for item in recent_transactions|slice:":4" %}
-                    <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl
-                            {% if item.sign < 0 %}bg-rose-100 text-rose-600{% else %}bg-emerald-100 text-emerald-600{% endif %}">
-                            {% if item.sign < 0 %}↓{% else %}↑{% endif %}
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-xs font-bold text-slate-900">
-                                {% if item.work_item %}{{ item.work_item.title }}
-                                {% elif item.item_name %}{{ item.item_name }}
-                                {% elif item.object %}{{ item.object.name }}
-                                {% else %}{{ item.description|default:"Umumiy"|truncatechars:28 }}{% endif %}
-                            </p>
-                            <p class="text-[0.65rem] text-slate-400">{{ item.date|date:"d.m.Y" }}</p>
-                        </div>
-                        <span class="shrink-0 text-xs font-black {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
-                            {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }}
-                        </span>
-                    </div>
-                {% empty %}
-                    <p class="py-4 text-center text-xs text-slate-400">Tranzaksiyalar hali yo'q.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Object progress mini-cards -->
-        {% if progress_objects %}
-            <div class="mt-4 rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-black text-slate-950">Obyektlar progressi</h3>
-                    <a href="{% url 'objects:list' %}" class="text-xs font-bold text-slate-400">Ko'rish →</a>
-                </div>
-                <div class="mt-3 space-y-3">
-                    {% for item in progress_objects|slice:":4" %}
-                        <div>
-                            <div class="flex items-center justify-between gap-2 mb-1.5">
-                                <p class="truncate text-xs font-semibold text-slate-700">{{ item.name }}</p>
-                                <span class="shrink-0 text-xs font-black text-blue-600">{{ item.progress_average|floatformat:0 }}%</span>
-                            </div>
-                            <div class="h-2 overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
-                                     style="width: {{ item.progress_average|floatformat:0 }}%"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endif %}
-
-    </section>
-
-    <!-- ═══ STAT CARDS (horizontal scroll on mobile, grid on desktop) ═══ -->
-    <section class="dashboard-stats -mx-3 mt-5 flex snap-x gap-3 overflow-x-auto px-3 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 xl:grid-cols-4">
-        {% if is_manager_dashboard %}
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-blue-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-blue-50 p-3 text-blue-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h.01M11 15h2"/><rect width="18" height="14" x="3" y="5" rx="3"/></svg>
-                    </span>
-                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">Wallet</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Mening balansim UZS</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"UZS"|money }} UZS</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Manager operatsion hisobi</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-emerald-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </span>
-                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">USD</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Mening balansim USD</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"USD"|money }} USD</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Alohida yuritiladi</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-rose-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-rose-50 p-3 text-rose-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                    </span>
-                    <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">Bugun</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Bugungi xarajatlarim</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ today_manager_expense.count }} ta</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">{{ today_manager_expense_total|money }} jami</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-amber-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-amber-50 p-3 text-amber-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </span>
-                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">Transfer</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Transferlar</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ recent_transfers|length }}</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Menga bog'liq tarix</p>
-            </div>
-        {% else %}
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-blue-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-blue-50 p-3 text-blue-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h.01M11 15h2"/><rect width="18" height="14" x="3" y="5" rx="3"/></svg>
-                    </span>
-                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-700">Markaziy</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Ferma balans UZS</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"UZS"|money }} UZS</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Global hisob</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-emerald-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </span>
-                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700">USD</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Ferma balans USD</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ balances|dict_get:"USD"|money }} USD</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Global hisob</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-amber-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-amber-50 p-3 text-amber-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-extrabold text-amber-700">Manager</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Managerlar qo'lida UZS</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ manager_holdings|dict_get:"UZS"|money }} UZS</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Operatsion mablag'</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-cyan-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-cyan-50 p-3 text-cyan-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 14 4-4 3 3 5-6"/></svg>
-                    </span>
-                    <span class="rounded-full bg-cyan-50 px-3 py-1 text-xs font-extrabold text-cyan-700">USD</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Managerlar qo'lida USD</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ manager_holdings|dict_get:"USD"|money }} USD</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Operatsion mablag'</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-rose-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-rose-50 p-3 text-rose-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                    </span>
-                    <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">Bugun</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Ferma chiqim bugun</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ today_company_expense.count }} ta</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">{{ today_company_expense_total|money }} jami</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-orange-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-orange-50 p-3 text-orange-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 17h4V5h-4z"/><path d="M4 17h4v-7H4z"/><path d="M16 17h4V9h-4z"/><path d="M4 21h16"/></svg>
-                    </span>
-                    <span class="rounded-full bg-orange-50 px-3 py-1 text-xs font-extrabold text-orange-700">Manager</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Manager chiqim bugun</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ today_manager_expense.count }} ta</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">{{ today_manager_expense_total|money }} jami</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-violet-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-violet-50 p-3 text-violet-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M9 21v-6h6v6"/></svg>
-                    </span>
-                    <span class="rounded-full bg-violet-50 px-3 py-1 text-xs font-extrabold text-violet-700">Faol</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Faol obyektlar</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ active_objects }}</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Qurilish obyektlari</p>
-            </div>
-            <div class="dashboard-stat-card snap-start rounded-[1.35rem] border border-teal-100 bg-white p-4 shadow-sm sm:rounded-[1.6rem] sm:p-5">
-                <div class="flex items-start justify-between">
-                    <span class="rounded-2xl bg-teal-50 p-3 text-teal-600">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M12 15v6"/><path d="M8 21h8"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
-                    </span>
-                    <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-extrabold text-teal-700">Team</span>
-                </div>
-                <p class="mt-5 text-sm font-semibold text-slate-500">Faol ishchilar</p>
-                <p class="mt-2 text-xl font-black text-slate-950 sm:text-2xl">{{ worker_count }}</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Faol workerlar</p>
-            </div>
-        {% endif %}
-    </section>
-
-    <!-- ═══ VISUAL CHARTS ═══ -->
-    <section class="dashboard-visual-section mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-
-        <!-- Object spending chart -->
-        <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm sm:rounded-[2rem] md:p-6">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            {% else %}
+            <div class="col-span-2 rounded-2xl bg-white/10 p-3 flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600">Diagramma</p>
-                    <h3 class="mt-2 text-lg font-black text-slate-950">Eng ko'p xarajat bo'lgan obyektlar</h3>
-                    <p class="mt-1 text-xs text-slate-500">Qaysi obyektga ko'proq pul ketgani bo'yicha ranking.</p>
+                    <p class="text-[0.6rem] font-bold uppercase tracking-wider text-blue-200">Bugun xarajat</p>
+                    <p class="mt-1 text-sm font-black text-white">{{ today_manager_expense_total|money }} UZS</p>
                 </div>
-                <div class="flex rounded-2xl bg-slate-100 p-1 text-xs font-bold" data-dashboard-currency-toggle>
-                    <button type="button" class="rounded-xl bg-blue-600 px-3 py-2 text-white" data-dashboard-currency="UZS">UZS</button>
-                    <button type="button" class="rounded-xl px-3 py-2 text-slate-500" data-dashboard-currency="USD">USD</button>
-                </div>
+                <span class="text-2xl">💸</span>
             </div>
-
-            <div class="mt-5 space-y-3">
-                {% for row in object_spending_summary %}
-                    <div class="group rounded-2xl border border-slate-100 bg-gradient-to-r from-slate-50 to-white p-4 transition-shadow hover:shadow-md">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-xs font-black text-white">{{ row.rank }}</span>
-                                <p class="truncate text-sm font-bold text-slate-900">{{ row.label }}</p>
-                            </div>
-                            <div class="shrink-0 text-right">
-                                <p class="text-sm font-black text-slate-950" data-dashboard-currency-target="UZS">{{ row.UZS|money }} UZS</p>
-                                <p class="hidden text-sm font-black text-slate-950" data-dashboard-currency-target="USD">{{ row.USD|money }} USD</p>
-                                <a href="{% url 'objects:detail' row.pk %}?tab=expenses"
-                                   class="mt-1 inline-block text-xs font-bold text-blue-600 hover:underline">Ochish →</a>
-                            </div>
-                        </div>
-                        <!-- UZS bar -->
-                        <div class="mt-3" data-dashboard-currency-target="UZS">
-                            <div class="flex h-5 overflow-hidden rounded-full bg-slate-100">
-                                <div class="flex items-center justify-end pr-2 text-[0.6rem] font-black text-white rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500"
-                                     style="width: {% if row.UZS_percent %}{{ row.UZS_percent }}{% else %}0{% endif %}%; min-width: {% if row.UZS > 0 %}2.5rem{% else %}0{% endif %};">
-                                    {% if row.UZS_percent > 10 %}{{ row.UZS_percent|floatformat:0 }}%{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <!-- USD bar -->
-                        <div class="mt-3 hidden" data-dashboard-currency-target="USD">
-                            <div class="flex h-5 overflow-hidden rounded-full bg-slate-100">
-                                <div class="flex items-center justify-end pr-2 text-[0.6rem] font-black text-white rounded-full bg-gradient-to-r from-emerald-600 to-teal-400 transition-all duration-500"
-                                     style="width: {% if row.USD_percent %}{{ row.USD_percent }}{% else %}0{% endif %}%; min-width: {% if row.USD > 0 %}2.5rem{% else %}0{% endif %};">
-                                    {% if row.USD_percent > 10 %}{{ row.USD_percent|floatformat:0 }}%{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% empty %}
-                    {% include "includes/empty_state.html" with title="Obyekt xarajati topilmadi" text="Expense yozuvlari paydo bo'lganda eng ko'p xarajat bo'lgan obyektlar shu yerda chiqadi." %}
-                {% endfor %}
-
-                {% if object_spending_summary %}
-                    <div class="flex items-center justify-between rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-3">
-                        <p class="text-xs font-semibold text-slate-500">Top obyektga o'tish va barcha xarajatlarni ko'rish</p>
-                        <a href="{% url 'objects:detail' object_spending_summary.0.pk %}?tab=expenses"
-                           class="shrink-0 rounded-xl bg-slate-950 px-3 py-2 text-xs font-bold text-white">Ochish →</a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Category distribution chart -->
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-amber-600">Taqsimot</p>
-                    <h3 class="mt-2 text-xl font-black text-slate-950">Xarajat kategoriyalari</h3>
-                </div>
-                <span class="rounded-2xl bg-amber-50 p-3 text-amber-600">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M21 12a9 9 0 1 1-9-9v9z"/><path d="M13 3.05A9 9 0 0 1 20.95 11H13z"/>
-                    </svg>
-                </span>
-            </div>
-
-            <div class="mt-6 space-y-5">
-                {% for row in category_distribution %}
-                    <div>
-                        <div class="mb-2 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="h-3 w-3 shrink-0 rounded-full" style="background:{{ row.color }};"></span>
-                                <p class="truncate text-sm font-bold text-slate-700">{{ row.label }}</p>
-                            </div>
-                            <div class="shrink-0 text-right">
-                                <span class="text-sm font-black text-slate-950">{{ row.total|money }}</span>
-                                <span class="ml-2 text-xs font-bold text-slate-400">{{ row.percent|floatformat:0 }}%</span>
-                            </div>
-                        </div>
-                        <div class="h-4 overflow-hidden rounded-full bg-slate-100">
-                            <div class="h-full rounded-full transition-all duration-500"
-                                 style="width:{{ row.percent }}%; background:{{ row.color }};"></div>
-                        </div>
-                    </div>
-                {% empty %}
-                    {% include "includes/empty_state.html" with title="Kategoriya ma'lumoti yo'q" text="Expense paydo bo'lganda bu yer to'ladi." %}
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══ LEDGER + MONTHLY CHART ═══ -->
-    <section class="mt-6 grid gap-6 xl:grid-cols-3">
-
-        <!-- Recent transactions table (desktop) -->
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6 xl:col-span-2">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">Ledger</p>
-                    <h3 class="mt-2 text-xl font-black text-slate-950">Oxirgi transactionlar</h3>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
-                        <a href="{% url 'finance:transaction-list' %}" class="rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Moliyaga o'tish</a>
-                    {% endif %}
-                    {% if is_manager_dashboard or request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
-                        <a href="{% url 'finance:manager-expense-create' %}" class="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700">
-                            {% if is_manager_dashboard %}Xarajat qo'shish{% else %}Expense{% endif %}
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Desktop table -->
-            <div class="dashboard-ledger-table mt-5 hidden overflow-x-auto sm:block">
-                <table class="min-w-[640px] text-left text-sm">
-                    <thead>
-                        <tr class="border-b-2 border-slate-100">
-                            <th class="px-3 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Sana</th>
-                            <th class="px-3 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Entry</th>
-                            <th class="px-3 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Nimaga</th>
-                            <th class="px-3 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Wallet</th>
-                            <th class="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-400">Summa</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        {% for item in recent_transactions %}
-                            <tr class="group hover:bg-slate-50">
-                                <td class="px-3 py-3.5 text-xs text-slate-500">{{ item.date|date:"d.m.Y" }}</td>
-                                <td class="px-3 py-3.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs
-                                            {% if item.sign < 0 %}bg-rose-50 text-rose-500{% else %}bg-emerald-50 text-emerald-500{% endif %}">
-                                            {% if item.sign < 0 %}↓{% else %}↑{% endif %}
-                                        </span>
-                                        <div>
-                                            <div class="text-xs font-bold text-slate-900">{{ item.get_entry_type_display }}</div>
-                                            <div class="text-[0.65rem] text-slate-400">{{ item.category.name|default:"Ichki transfer" }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-3.5">
-                                    <div class="max-w-[180px]">
-                                        <div class="truncate text-xs font-semibold text-slate-800">
-                                            {% if item.work_item %}{{ item.work_item.title }}
-                                            {% elif item.item_name %}{{ item.item_name }}
-                                            {% elif item.object %}{{ item.object.name }}
-                                            {% else %}{{ item.description|default:"Umumiy xarajat" }}{% endif %}
-                                        </div>
-                                        <div class="truncate text-[0.65rem] text-slate-400">
-                                            {% if item.object and item.work_item %}{{ item.object.name }}
-                                            {% elif item.description %}{{ item.description|truncatechars:30 }}
-                                            {% else %}—{% endif %}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-3.5 text-xs text-slate-500">
-                                    {% if item.wallet_type == 'MANAGER' %}{{ item.manager_account.user.full_name|default:"Manager" }}
-                                    {% elif item.wallet_type == 'OBJECT' %}Obyekt
-                                    {% else %}Ferma{% endif %}
-                                </td>
-                                <td class="px-3 py-3.5 text-right text-sm font-black
-                                    {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
-                                    {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }} {{ item.currency }}
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="5" class="px-3 py-8">
-                                    {% include "includes/empty_state.html" with title="Ledger bo'sh" text="Moliya harakatlari shu yerda paydo bo'ladi." %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile transaction cards -->
-            <div class="mt-4 space-y-2 sm:hidden">
-                {% for item in recent_transactions %}
-                    <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
-                            {% if item.sign < 0 %}bg-rose-100 text-rose-600{% else %}bg-emerald-100 text-emerald-600{% endif %}">
-                            <span class="text-sm">{% if item.sign < 0 %}↓{% else %}↑{% endif %}</span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-xs font-bold text-slate-900">
-                                {% if item.work_item %}{{ item.work_item.title }}
-                                {% elif item.item_name %}{{ item.item_name }}
-                                {% elif item.object %}{{ item.object.name }}
-                                {% else %}{{ item.description|default:"Umumiy"|truncatechars:30 }}{% endif %}
-                            </p>
-                            <p class="text-[0.65rem] text-slate-400">{{ item.date|date:"d.m.Y" }} · {{ item.get_entry_type_display }}</p>
-                        </div>
-                        <span class="shrink-0 text-sm font-black {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
-                            {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }}
-                        </span>
-                    </div>
-                {% empty %}
-                    <p class="py-4 text-center text-xs text-slate-400">Tranzaksiyalar yo'q.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Monthly expense chart -->
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-violet-600">Oylik</p>
-            <h3 class="mt-2 text-xl font-black text-slate-950">Oy bo'yicha xarajat</h3>
-            <div class="mt-6 space-y-5">
-                {% for row in monthly_expense_series %}
-                    <div>
-                        <div class="mb-2 flex items-center justify-between gap-2">
-                            <span class="text-sm font-bold text-slate-700">{{ row.label }}</span>
-                            <span class="text-xs font-bold text-slate-500">{{ row.UZS|money }} UZS</span>
-                        </div>
-                        <div class="flex h-5 overflow-hidden rounded-full bg-slate-100">
-                            <div class="flex items-center justify-end overflow-hidden rounded-l-full bg-blue-600 pr-1.5 text-[0.6rem] font-black text-white transition-all duration-500"
-                                 style="width: {{ row.UZS_percent }}%;">
-                                {% if row.UZS_percent > 15 %}{{ row.UZS_percent|floatformat:0 }}%{% endif %}
-                            </div>
-                            <div class="flex items-center justify-end overflow-hidden rounded-r-full bg-emerald-500 pr-1.5 text-[0.6rem] font-black text-white transition-all duration-500"
-                                 style="width: {{ row.USD_percent }}%;">
-                                {% if row.USD_percent > 15 %}{{ row.USD_percent|floatformat:0 }}%{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            {% if monthly_expense_series %}
-                <div class="mt-6 flex items-center gap-4 text-xs font-semibold text-slate-500">
-                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-blue-600"></span>UZS</span>
-                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>USD</span>
-                </div>
             {% endif %}
         </div>
-    </section>
+    </div>
 
-    <!-- ═══ TRANSFERS + PROGRESS + SALARY ═══ -->
-    <section class="mt-6 grid gap-6 xl:grid-cols-3">
+    {# ── Quick actions ── #}
+    <div class="grid grid-cols-3 gap-2">
+        <a href="{% url 'objects:list' %}" class="mobile-service-tile">
+            <span class="mobile-service-icon bg-teal-50 text-teal-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M6 21V7l6-4 6 4v14M9 21v-6h6v6"/></svg>
+            </span>
+            <span>Obyektlar</span>
+        </a>
+        <a href="{% url 'finance:manager-expense-create' %}" class="mobile-service-tile">
+            <span class="mobile-service-icon bg-rose-50 text-rose-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </span>
+            <span>Xarajat</span>
+        </a>
+        <a href="{% url 'finance:transaction-list' %}" class="mobile-service-tile">
+            <span class="mobile-service-icon bg-blue-50 text-blue-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h.01M11 15h2"/><rect width="18" height="14" x="3" y="5" rx="3"/></svg>
+            </span>
+            <span>Moliya</span>
+        </a>
+        <a href="{% url 'finance:manager-transfer-create' %}" class="mobile-service-tile">
+            <span class="mobile-service-icon bg-indigo-50 text-indigo-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </span>
+            <span>Transfer</span>
+        </a>
+        <a href="{% url 'workforce:salary-payment-list' %}" class="mobile-service-tile">
+            <span class="mobile-service-icon bg-amber-50 text-amber-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </span>
+            <span>Ish haqi</span>
+        </a>
+        <a href="{% url 'workforce:worker-list' %}" class="mobile-service-tile">
+            <span class="mobile-service-icon bg-violet-50 text-violet-700">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <span>Ishchilar</span>
+        </a>
+    </div>
 
-        <!-- Transfers -->
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <div class="flex items-center justify-between gap-3">
-                <h3 class="text-lg font-black text-slate-950">
-                    {% if is_manager_dashboard %}Menga o'tkazilgan pullar{% else %}Oxirgi transferlar{% endif %}
-                </h3>
-                <span class="rounded-2xl bg-blue-50 p-2 text-blue-600">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
+    {# ── Month comparison (mobile) ── #}
+    {% with mc=month_comparison %}
+    {% if mc %}
+    <div class="grid grid-cols-2 gap-2">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-3">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-emerald-600">{{ mc.this_label }} daromad</p>
+            <p class="mt-1.5 text-sm font-black text-slate-900">{{ mc.this_income|money }}</p>
+            {% if mc.income_pct is not None %}
+                <p class="mt-1 text-[0.65rem] font-semibold {% if mc.income_pct >= 0 %}text-emerald-500{% else %}text-rose-500{% endif %}">
+                    {% if mc.income_pct >= 0 %}↑{% else %}↓{% endif %} {{ mc.income_pct|floatformat:1 }}%
+                </p>
+            {% endif %}
+        </div>
+        <div class="rounded-2xl border border-rose-100 bg-white p-3">
+            <p class="text-[0.6rem] font-bold uppercase tracking-wider text-rose-600">{{ mc.this_label }} xarajat</p>
+            <p class="mt-1.5 text-sm font-black text-slate-900">{{ mc.this_expense|money }}</p>
+            {% if mc.expense_pct is not None %}
+                <p class="mt-1 text-[0.65rem] font-semibold {% if mc.expense_pct <= 0 %}text-emerald-500{% else %}text-rose-500{% endif %}">
+                    {% if mc.expense_pct >= 0 %}↑{% else %}↓{% endif %} {{ mc.expense_pct|floatformat:1 }}%
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {# ── Mobile monthly chart ── #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">6 oylik xarajat (UZS)</p>
+        <div style="position:relative;height:140px;">
+            <canvas id="mobileMonthlyChart"></canvas>
+        </div>
+    </div>
+
+    {# ── Recent transactions ── #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-sm font-black text-slate-900">Oxirgi tranzaksiyalar</p>
+            <a href="{% url 'finance:transaction-list' %}" class="text-xs font-bold text-blue-600">Hammasi →</a>
+        </div>
+        <div class="space-y-2">
+            {% for item in recent_transactions|slice:":5" %}
+            <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black
+                    {% if item.sign < 0 %}bg-rose-100 text-rose-600{% else %}bg-emerald-100 text-emerald-600{% endif %}">
+                    {% if item.sign < 0 %}↓{% else %}↑{% endif %}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-xs font-bold text-slate-900">
+                        {% if item.item_name %}{{ item.item_name }}
+                        {% elif item.object %}{{ item.object.name }}
+                        {% else %}{{ item.description|default:"Xarajat"|truncatechars:26 }}{% endif %}
+                    </p>
+                    <p class="text-[0.65rem] text-slate-400">{{ item.date|date:"d.m.Y" }}</p>
+                </div>
+                <span class="shrink-0 text-xs font-black {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                    {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }}
                 </span>
             </div>
-            <div class="mt-5 space-y-3">
-                {% for transfer in recent_transfers %}
-                    <div class="rounded-2xl border border-blue-100 bg-blue-50/40 px-4 py-3.5">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="min-w-0">
-                                <p class="truncate font-bold text-slate-900">{{ transfer.to_manager.user.full_name }}</p>
-                                <p class="text-xs text-slate-500">{{ transfer.get_transfer_kind_display }} · {{ transfer.date|date:"d.m.Y" }}</p>
-                            </div>
-                            <p class="shrink-0 font-black text-blue-600">{{ transfer.amount|money }} {{ transfer.currency }}</p>
-                        </div>
-                    </div>
-                {% empty %}
-                    {% include "includes/empty_state.html" with title="Transferlar yo'q" text="Ferma va manager o'rtasidagi transferlar shu blokda ko'rinadi." %}
-                {% endfor %}
-            </div>
+            {% empty %}
+            <p class="py-4 text-center text-xs text-slate-400">Tranzaksiyalar hali yo'q.</p>
+            {% endfor %}
         </div>
+    </div>
 
-        <!-- Objects progress -->
-        <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <div class="flex items-center justify-between gap-3">
-                <h3 class="text-lg font-black text-slate-950">Obyektlar progressi</h3>
-                <a href="{% url 'objects:list' %}" class="text-xs font-bold text-blue-600">Ko'rish →</a>
-            </div>
-            <div class="mt-5 space-y-5">
-                {% for item in progress_objects %}
-                    <div>
-                        <div class="mb-2 flex items-center justify-between gap-2">
-                            <p class="truncate text-sm font-bold text-slate-700">{{ item.name }}</p>
-                            <span class="shrink-0 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-black text-blue-600">
-                                {{ item.progress_average|floatformat:0 }}%
-                            </span>
-                        </div>
-                        <div class="h-4 overflow-hidden rounded-full bg-slate-100">
-                            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500"
-                                 style="width: {{ item.progress_average|floatformat:0 }}%;"></div>
-                        </div>
-                    </div>
-                {% empty %}
-                    {% include "includes/empty_state.html" with title="Progress yo'q" text="Work item progresslar shu yerga jamlanadi." %}
-                {% endfor %}
-            </div>
+    {# ── Object progress (mobile) ── #}
+    {% if progress_objects %}
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-sm font-black text-slate-900">Obyektlar progressi</p>
+            <a href="{% url 'objects:list' %}" class="text-xs font-bold text-slate-400">Ko'rish →</a>
         </div>
+        <div class="space-y-3">
+            {% for item in progress_objects|slice:":4" %}
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <p class="truncate text-xs font-semibold text-slate-700">{{ item.name }}</p>
+                    <span class="shrink-0 text-xs font-black text-blue-600">{{ item.progress_average|floatformat:0 }}%</span>
+                </div>
+                <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
+                         style="width:{{ item.progress_average|floatformat:0 }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
-        <!-- Recent salary payments -->
-        {% if not is_manager_dashboard %}
-            <div class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-                <div class="flex items-center justify-between gap-3">
-                    <h3 class="text-lg font-black text-slate-950">Oxirgi ish haqi</h3>
-                    <a href="{% url 'workforce:salary-payment-list' %}" class="text-xs font-bold text-blue-600">Ko'rish →</a>
-                </div>
-                <div class="mt-5 space-y-3">
-                    {% for item in recent_salary_payments %}
-                        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 px-4 py-3.5">
-                            <div class="flex items-center justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="truncate font-bold text-slate-900">{{ item.worker.full_name }}</p>
-                                    <p class="text-xs text-slate-500">{{ item.object.name|default:"Umumiy" }}</p>
-                                </div>
-                                <span class="shrink-0 font-black text-emerald-600">{{ item.amount|money }} {{ item.currency }}</span>
-                            </div>
-                        </div>
-                    {% empty %}
-                        {% include "includes/empty_state.html" with title="Salary yozuvlari yo'q" text="Salary payment yaratilgandan keyin bu yerda ko'rinadi." %}
-                    {% endfor %}
-                </div>
+</section>
+
+
+{# ╔══════════════════════════════════════════════════════════════════════╗ #}
+{# ║  DESKTOP PANEL  (>768 px)                                           ║ #}
+{# ╚══════════════════════════════════════════════════════════════════════╝ #}
+
+{# ── Hero ─────────────────────────────────────────────────────────────── #}
+<section class="dashboard-hero overflow-hidden rounded-[2rem] border border-blue-100 shadow-sm"
+         style="background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 45%,#0284c7 100%);">
+    <div class="flex flex-col gap-4 p-6 xl:flex-row xl:items-center xl:justify-between md:p-8">
+        <div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-100">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                NMC Construction · {% now "j-MMMM Y" %}
+            </div>
+            <h2 class="mt-3 text-3xl font-black text-white tracking-tight">
+                Xush kelibsiz, {{ request.user.full_name|default:request.user.username }} 👋
+            </h2>
+            <p class="mt-2 text-sm text-blue-200 max-w-lg">
+                {% if is_manager_dashboard %}
+                    Balansingiz, bugungi xarajatlaringiz va ish jarayonini bir ko'rinishda kuzating.
+                {% else %}
+                    Ferma balansi, manager faoliyati va pul oqimini real vaqtda kuzating.
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            {% if is_manager_dashboard %}
+                <a href="{% url 'finance:manager-expense-create' %}"
+                   class="rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 px-5 py-3 text-sm font-bold text-white hover:bg-white/30 transition">
+                    + Xarajat qo'shish
+                </a>
+            {% else %}
+                <a href="{% url 'finance:transaction-list' %}"
+                   class="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow hover:bg-blue-50 transition">
+                    Moliya →
+                </a>
+                <a href="{% url 'objects:list' %}"
+                   class="rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 px-5 py-3 text-sm font-bold text-white hover:bg-white/30 transition">
+                    Obyektlar
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {# Balance strip #}
+    <div class="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-4 border-t border-white/10">
+        <div class="bg-white/5 backdrop-blur-sm px-5 py-3.5">
+            <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-200">
+                {% if is_manager_dashboard %}Mening{% else %}Ferma{% endif %} UZS
+            </p>
+            <p class="mt-1 text-base font-black text-white">{{ balances|dict_get:"UZS"|money }}</p>
+        </div>
+        <div class="bg-white/5 backdrop-blur-sm px-5 py-3.5">
+            <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-200">
+                {% if is_manager_dashboard %}Mening{% else %}Ferma{% endif %} USD
+            </p>
+            <p class="mt-1 text-base font-black text-white">{{ balances|dict_get:"USD"|money }}</p>
+        </div>
+        {% if is_manager_dashboard %}
+            <div class="bg-white/5 backdrop-blur-sm px-5 py-3.5">
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-200">Bugungi xarajat</p>
+                <p class="mt-1 text-base font-black text-white">{{ today_manager_expense_total|money }}</p>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm px-5 py-3.5">
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-200">Bugungi amallar</p>
+                <p class="mt-1 text-base font-black text-white">{{ today_manager_expense.count }} ta</p>
+            </div>
+        {% else %}
+            <div class="bg-white/5 backdrop-blur-sm px-5 py-3.5">
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-200">Manager qo'lida UZS</p>
+                <p class="mt-1 text-base font-black text-white">{{ manager_holdings|dict_get:"UZS"|money }}</p>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm px-5 py-3.5">
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-200">Faol obyektlar</p>
+                <p class="mt-1 text-base font-black text-white">{{ active_objects }} ta · {{ worker_count }} ishchi</p>
             </div>
         {% endif %}
-    </section>
+    </div>
+</section>
+
+
+{# ── Month comparison cards ───────────────────────────────────────────── #}
+{% with mc=month_comparison %}
+{% if mc %}
+<section class="dashboard-comparison mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
+
+    {# This month income #}
+    <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+        <div class="flex items-start justify-between">
+            <div class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </div>
+            {% if mc.income_pct is not None %}
+                <span class="rounded-full px-2.5 py-1 text-xs font-bold
+                    {% if mc.income_pct >= 0 %}bg-emerald-50 text-emerald-600{% else %}bg-rose-50 text-rose-600{% endif %}">
+                    {% if mc.income_pct >= 0 %}+{% endif %}{{ mc.income_pct|floatformat:1 }}%
+                </span>
+            {% endif %}
+        </div>
+        <p class="mt-4 text-xs font-semibold text-slate-500">{{ mc.this_label }} daromad (UZS)</p>
+        <p class="mt-1 text-xl font-black text-slate-900">{{ mc.this_income|money }}</p>
+        <p class="mt-1 text-xs text-slate-400">{{ mc.last_label }}: {{ mc.last_income|money }}</p>
+    </div>
+
+    {# This month expense #}
+    <div class="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm">
+        <div class="flex items-start justify-between">
+            <div class="rounded-xl bg-rose-50 p-2.5 text-rose-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </div>
+            {% if mc.expense_pct is not None %}
+                <span class="rounded-full px-2.5 py-1 text-xs font-bold
+                    {% if mc.expense_pct <= 0 %}bg-emerald-50 text-emerald-600{% else %}bg-rose-50 text-rose-600{% endif %}">
+                    {% if mc.expense_pct >= 0 %}+{% endif %}{{ mc.expense_pct|floatformat:1 }}%
+                </span>
+            {% endif %}
+        </div>
+        <p class="mt-4 text-xs font-semibold text-slate-500">{{ mc.this_label }} xarajat (UZS)</p>
+        <p class="mt-1 text-xl font-black text-slate-900">{{ mc.this_expense|money }}</p>
+        <p class="mt-1 text-xs text-slate-400">{{ mc.last_label }}: {{ mc.last_expense|money }}</p>
+    </div>
+
+    {# Today's company expense #}
+    <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+        <div class="flex items-start justify-between">
+            <div class="rounded-xl bg-amber-50 p-2.5 text-amber-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="5" rx="3"/><path d="M3 10h18M7 15h.01M11 15h2"/></svg>
+            </div>
+            <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-600">Bugun</span>
+        </div>
+        <p class="mt-4 text-xs font-semibold text-slate-500">Bugungi jami xarajat</p>
+        <p class="mt-1 text-xl font-black text-slate-900">{{ today_expense_total|money }}</p>
+        <p class="mt-1 text-xs text-slate-400">{{ today_expense.count }} ta amal</p>
+    </div>
+
+    {# Today's income #}
+    <div class="rounded-2xl border border-cyan-100 bg-white p-5 shadow-sm">
+        <div class="flex items-start justify-between">
+            <div class="rounded-xl bg-cyan-50 p-2.5 text-cyan-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/><path d="M19 19H5"/></svg>
+            </div>
+            <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-600">Bugun</span>
+        </div>
+        <p class="mt-4 text-xs font-semibold text-slate-500">Bugungi jami daromad</p>
+        <p class="mt-1 text-xl font-black text-slate-900">{{ today_income_total|money }}</p>
+        <p class="mt-1 text-xs text-slate-400">{{ today_income.count }} ta amal</p>
+    </div>
+
+</section>
+{% endif %}
+{% endwith %}
+
+
+{# ── Charts row 1: Monthly bar + Category doughnut ──────────────────── #}
+<section class="dashboard-visual-section mt-5 grid gap-5 xl:grid-cols-[1.7fr_1fr]">
+
+    {# Monthly bar chart #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div class="flex items-start justify-between gap-3 mb-5">
+            <div>
+                <p class="text-[0.65rem] font-bold uppercase tracking-widest text-blue-600">Trend</p>
+                <h3 class="mt-1 text-lg font-black text-slate-900">6 oylik xarajat</h3>
+            </div>
+            <div class="flex rounded-xl bg-slate-100 p-1 text-xs font-bold gap-1">
+                <button id="monthlyUzsBtn" onclick="switchMonthlyCurrency('UZS')"
+                        class="rounded-lg bg-blue-600 px-3 py-1.5 text-white transition">UZS</button>
+                <button id="monthlyUsdBtn" onclick="switchMonthlyCurrency('USD')"
+                        class="rounded-lg px-3 py-1.5 text-slate-500 hover:text-slate-700 transition">USD</button>
+            </div>
+        </div>
+        <div style="position:relative;height:220px;">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+
+    {# Category doughnut #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div class="mb-5">
+            <p class="text-[0.65rem] font-bold uppercase tracking-widest text-amber-600">Taqsimot</p>
+            <h3 class="mt-1 text-lg font-black text-slate-900">Xarajat kategoriyalari</h3>
+        </div>
+        {% if category_distribution %}
+            <div style="position:relative;height:180px;" class="mb-3">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="space-y-1.5 max-h-40 overflow-y-auto">
+                {% for row in category_distribution %}
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:{{ row.color }}"></span>
+                        <p class="truncate text-xs text-slate-600">{{ row.label }}</p>
+                    </div>
+                    <span class="shrink-0 text-xs font-bold text-slate-800">{{ row.percent }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="flex flex-col items-center justify-center py-12 text-center">
+                <span class="text-4xl mb-2">📊</span>
+                <p class="text-sm text-slate-500">Xarajat ma'lumoti yo'q</p>
+            </div>
+        {% endif %}
+    </div>
+
+</section>
+
+
+{# ── Charts row 2: Daily bar + Object spending ───────────────────────── #}
+<section class="dashboard-charts mt-5 grid gap-5 xl:grid-cols-[1fr_1.4fr]">
+
+    {# Daily 7-day bar chart #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div class="mb-5">
+            <p class="text-[0.65rem] font-bold uppercase tracking-widest text-violet-600">Kunlik</p>
+            <h3 class="mt-1 text-lg font-black text-slate-900">Oxirgi 7 kun</h3>
+        </div>
+        <div style="position:relative;height:200px;">
+            <canvas id="dailyChart"></canvas>
+        </div>
+    </div>
+
+    {# Object spending ranking #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div class="flex items-start justify-between gap-3 mb-5">
+            <div>
+                <p class="text-[0.65rem] font-bold uppercase tracking-widest text-blue-600">Ranking</p>
+                <h3 class="mt-1 text-lg font-black text-slate-900">Eng ko'p xarajat</h3>
+            </div>
+            <div class="flex rounded-xl bg-slate-100 p-1 text-xs font-bold gap-1" data-dashboard-currency-toggle>
+                <button type="button" class="rounded-lg bg-blue-600 px-3 py-1.5 text-white" data-dashboard-currency="UZS">UZS</button>
+                <button type="button" class="rounded-lg px-3 py-1.5 text-slate-500" data-dashboard-currency="USD">USD</button>
+            </div>
+        </div>
+        <div class="space-y-3">
+            {% for row in object_spending_summary %}
+            <div class="group">
+                <div class="flex items-center justify-between gap-3 mb-1.5">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-xs font-black text-white">{{ row.rank }}</span>
+                        <p class="truncate text-sm font-semibold text-slate-800">{{ row.label }}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <p class="text-sm font-black text-slate-900" data-dashboard-currency-target="UZS">{{ row.UZS|money }}</p>
+                        <p class="hidden text-sm font-black text-slate-900" data-dashboard-currency-target="USD">{{ row.USD|money }}</p>
+                        <a href="{% url 'objects:detail' row.pk %}" class="text-[0.65rem] font-bold text-blue-600 hover:underline">Ochish →</a>
+                    </div>
+                </div>
+                <div data-dashboard-currency-target="UZS">
+                    <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+                        <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500"
+                             style="width:{{ row.UZS_percent }}%"></div>
+                    </div>
+                </div>
+                <div class="hidden" data-dashboard-currency-target="USD">
+                    <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-400 transition-all duration-500"
+                             style="width:{{ row.USD_percent }}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-10 text-center">
+                <span class="text-4xl mb-2">🏗️</span>
+                <p class="text-sm text-slate-500">Obyekt xarajati topilmadi</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</section>
+
+
+{# ── Bottom: Transactions table + Transfers + Progress ───────────────── #}
+<section class="dashboard-monthly-section mt-5 grid gap-5 xl:grid-cols-3">
+
+    {# Recent transactions — desktop table #}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6 xl:col-span-2">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
+            <div>
+                <p class="text-[0.65rem] font-bold uppercase tracking-widest text-emerald-600">Ledger</p>
+                <h3 class="mt-1 text-xl font-black text-slate-900">Oxirgi tranzaksiyalar</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% if request.user.role == 'ADMIN' or request.user.role == 'DIRECTOR' %}
+                    <a href="{% url 'finance:transaction-list' %}"
+                       class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">Moliyaga o'tish</a>
+                {% endif %}
+                {% if is_manager_dashboard or request.user.role in 'ADMIN,DIRECTOR' %}
+                    <a href="{% url 'finance:manager-expense-create' %}"
+                       class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
+                        {% if is_manager_dashboard %}+ Xarajat{% else %}+ Expense{% endif %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="dashboard-ledger-table overflow-x-auto">
+            <table class="min-w-[580px] text-left text-sm w-full">
+                <thead>
+                    <tr class="border-b-2 border-slate-100">
+                        <th class="pb-3 text-xs font-bold uppercase tracking-wide text-slate-400 pr-4">Sana</th>
+                        <th class="pb-3 text-xs font-bold uppercase tracking-wide text-slate-400 pr-4">Tur</th>
+                        <th class="pb-3 text-xs font-bold uppercase tracking-wide text-slate-400 pr-4">Nimaga</th>
+                        <th class="pb-3 text-xs font-bold uppercase tracking-wide text-slate-400 pr-4">Wallet</th>
+                        <th class="pb-3 text-right text-xs font-bold uppercase tracking-wide text-slate-400">Summa</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for item in recent_transactions %}
+                    <tr class="group hover:bg-slate-50 transition-colors">
+                        <td class="py-3 text-xs text-slate-400 pr-4 whitespace-nowrap">{{ item.date|date:"d.m.Y" }}</td>
+                        <td class="py-3 pr-4">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold
+                                    {% if item.sign < 0 %}bg-rose-50 text-rose-500{% else %}bg-emerald-50 text-emerald-500{% endif %}">
+                                    {% if item.sign < 0 %}↓{% else %}↑{% endif %}
+                                </span>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800 whitespace-nowrap">{{ item.get_entry_type_display }}</p>
+                                    <p class="text-[0.65rem] text-slate-400">{{ item.category.name|default:"Transfer" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 pr-4 max-w-[180px]">
+                            <p class="truncate text-xs font-semibold text-slate-800">
+                                {% if item.work_item %}{{ item.work_item.title }}
+                                {% elif item.item_name %}{{ item.item_name }}
+                                {% elif item.object %}{{ item.object.name }}
+                                {% else %}{{ item.description|default:"Umumiy"|truncatechars:25 }}{% endif %}
+                            </p>
+                            {% if item.object %}
+                                <p class="truncate text-[0.65rem] text-slate-400">{{ item.object.name }}</p>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 pr-4 text-xs text-slate-500 whitespace-nowrap">
+                            {% if item.wallet_type == 'MANAGER' %}{{ item.manager_account.user.full_name|default:"Manager"|truncatechars:14 }}
+                            {% elif item.wallet_type == 'OBJECT' %}Obyekt
+                            {% else %}Ferma{% endif %}
+                        </td>
+                        <td class="py-3 text-right text-sm font-black whitespace-nowrap
+                            {% if item.sign < 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                            {% if item.sign < 0 %}−{% else %}+{% endif %}{{ item.amount|money }} <span class="text-xs font-semibold">{{ item.currency }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-10 text-center text-sm text-slate-400">
+                            Tranzaksiyalar hali yo'q.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Right column: Object progress + Salary/Transfers #}
+    <div class="space-y-5">
+
+        {# Object progress #}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-slate-900">Obyektlar progressi</h3>
+                <a href="{% url 'objects:list' %}" class="text-xs font-bold text-blue-600 hover:underline">Ko'rish →</a>
+            </div>
+            <div class="space-y-4">
+                {% for item in progress_objects %}
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <p class="truncate text-xs font-semibold text-slate-700">{{ item.name }}</p>
+                        <span class="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-black text-blue-700">
+                            {{ item.progress_average|floatformat:0 }}%
+                        </span>
+                    </div>
+                    <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+                        <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
+                             style="width:{{ item.progress_average|floatformat:0 }}%;"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="py-4 text-center text-xs text-slate-400">Progress ma'lumoti yo'q.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Recent salary or transfers #}
+        {% if not is_manager_dashboard %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-slate-900">Oxirgi ish haqi</h3>
+                <a href="{% url 'workforce:salary-payment-list' %}" class="text-xs font-bold text-blue-600 hover:underline">Ko'rish →</a>
+            </div>
+            <div class="space-y-2">
+                {% for item in recent_salary_payments|slice:":4" %}
+                <div class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50/60 px-3 py-2.5">
+                    <div class="min-w-0">
+                        <p class="truncate text-xs font-bold text-slate-900">{{ item.worker.full_name }}</p>
+                        <p class="text-[0.65rem] text-slate-500">{{ item.object.name|default:"Umumiy" }}</p>
+                    </div>
+                    <span class="shrink-0 text-xs font-black text-emerald-700">{{ item.amount|money }} {{ item.currency }}</span>
+                </div>
+                {% empty %}
+                <p class="py-4 text-center text-xs text-slate-400">Ish haqi yo'q.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-slate-900">Menga o'tkazilgan</h3>
+                <a href="{% url 'finance:transaction-list' %}" class="text-xs font-bold text-blue-600 hover:underline">Ko'rish →</a>
+            </div>
+            <div class="space-y-2">
+                {% for transfer in recent_transfers|slice:":4" %}
+                <div class="flex items-center justify-between gap-3 rounded-xl bg-blue-50/60 px-3 py-2.5">
+                    <div class="min-w-0">
+                        <p class="truncate text-xs font-bold text-slate-900">{{ transfer.to_manager.user.full_name }}</p>
+                        <p class="text-[0.65rem] text-slate-500">{{ transfer.date|date:"d.m.Y" }}</p>
+                    </div>
+                    <span class="shrink-0 text-xs font-black text-blue-700">{{ transfer.amount|money }} {{ transfer.currency }}</span>
+                </div>
+                {% empty %}
+                <p class="py-4 text-center text-xs text-slate-400">Transfer yo'q.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{# ══════════════════════════════════════════════════════════════════════════════
+   Chart.js initialization
+══════════════════════════════════════════════════════════════════════════════ #}
+{% block extra_scripts %}
+<script>
+(function () {
+    'use strict';
+
+    // ── Shared config ────────────────────────────────────────────────────────
+    const MONTHLY_LABELS = {{ chart_monthly_labels|safe }};
+    const MONTHLY_UZS    = {{ chart_monthly_uzs|safe }};
+    const MONTHLY_USD    = {{ chart_monthly_usd|safe }};
+    const DAILY_LABELS   = {{ chart_daily_labels|safe }};
+    const DAILY_UZS      = {{ chart_daily_uzs|safe }};
+    const CAT_LABELS     = {{ chart_cat_labels|safe }};
+    const CAT_VALUES     = {{ chart_cat_values|safe }};
+    const CAT_COLORS     = {{ chart_cat_colors|safe }};
+
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size   = 11;
+    Chart.defaults.color       = '#94a3b8';
+
+    const gridColor = 'rgba(0,0,0,0.04)';
+
+    // ── Helper: format big numbers ───────────────────────────────────────────
+    function fmtNum(v) {
+        if (v >= 1_000_000_000) return (v / 1_000_000_000).toFixed(1) + ' mlrd';
+        if (v >= 1_000_000)     return (v / 1_000_000).toFixed(1) + ' mln';
+        if (v >= 1_000)         return (v / 1_000).toFixed(0) + ' K';
+        return v.toFixed(0);
+    }
+
+    // ── 1. Monthly bar chart (desktop) ───────────────────────────────────────
+    const monthlyCtx = document.getElementById('monthlyChart');
+    let monthlyChart = null;
+    if (monthlyCtx) {
+        const makeDataset = (data, color, label) => ({
+            label, data,
+            backgroundColor: data.map((_, i) => i === data.length - 1 ? color : color.replace('0.9', '0.55')),
+            borderRadius: 8,
+            borderSkipped: false,
+        });
+
+        monthlyChart = new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: MONTHLY_LABELS,
+                datasets: [makeDataset(MONTHLY_UZS, 'rgba(37,99,235,0.9)', 'UZS xarajat')]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' ' + fmtNum(ctx.raw) + ' ' + (ctx.dataset.label.includes('USD') ? 'USD' : 'UZS')
+                        }
+                    }
+                },
+                scales: {
+                    y: { grid: { color: gridColor }, ticks: { callback: fmtNum } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ── Currency toggle for monthly chart ────────────────────────────────────
+    window.switchMonthlyCurrency = function(cur) {
+        if (!monthlyChart) return;
+        const isUZS = cur === 'UZS';
+        monthlyChart.data.datasets[0].data  = isUZS ? MONTHLY_UZS : MONTHLY_USD;
+        monthlyChart.data.datasets[0].label = isUZS ? 'UZS xarajat' : 'USD xarajat';
+        const color = isUZS ? 'rgba(37,99,235,0.9)' : 'rgba(5,150,105,0.9)';
+        const dimmed = isUZS ? 'rgba(37,99,235,0.45)' : 'rgba(5,150,105,0.45)';
+        const data = monthlyChart.data.datasets[0].data;
+        monthlyChart.data.datasets[0].backgroundColor = data.map((_, i) => i === data.length - 1 ? color : dimmed);
+        monthlyChart.update();
+
+        document.getElementById('monthlyUzsBtn').className = isUZS
+            ? 'rounded-lg bg-blue-600 px-3 py-1.5 text-white transition'
+            : 'rounded-lg px-3 py-1.5 text-slate-500 hover:text-slate-700 transition';
+        document.getElementById('monthlyUsdBtn').className = !isUZS
+            ? 'rounded-lg bg-emerald-600 px-3 py-1.5 text-white transition'
+            : 'rounded-lg px-3 py-1.5 text-slate-500 hover:text-slate-700 transition';
+    };
+
+    // ── 2. Category doughnut ─────────────────────────────────────────────────
+    const catCtx = document.getElementById('categoryChart');
+    if (catCtx && CAT_VALUES.length) {
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: CAT_LABELS,
+                datasets: [{
+                    data: CAT_VALUES,
+                    backgroundColor: CAT_COLORS,
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 6,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' ' + fmtNum(ctx.raw)
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── 3. Daily bar chart ───────────────────────────────────────────────────
+    const dailyCtx = document.getElementById('dailyChart');
+    if (dailyCtx) {
+        const maxVal = Math.max(...DAILY_UZS, 1);
+        new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: DAILY_LABELS,
+                datasets: [{
+                    label: 'Kunlik xarajat (UZS)',
+                    data: DAILY_UZS,
+                    backgroundColor: DAILY_UZS.map((v, i) =>
+                        i === DAILY_UZS.length - 1 ? 'rgba(124,58,237,0.9)'
+                        : v === maxVal ? 'rgba(124,58,237,0.75)'
+                        : 'rgba(124,58,237,0.4)'
+                    ),
+                    borderRadius: 7,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ' ' + fmtNum(ctx.raw) + ' UZS' } }
+                },
+                scales: {
+                    y: { grid: { color: gridColor }, ticks: { callback: fmtNum } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ── 4. Mobile monthly chart (mini) ───────────────────────────────────────
+    const mobileCtx = document.getElementById('mobileMonthlyChart');
+    if (mobileCtx) {
+        new Chart(mobileCtx, {
+            type: 'bar',
+            data: {
+                labels: MONTHLY_LABELS,
+                datasets: [{
+                    data: MONTHLY_UZS,
+                    backgroundColor: MONTHLY_UZS.map((_, i) =>
+                        i === MONTHLY_UZS.length - 1 ? 'rgba(37,99,235,0.95)' : 'rgba(37,99,235,0.45)'
+                    ),
+                    borderRadius: 5,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + fmtNum(ctx.raw) } } },
+                scales: {
+                    y: { grid: { color: gridColor }, ticks: { callback: fmtNum, maxTicksLimit: 4 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+})();
+</script>
 {% endblock %}
