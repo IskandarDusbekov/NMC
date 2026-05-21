@@ -347,14 +347,19 @@ class TransactionService:
         transaction.full_clean()
         cls._validate_balance(payload)
         transaction.save()
-        AuditLogService.log(
+        # AuditLog yozuvi asosiy lock bo'shagandan KEYIN ishga tushadi —
+        # bu SQLite write lock muddatini qisqartiradi va 502 xatolarini kamaytiradi.
+        _ip = AuditLogService.get_ip_address(request) if request else None
+        _desc = f'{transaction.entry_type} - {transaction.amount} {transaction.currency}'
+        _pk = str(transaction.pk)
+        db_transaction.on_commit(lambda: AuditLogService.log(
             user=user,
             action='transaction_created',
             model_name='Transaction',
-            object_id=str(transaction.pk),
-            description=f'{transaction.entry_type} - {transaction.amount} {transaction.currency}',
-            ip_address=AuditLogService.get_ip_address(request) if request else None,
-        )
+            object_id=_pk,
+            description=_desc,
+            ip_address=_ip,
+        ))
         return transaction
 
     @classmethod
@@ -378,14 +383,17 @@ class TransactionService:
         except Exception:
             cls._apply_object_balance_delta(original, multiplier=-1)
             raise
-        AuditLogService.log(
+        _ip = AuditLogService.get_ip_address(request) if request else None
+        _pk = str(instance.pk)
+        _desc = f'{instance.entry_type} transaction yangilandi.'
+        db_transaction.on_commit(lambda: AuditLogService.log(
             user=user,
             action='transaction_updated',
             model_name='Transaction',
-            object_id=str(instance.pk),
-            description=f'{instance.entry_type} transaction yangilandi.',
-            ip_address=AuditLogService.get_ip_address(request) if request else None,
-        )
+            object_id=_pk,
+            description=_desc,
+            ip_address=_ip,
+        ))
         return instance
 
     @classmethod
@@ -405,14 +413,17 @@ class TransactionService:
                 deleted_at=deleted_at,
                 updated_at=deleted_at,
             )
-        AuditLogService.log(
+        _ip = AuditLogService.get_ip_address(request) if request else None
+        _pk = str(instance.pk)
+        _desc = f'{instance.entry_type} transaction soft delete qilindi. Bog`liq yozuvlar: {len(transactions)}.'
+        db_transaction.on_commit(lambda: AuditLogService.log(
             user=user,
             action='transaction_deleted',
             model_name='Transaction',
-            object_id=str(instance.pk),
-            description=f'{instance.entry_type} transaction soft delete qilindi. Bog`liq yozuvlar: {len(transactions)}.',
-            ip_address=AuditLogService.get_ip_address(request) if request else None,
-        )
+            object_id=_pk,
+            description=_desc,
+            ip_address=_ip,
+        ))
         return instance
 
     @staticmethod
@@ -526,14 +537,17 @@ class TransferService:
             reference_id=str(transfer.pk),
             manager_transfer=transfer,
         )
-        AuditLogService.log(
+        _ip = AuditLogService.get_ip_address(request) if request else None
+        _pk = str(transfer.pk)
+        _desc = f'{manager_account} ga {amount} {currency} -> {target_amount} {target_currency} o`tkazildi.'
+        db_transaction.on_commit(lambda: AuditLogService.log(
             user=user,
             action='manager_transfer_created',
             model_name='ManagerTransfer',
-            object_id=str(transfer.pk),
-            description=f'{manager_account} ga {amount} {currency} -> {target_amount} {target_currency} o`tkazildi.',
-            ip_address=AuditLogService.get_ip_address(request) if request else None,
-        )
+            object_id=_pk,
+            description=_desc,
+            ip_address=_ip,
+        ))
         TelegramNotificationService.notify_transfer(
             amount=amount,
             currency=currency,
@@ -598,14 +612,17 @@ class TransferService:
             reference_id=str(transfer.pk),
             manager_transfer=transfer,
         )
-        AuditLogService.log(
+        _ip = AuditLogService.get_ip_address(request) if request else None
+        _pk = str(transfer.pk)
+        _desc = f'{manager_account} {amount} {currency} mablag`ni qaytardi.'
+        db_transaction.on_commit(lambda: AuditLogService.log(
             user=user,
             action='manager_return_created',
             model_name='ManagerTransfer',
-            object_id=str(transfer.pk),
-            description=f'{manager_account} {amount} {currency} mablag`ni qaytardi.',
-            ip_address=AuditLogService.get_ip_address(request) if request else None,
-        )
+            object_id=_pk,
+            description=_desc,
+            ip_address=_ip,
+        ))
         return transfer
 
     @staticmethod
@@ -750,14 +767,17 @@ class CompanyQuickActionService:
             else:
                 object.balance_usd += target_amount
                 object.save(update_fields=['balance_usd', 'updated_at'])
-            AuditLogService.log(
+            _ip2 = AuditLogService.get_ip_address(request) if request else None
+            _obj_pk = str(object.pk)
+            _obj_desc = f'{object.name} obyektiga {amount} {currency} -> {target_amount} {target_currency} yo`naltirildi.'
+            db_transaction.on_commit(lambda: AuditLogService.log(
                 user=user,
                 action='object_funded',
                 model_name='ConstructionObject',
-                object_id=str(object.pk),
-                description=f'{object.name} obyektiga {amount} {currency} -> {target_amount} {target_currency} yo`naltirildi.',
-                ip_address=AuditLogService.get_ip_address(request) if request else None,
-            )
+                object_id=_obj_pk,
+                description=_obj_desc,
+                ip_address=_ip2,
+            ))
             return transaction
 
         if action == CompanyQuickActionForm.ACTION_OBJECT_RETURN:
@@ -794,14 +814,17 @@ class CompanyQuickActionService:
             else:
                 object.balance_usd -= amount
                 object.save(update_fields=['balance_usd', 'updated_at'])
-            AuditLogService.log(
+            _ip3 = AuditLogService.get_ip_address(request) if request else None
+            _ret_pk = str(object.pk)
+            _ret_desc = f'{object.name} obyektidan {amount} {currency} companyga qaytarildi.'
+            db_transaction.on_commit(lambda: AuditLogService.log(
                 user=user,
                 action='object_funding_returned',
                 model_name='ConstructionObject',
-                object_id=str(object.pk),
-                description=f'{object.name} obyektidan {amount} {currency} companyga qaytarildi.',
-                ip_address=AuditLogService.get_ip_address(request) if request else None,
-            )
+                object_id=_ret_pk,
+                description=_ret_desc,
+                ip_address=_ip3,
+            ))
             return transaction
 
         raise ValidationError({'action': 'Nomalum amal turi.'})

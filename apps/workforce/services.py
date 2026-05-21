@@ -33,10 +33,12 @@ class SalaryPaymentService:
         if payload.get('source_wallet') == WalletTypeChoices.MANAGER and not payload.get('manager_account'):
             payload['manager_account'] = getattr(user, 'manager_account', None)
 
+        # Kategoriyani atomic blokdan OLDIN olamiz — get_or_create lock uzaytirmasin
+        salary_category = TransactionService.get_salary_category()
+
         salary_payment = SalaryPayment(created_by=user, **payload)
         salary_payment.full_clean()
         salary_payment.save()
-        salary_category = TransactionService.get_salary_category()
         if salary_payment.source_wallet == WalletTypeChoices.MANAGER:
             manager_account = salary_payment.manager_account or getattr(user, 'manager_account', None)
             ManagerExpenseService.create_expense(
@@ -100,12 +102,15 @@ class SalaryPaymentService:
                 reference_type='salary_payment',
                 reference_id=str(salary_payment.pk),
             )
-        AuditLogService.log(
+        _ip = AuditLogService.get_ip_address(request) if request else None
+        _pk = str(salary_payment.pk)
+        _name = salary_payment.worker.full_name
+        db_transaction.on_commit(lambda: AuditLogService.log(
             user=user,
             action='salary_payment_created',
             model_name='SalaryPayment',
-            object_id=str(salary_payment.pk),
-            description=f'{salary_payment.worker.full_name} uchun salary payment yaratildi.',
-            ip_address=AuditLogService.get_ip_address(request) if request else None,
-        )
+            object_id=_pk,
+            description=f'{_name} uchun salary payment yaratildi.',
+            ip_address=_ip,
+        ))
         return salary_payment
